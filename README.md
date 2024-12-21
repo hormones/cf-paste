@@ -1,39 +1,20 @@
 # cf-paste
 
-This template should help get you started developing with Vue 3 in Vite.
+Cloudflare全家桶打造的在线匿名剪切板，无需注册登录，即开即用
 
-## Recommended IDE Setup
+## 功能
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- 支持文本
+- 支持上传文件，支持任意格式，最多上传10个文件，总大小100MB内
+- 支持密码保护
+- 可以自定义有效时间，过期后自动删除，可选：1小时、1天、1周、1个月、3个月、半年、1年、2年
 
-## Type Support for `.vue` Imports in TS
+## 使用方式
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+1. 使用随机keyword
 
-## Customize configuration
+   输入网址`https://www.example.com`，会自动调转到随机关键字：`https://paste.cf.moe/xxx`，这个xxx是生成的唯一随机keyword。
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+2. 使用自定义keyword
 
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+   输入网址`https://www.example.com/yyy`，这个`yyy`则是自定义的关键字，自定义关键字规则要求：大于等于3个字符，小于等于20个字符，只能包含字母、数字、下划线
