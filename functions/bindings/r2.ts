@@ -1,3 +1,9 @@
+/**
+ * R2对象存储操作封装
+ * 提供文件上传、下载、删除和列表等基础操作
+ * @module bindings/r2
+ */
+
 import { Env } from '../types/worker-configuration'
 import { Utils } from '../utils'
 import { newErrorResponse, newResponse } from '../utils/response'
@@ -7,18 +13,19 @@ import {
   ReadableStream,
 } from '@cloudflare/workers-types/experimental'
 
-const CHUNK_SIZE = 10 * 1024 * 1024 // 10MB 分片
+/** 分片上传的块大小：10MB */
+const CHUNK_SIZE = 10 * 1024 * 1024
 
 /**
- * R2存储绑定
+ * R2对象存储操作封装
  */
 export const R2 = {
   /**
    * 下载文件
    * @param env 环境变量
-   * @param prefix 文件路径
-   * @param name 文件名称
-   * @returns
+   * @param prefix 文件路径前缀
+   * @param name 文件名
+   * @returns 文件内容流
    */
   download: async (env: Env, { prefix, name }: { prefix: string; name: string }) => {
     const path = `${prefix}/${name}`
@@ -39,18 +46,19 @@ export const R2 = {
         })
       })
       .catch((error) => {
-        console.error('File download error', error)
         return newErrorResponse({ error })
       })
   },
+
   /**
    * 上传文件
-   * @param env  环境变量
-   * @param prefix 文件路径
-   * @param name 文件名称
-   * @param length 文件长度
-   * @param stream 文件流
-   * @returns
+   * 支持大文件分片上传，超过10MB的文件会自动使用分片上传
+   * @param env 环境变量
+   * @param prefix 文件路径前缀
+   * @param name 文件名
+   * @param length 文件大小
+   * @param stream 文件内容流
+   * @returns 上传结果
    */
   upload: async (
     env: Env,
@@ -59,7 +67,7 @@ export const R2 = {
       name,
       length,
       stream,
-    }: { prefix: string; name: string; length: number; stream: ReadableStream },
+    }: { prefix: string; name: string; length: number; stream: ReadableStream<Uint8Array> | null },
   ) => {
     const path = `${prefix}/${name}`
     Utils.log(env, `upload file: ${path}, size: ${Utils.humanReadableSize(length)}`)
@@ -73,7 +81,7 @@ export const R2 = {
         customMetadata: { uploadedAt: new Date().toISOString() },
       })
         .then(() => newResponse({}))
-        .catch((error) => newErrorResponse({error}))
+        .catch((error) => newErrorResponse({ error }))
     }
 
     // 创建分片上传任务
@@ -132,31 +140,42 @@ export const R2 = {
     } catch (error) {
       // 出错时中止分片上传
       await multipartUpload?.abort()
-      return newErrorResponse({error})
+      return newErrorResponse({ error })
     }
   },
+
   /**
    * 删除文件
    * @param env 环境变量
-   * @param prefix 文件路径
-   * @param name 文件名称
-   * @returns
+   * @param prefix 文件路径前缀
+   * @param name 文件名
+   * @returns 删除结果
    */
   delete: async (env: Env, { prefix, name }: { prefix: string; name: string }) => {
     const path = `${prefix}/${name}`
     return env.BUCKET.delete(path)
       .then(() => newResponse({}))
-      .catch((error) => newErrorResponse(error))
+      .catch((error) => newErrorResponse({ error }))
   },
+
   /**
-   * 列出文件
+   * 列出指定前缀下的所有文件
    * @param env 环境变量
-   * @param prefix 文件路径
-   * @returns
+   * @param prefix 文件路径前缀
+   * @returns 文件列表
    */
   list: async (env: Env, { prefix }: { prefix: string }) => {
-    return env.BUCKET.list({ prefix: prefix })
-      .then((objects) => newResponse({ data: objects }))
-      .catch((error) => newErrorResponse({error}))
+    try {
+      const list = await env.BUCKET.list({ prefix: prefix })
+      const data = list.objects.map((obj) => ({
+        name: obj.key,
+        size: obj.size,
+        uploaded: obj.uploaded,
+        etag: obj.etag,
+      }))
+      return newResponse({ data })
+    } catch (error) {
+      return newErrorResponse({ error })
+    }
   },
 }

@@ -1,14 +1,29 @@
+/**
+ * D1数据库操作封装
+ * 提供基础的CRUD操作，支持灵活的查询条件
+ * @module bindings/d1
+ */
+
 import { Env } from '../types/worker-configuration'
 
+/** 数据库查询操作符 */
 type Operator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'LIKE' | 'IN'
 
+/** 查询条件结构 */
 type WhereCondition = {
+  /** 字段名 */
   key: string
+  /** 字段值 */
   value: string | number | Array<string | number>
+  /** 操作符，默认为 = */
   operator?: Operator
 }
 
-// 提取为独立函数
+/**
+ * 处理SQL查询条件
+ * @param where 查询条件数组
+ * @returns 处理后的SQL条件子句和参数值
+ */
 const processWhere = (where?: WhereCondition[]) => {
   if (!where || where.length === 0) {
     return { whereClause: '', values: [] }
@@ -33,11 +48,15 @@ const processWhere = (where?: WhereCondition[]) => {
 }
 
 /**
- * D1数据库绑定
+ * D1数据库操作封装
  */
 export const D1 = {
   /**
    * 查询单条数据
+   * @param env 环境变量
+   * @param table 表名
+   * @param where 查询条件
+   * @returns 单条记录或null
    */
   first: async <T>(env: Env, table: string, where?: WhereCondition[]): Promise<T | null> => {
     let sql = `SELECT * FROM ${table}`
@@ -49,9 +68,13 @@ export const D1 = {
   },
 
   /**
-   * 分页查询多条数据
+   * 分页查询数据
+   * @param env 环境变量
+   * @param table 表名
+   * @param where 查询条件
    * @param page 页码，从1开始
    * @param size 每页大小，-1表示不限制
+   * @returns 数据列表
    */
   page: async <T>(
     env: Env,
@@ -76,7 +99,12 @@ export const D1 = {
   },
 
   /**
-   * 插入数据，返回插入的id
+   * 插入数据
+   * @param env 环境变量
+   * @param table 表名
+   * @param data 要插入的数据
+   * @returns 插入记录的ID
+   * @throws 插入失败时抛出错误
    */
   insert: async (
     env: Env,
@@ -100,6 +128,11 @@ export const D1 = {
 
   /**
    * 更新数据
+   * @param env 环境变量
+   * @param table 表名
+   * @param data 要更新的数据
+   * @param where 更新条件
+   * @returns 更新的记录数
    */
   update: async (
     env: Env,
@@ -124,6 +157,10 @@ export const D1 = {
 
   /**
    * 删除数据
+   * @param env 环境变量
+   * @param table 表名
+   * @param where 删除条件
+   * @returns 删除的记录数
    */
   delete: async (env: Env, table: string, where?: WhereCondition[]): Promise<number> => {
     let sql = `DELETE FROM ${table}`

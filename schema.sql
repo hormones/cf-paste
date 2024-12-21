@@ -7,7 +7,6 @@ CREATE TABLE
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         word TEXT NOT NULL, -- 关键词
         password TEXT, -- 密码
-        files_size INTEGER DEFAULT 0, -- 已上传的文件总大小，单位B
         expire_time DATETIME NOT NULL, -- 过期时间
         create_time DATETIME DEFAULT CURRENT_TIMESTAMP -- 创建时间
         update_time DATETIME DEFAULT CURRENT_TIMESTAMP -- 最后一次更新时间

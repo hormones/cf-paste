@@ -1,9 +1,13 @@
+/**
+ * 通用工具函数集合
+ * @module utils/index
+ */
+
 import { Env } from '../types/worker-configuration'
 
 /**
- * function日志统一打印规范
+ * 统一日志打印格式
  * 格式: 2024-12-20T15:00:00.000Z [requestId] [location] [functionPath][method] msg
- *
  * @param env 环境变量
  * @param msg 日志内容
  * @param func 日志打印函数
@@ -15,11 +19,17 @@ const consoleLog = (env: Env, msg: string, func: (msg: string) => void) => {
   )
 }
 
+/**
+ * 工具函数集合
+ */
 export const Utils = {
   /**
    * 将字节数转换为人类可读的文件大小
+   * @example
+   * humanReadableSize(1024) // "1.00 KB"
+   * humanReadableSize(1234567) // "1.18 MB"
    * @param size 字节数
-   * @returns 人类可读的文件大小
+   * @returns 格式化后的文件大小
    */
   humanReadableSize(size: number) {
     const units = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -30,24 +40,27 @@ export const Utils = {
     }
     return `${size.toFixed(2)} ${units[unitIndex]}`
   },
+
   /**
-   * 日志打印
+   * 打印普通日志
    * @param env 环境变量
    * @param msg 日志内容
    */
   log(env: Env, msg: string) {
     consoleLog(env, msg, console.log)
   },
+
   /**
-   * 警告日志打印
+   * 打印警告日志
    * @param env 环境变量
    * @param msg 日志内容
    */
   warn(env: Env, msg: string) {
     consoleLog(env, msg, console.warn)
   },
+
   /**
-   * 错误日志打印
+   * 打印错误日志
    * @param env 环境变量
    * @param msg 日志内容
    */
