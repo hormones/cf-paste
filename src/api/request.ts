@@ -7,6 +7,7 @@ import type {
   InternalAxiosRequestConfig,
 } from 'axios'
 import type { ApiResponse } from '@/types'
+import { useWordStore } from '@/stores'
 
 // 与后端约定的请求成功码
 const SUCCESS_CODE = 0
@@ -158,4 +159,8 @@ export const request = new Request({
   baseURL: '/api',
   timeout: 5000,
   interceptorHooks: transform,
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Word': useWordStore().word,
+  },
 })
