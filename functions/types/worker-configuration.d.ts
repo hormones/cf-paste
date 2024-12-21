@@ -12,7 +12,8 @@ export interface Env {
 }
 
 interface ApiResponse<T = never> {
-  code: number
-  data: T | null
-  msg: string
+  code?: number
+  data?: T | null
+  msg?: string
 }
+

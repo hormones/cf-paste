@@ -1,11 +1,12 @@
 import { AutoRouter } from 'itty-router'
 import { newErrorResponse } from '../utils/response'
+import data from './data'
+import file from './file'
 
 const router = AutoRouter()
-
-// TODO...构建子路由
-// router.all('/api/customer/*', customer.fetch)
-
+// 构建子路由
+router.all('/api/data/*', data.fetch)
+router.all('/api/file/*', file.fetch)
 // 默认路由
 router.all('/api/*', () => new Response('Resource Not Found', { status: 404 }))
 

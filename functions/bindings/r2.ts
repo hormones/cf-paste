@@ -9,24 +9,29 @@ import {
 
 const CHUNK_SIZE = 10 * 1024 * 1024 // 10MB 分片
 
+/**
+ * R2存储绑定
+ */
 export const R2 = {
   /**
    * 下载文件
    * @param env 环境变量
-   * @param filename 文件名称
+   * @param prefix 文件路径
+   * @param name 文件名称
    * @returns
    */
-  download: async (env: Env, { filename }: { filename: string }) => {
+  download: async (env: Env, { prefix, name }: { prefix: string; name: string }) => {
+    const path = `${prefix}/${name}`
     // 返回流
-    return env.BUCKET.get(filename)
+    return env.BUCKET.get(path)
       .then((object) => {
         if (!object) {
-          return newResponse(null, 'File not found', 404, 404)
+          return newErrorResponse({ msg: 'File not found', status: 404 })
         }
         return new Response(object.body as unknown as BodyInit, {
           headers: {
             'Content-Type': 'application/octet-stream',
-            'Content-Disposition': `attachment; filename="${filename}"`,
+            'Content-Disposition': `attachment; filename="${name}"`,
             'Content-Length': object.size.toString(),
             'Accept-Ranges': 'bytes',
             etag: object.httpEtag,
@@ -35,39 +40,46 @@ export const R2 = {
       })
       .catch((error) => {
         console.error('File download error', error)
-        return newErrorResponse(error)
+        return newErrorResponse({ error })
       })
   },
   /**
    * 上传文件
    * @param env  环境变量
-   * @param filename 文件名称
+   * @param prefix 文件路径
+   * @param name 文件名称
    * @param length 文件长度
    * @param stream 文件流
    * @returns
    */
   upload: async (
     env: Env,
-    { filename, length, stream }: { filename: string; length: number; stream: ReadableStream },
+    {
+      prefix,
+      name,
+      length,
+      stream,
+    }: { prefix: string; name: string; length: number; stream: ReadableStream },
   ) => {
-    Utils.log(env, `upload file: ${filename}, size: ${Utils.humanReadableSize(length)}`)
+    const path = `${prefix}/${name}`
+    Utils.log(env, `upload file: ${path}, size: ${Utils.humanReadableSize(length)}`)
     if (!stream || length <= 0) {
-      return newErrorResponse(null, 'file is required')
+      return newErrorResponse({ msg: 'file is required' })
     }
     // 小文件直接上传
     if (length <= CHUNK_SIZE) {
-      return env.BUCKET.put(filename, stream, {
+      return env.BUCKET.put(path, stream, {
         httpMetadata: { contentType: 'application/octet-stream' },
         customMetadata: { uploadedAt: new Date().toISOString() },
       })
-        .then(() => newResponse(null, 'success'))
-        .catch((error) => newErrorResponse(error))
+        .then(() => newResponse({}))
+        .catch((error) => newErrorResponse({error}))
     }
 
     // 创建分片上传任务
     let multipartUpload: R2MultipartUpload | null = null
     try {
-      multipartUpload = await env.BUCKET.createMultipartUpload(filename, {
+      multipartUpload = await env.BUCKET.createMultipartUpload(path, {
         httpMetadata: { contentType: 'application/octet-stream' },
         customMetadata: { uploadedAt: new Date().toISOString() },
       })
@@ -116,33 +128,35 @@ export const R2 = {
       }
 
       // 完成分片上传
-      return multipartUpload.complete(uploadedParts).then(() => newResponse(null, 'success'))
+      return multipartUpload.complete(uploadedParts).then(() => newResponse({}))
     } catch (error) {
       // 出错时中止分片上传
       await multipartUpload?.abort()
-      return newErrorResponse(error)
+      return newErrorResponse({error})
     }
   },
   /**
    * 删除文件
    * @param env 环境变量
-   * @param filename 文件名称
+   * @param prefix 文件路径
+   * @param name 文件名称
    * @returns
    */
-  delete: async (env: Env, { filename }: { filename: string }) => {
-    return env.BUCKET.delete(filename)
-      .then(() => newResponse(null, 'success'))
+  delete: async (env: Env, { prefix, name }: { prefix: string; name: string }) => {
+    const path = `${prefix}/${name}`
+    return env.BUCKET.delete(path)
+      .then(() => newResponse({}))
       .catch((error) => newErrorResponse(error))
   },
   /**
    * 列出文件
    * @param env 环境变量
-   * @param prefix 文件前缀
+   * @param prefix 文件路径
    * @returns
    */
   list: async (env: Env, { prefix }: { prefix: string }) => {
-    return env.BUCKET.list({ prefix })
-      .then((objects) => newResponse(objects))
-      .catch((error) => newErrorResponse(error))
+    return env.BUCKET.list({ prefix: prefix })
+      .then((objects) => newResponse({ data: objects }))
+      .catch((error) => newErrorResponse({error}))
   },
 }
