@@ -5,9 +5,9 @@ const router = AutoRouter({ base: '/api/file' })
 
 router.get('/download', async (request, env) => {
   // 从header中获取prefix
-  const keyword = request.headers['x-keyword']
+  const word = request.headers['x-word']
   return R2.download(env, {
-    prefix: keyword,
+    prefix: word,
     name: 'test.txt',
   })
 })

@@ -1,11 +1,11 @@
 -- CloudFlare D1 Database
--- Keywords Table
-DROP TABLE IF EXISTS keywords;
+-- Keyword Table
+DROP TABLE IF EXISTS keyword;
 
 CREATE TABLE
-    keywords (
+    keyword (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        keyword TEXT NOT NULL, -- 关键词
+        word TEXT NOT NULL, -- 关键词
         password TEXT, -- 密码
         files_size INTEGER DEFAULT 0, -- 已上传的文件总大小，单位B
         expire_time DATETIME NOT NULL, -- 过期时间

@@ -23,6 +23,6 @@ export function newErrorResponse<T>({
   status?: number
 } & ApiResponse<T>): Response {
   msg = msg || (error && error.message) || 'function execute error'
-  console.error('request error!\n', error)
+  console.error(`request error: ${msg}`, error)
   return new Response(JSON.stringify({ code, msg }), { status })
 }

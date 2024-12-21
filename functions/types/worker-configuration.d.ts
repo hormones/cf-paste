@@ -9,6 +9,7 @@ export interface Env {
   method: string
   functionPath: string
   location: string
+  word: string
 }
 
 interface ApiResponse<T = never> {
@@ -17,3 +18,15 @@ interface ApiResponse<T = never> {
   msg?: string
 }
 
+export interface Keyword {
+  id: number
+  word: string
+  password: string
+  files_size: number
+  expire_time: string
+  create_time: string
+  update_time: string
+  random_key: string
+  last_view_time: string
+  view_count: number
+}
