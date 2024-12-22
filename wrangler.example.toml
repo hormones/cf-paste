@@ -1,0 +1,12 @@
+name = "cf-paste"
+compatibility_date = "2024-12-22"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "cf-paste"
+database_id = "xxxxxxxxxxxxxxxxxxx"
+
+[[r2_buckets]]
+binding = "CF_PASTE"
+bucket_name = "cf-paste"
