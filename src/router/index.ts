@@ -1,9 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import { useWordStore } from '@/stores'
 import { Utils } from '@/utils'
-
-const store = useWordStore()
+import { useWordStore } from '@/stores'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,6 +20,7 @@ const router = createRouter({
       name: 'home',
       component: HomeView,
       beforeEnter: (to, from, next) => {
+        const store = useWordStore()
         const word = to.path.slice(1) // 移除开头的 /
         // 如果word无效，重定向到随机word
         if (!Utils.isValidWord(word)) {
@@ -35,5 +34,5 @@ const router = createRouter({
     },
   ],
 })
-
 export default router
+

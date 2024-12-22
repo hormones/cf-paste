@@ -39,10 +39,9 @@ export const onRequest = async (context) => {
     context.env.method = context.request.method
     context.env.functionPath = context.functionPath
     context.env.location = `${context.request?.cf?.city}-${context.request?.cf?.country}`
-    context.env.word = context.request.headers['x-word']
+    context.env.word = context.request.headers.get('x-word')
     return router.fetch(context.request, context.env)
   } catch (error) {
-    console.error('Function request error', error)
-    return newErrorResponse(error)
+    return newErrorResponse(context.env, { error })
   }
 }

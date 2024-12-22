@@ -5,6 +5,7 @@
  */
 
 import { Env, WhereCondition } from '../types/worker-configuration'
+import { Utils } from '../utils'
 
 /**
  * 处理SQL查询条件
@@ -98,6 +99,7 @@ export const D1 = {
     const sql = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`
     const values = Object.values(data)
 
+    Utils.log(env, sql, values)
     return env.DB.prepare(sql)
       .bind(...values)
       .run()
@@ -105,6 +107,10 @@ export const D1 = {
         if (result.meta?.last_row_id) {
           return result.meta.last_row_id
         }
+        throw new Error(`insert failed, affected rows: ${result.meta?.changes}`)
+      })
+      .catch((error) => {
+        Utils.error(env, 'insert failed', error, sql, values)
         throw new Error('insert failed')
       })
   },

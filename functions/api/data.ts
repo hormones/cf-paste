@@ -3,7 +3,6 @@ import { Env, Keyword, KeywordDB } from '../types/worker-configuration'
 import { D1 } from '../bindings/d1'
 import { R2 } from '../bindings/r2'
 import { newResponse } from '../utils/response'
-import { ReadableStream } from '@cloudflare/workers-types/experimental'
 import { Constant } from '../constant'
 
 const keyword = 'keyword'
@@ -17,17 +16,16 @@ const router = AutoRouter({ base: '/api/data' })
  * @returns {Promise<Response>} 关键词信息
  */
 router.get('', async (request, env: Env) => {
-  // 获取R2中word文件夹下的index.txt文件内容
-  const content = await (
-    await R2.download(env, { prefix: env.word, name: Constant.PASTE_NAME })
-  ).text()
   // 获取数据库中的关键词信息
-  return D1.first<KeywordDB, Keyword>(env, keyword, [{ key, value: env.word }]).then((data) => {
-    if (data) {
-      data.content = content
-    }
-    return newResponse({ data })
-  })
+  return D1.first<KeywordDB, Keyword>(env, keyword, [{ key, value: env.word }]).then(
+    async (data) => {
+      if (data) {
+        // 获取R2中word文件夹下的index.txt文件内容
+        data.content = await downloadContent(env, env.word)
+      }
+      return newResponse({ data })
+    },
+  )
 })
 
 /**
@@ -85,15 +83,23 @@ router.delete('', async (request, env: Env) => {
 const uploadContent = async (env: Env, word: string, content: string) => {
   if (content) {
     const contentBuffer = new TextEncoder().encode(content)
-    const length = contentBuffer.length
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(contentBuffer)
-        controller.close()
-      },
+    // 使用 Response 创建一个固定长度的流
+    await R2.upload(env, {
+      prefix: word,
+      name: Constant.PASTE_NAME,
+      length: contentBuffer.length,
+      // @ts-expect-error 类型错误
+      stream: new Response(contentBuffer).body,
     })
-    await R2.upload(env, { prefix: word, name: Constant.PASTE_NAME, length, stream })
   }
+}
+
+const downloadContent = async (env: Env, word: string) => {
+  return await R2.download(env, { prefix: word, name: Constant.PASTE_NAME })
+    .then((res) => res.text())
+    .catch(() => {
+      return ''
+    })
 }
 
 export default { ...router }

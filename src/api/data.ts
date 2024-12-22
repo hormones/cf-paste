@@ -15,7 +15,7 @@ export const dataApi = {
   /**
    * 创建新的word
    */
-  createKeyword(data: Partial<Keyword>) {
+  createKeyword(data: Keyword) {
     return request.post<number>('/data', data)
   },
 

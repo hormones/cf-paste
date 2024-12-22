@@ -7,16 +7,16 @@ export interface ApiResponse<T = never> {
 
 /** 关键词数据结构 */
 export interface Keyword {
-  id: number
+  id?: number
   word: string
+  view_word: string
   content?: string
   password?: string
-  expire_time: string
-  create_time: string
-  update_time: string
-  random_key: string
-  last_view_time: string
-  view_count: number
+  expire_time: number
+  create_time?: number
+  update_time?: number
+  last_view_time?: number
+  view_count?: number
 }
 
 /** 文件信息结构 */

@@ -30,24 +30,20 @@ export const R2 = {
   download: async (env: Env, { prefix, name }: { prefix: string; name: string }) => {
     const path = `${prefix}/${name}`
     // 返回流
-    return env.BUCKET.get(path)
-      .then((object) => {
-        if (!object) {
-          return newErrorResponse({ msg: 'File not found', status: 404 })
-        }
-        return new Response(object.body as unknown as BodyInit, {
-          headers: {
-            'Content-Type': 'application/octet-stream',
-            'Content-Disposition': `attachment; filename="${name}"`,
-            'Content-Length': object.size.toString(),
-            'Accept-Ranges': 'bytes',
-            etag: object.httpEtag,
-          },
-        })
+    return env.CF_PASTE.get(path).then((object) => {
+      if (!object) {
+        return newResponse({ msg: 'File not found', status: 404 })
+      }
+      return new Response(object.body as unknown as BodyInit, {
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          'Content-Disposition': `attachment; filename="${name}"`,
+          'Content-Length': object.size.toString(),
+          'Accept-Ranges': 'bytes',
+          etag: object.httpEtag,
+        },
       })
-      .catch((error) => {
-        return newErrorResponse({ error })
-      })
+    })
   },
 
   /**
@@ -72,22 +68,22 @@ export const R2 = {
     const path = `${prefix}/${name}`
     Utils.log(env, `upload file: ${path}, size: ${Utils.humanReadableSize(length)}`)
     if (!stream || length <= 0) {
-      return newErrorResponse({ msg: 'file is required' })
+      return newErrorResponse(env, { msg: 'file is required' })
     }
     // 小文件直接上传
     if (length <= CHUNK_SIZE) {
-      return env.BUCKET.put(path, stream, {
+      return env.CF_PASTE.put(path, stream, {
         httpMetadata: { contentType: 'application/octet-stream' },
         customMetadata: { uploadedAt: new Date().toISOString() },
       })
         .then(() => newResponse({}))
-        .catch((error) => newErrorResponse({ error }))
+        .catch((error) => newErrorResponse(env, { error }))
     }
 
     // 创建分片上传任务
     let multipartUpload: R2MultipartUpload | null = null
     try {
-      multipartUpload = await env.BUCKET.createMultipartUpload(path, {
+      multipartUpload = await env.CF_PASTE.createMultipartUpload(path, {
         httpMetadata: { contentType: 'application/octet-stream' },
         customMetadata: { uploadedAt: new Date().toISOString() },
       })
@@ -140,7 +136,7 @@ export const R2 = {
     } catch (error) {
       // 出错时中止分片上传
       await multipartUpload?.abort()
-      return newErrorResponse({ error })
+      return newErrorResponse(env, { error })
     }
   },
 
@@ -153,9 +149,9 @@ export const R2 = {
    */
   delete: async (env: Env, { prefix, name }: { prefix: string; name: string }) => {
     const path = `${prefix}/${name}`
-    return env.BUCKET.delete(path)
+    return env.CF_PASTE.delete(path)
       .then(() => newResponse({}))
-      .catch((error) => newErrorResponse({ error }))
+      .catch((error) => newErrorResponse(env, { error }))
   },
 
   /**
@@ -166,7 +162,7 @@ export const R2 = {
    */
   list: async (env: Env, { prefix }: { prefix: string }) => {
     try {
-      const list = await env.BUCKET.list({ prefix: prefix })
+      const list = await env.CF_PASTE.list({ prefix: prefix })
       const data = list.objects.map((obj) => ({
         name: obj.key,
         size: obj.size,
@@ -175,7 +171,7 @@ export const R2 = {
       }))
       return newResponse({ data })
     } catch (error) {
-      return newErrorResponse({ error })
+      return newErrorResponse(env, { error })
     }
   },
 }

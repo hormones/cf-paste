@@ -12,7 +12,7 @@ export interface Env {
   /** D1数据库实例 */
   DB: D1Database
   /** R2存储桶实例 */
-  BUCKET: R2Bucket
+  CF_PASTE: R2Bucket
   /** 请求唯一标识 */
   requestId: string
   /** 请求方法 */
@@ -50,15 +50,15 @@ export interface Keyword {
   /** 密码 */
   password?: string
   /** 过期时间 */
-  expire_time: string
+  expire_time: number
   /** 创建时间 */
-  create_time: string
+  create_time: number
   /** 更新时间 */
-  update_time: string
+  update_time: number
   /** 随机密钥 */
-  random_key: string
+  view_word: string
   /** 最后访问时间 */
-  last_view_time: string
+  last_view_time: number
   /** 访问次数 */
   view_count: number
 }

@@ -12,10 +12,16 @@ import { Env } from '../types/worker-configuration'
  * @param msg 日志内容
  * @param func 日志打印函数
  */
-const consoleLog = (env: Env, msg: string, func: (msg: string) => void) => {
+const consoleLog = (
+  env: Env,
+  func: (msg: string, ...optionalParams: unknown[]) => void,
+  msg: string,
+  ...optionalParams: unknown[]
+) => {
   const timestamp = new Date().toISOString()
   func(
     `${timestamp} [${env.requestId}] [${env.location}] [${env.functionPath}][${env.method}] ${msg}`,
+    ...optionalParams,
   )
 }
 
@@ -46,8 +52,8 @@ export const Utils = {
    * @param env 环境变量
    * @param msg 日志内容
    */
-  log(env: Env, msg: string) {
-    consoleLog(env, msg, console.log)
+  log(env: Env, msg: string, ...optionalParams: unknown[]) {
+    consoleLog(env, console.log, msg, ...optionalParams)
   },
 
   /**
@@ -55,8 +61,8 @@ export const Utils = {
    * @param env 环境变量
    * @param msg 日志内容
    */
-  warn(env: Env, msg: string) {
-    consoleLog(env, msg, console.warn)
+  warn(env: Env, msg: string, ...optionalParams: unknown[]) {
+    consoleLog(env, console.warn, msg, ...optionalParams)
   },
 
   /**
@@ -64,7 +70,7 @@ export const Utils = {
    * @param env 环境变量
    * @param msg 日志内容
    */
-  error(env: Env, msg: string) {
-    consoleLog(env, msg, console.error)
+  error(env: Env, msg: string, ...optionalParams: unknown[]) {
+    consoleLog(env, console.error, msg, ...optionalParams)
   },
 }

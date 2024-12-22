@@ -4,7 +4,8 @@
  * @module utils/response
  */
 
-import { ApiResponse } from '../types/worker-configuration'
+import { ApiResponse, Env } from '../types/worker-configuration'
+import { Utils } from './index'
 
 /**
  * 创建成功响应
@@ -32,16 +33,19 @@ export function newResponse<T>({
  * @param status HTTP状态码
  * @param code 业务状态码
  */
-export function newErrorResponse<T>({
-  error,
-  msg = '',
-  status = 500,
-  code = status,
-}: {
-  error?: any
-  status?: number
-} & ApiResponse<T>): Response {
+export function newErrorResponse<T>(
+  env: Env,
+  {
+    error,
+    msg = '',
+    status = 500,
+    code = status,
+  }: {
+    error?: any
+    status?: number
+  } & ApiResponse<T>,
+): Response {
   msg = msg || (error && error.message) || 'function execute error'
-  console.error(`request error: ${msg}`, error)
+  Utils.error(env, `request error: ${msg}`, error)
   return new Response(JSON.stringify({ code, msg }), { status })
 }
