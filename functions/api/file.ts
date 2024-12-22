@@ -10,6 +10,7 @@ import { Constant } from '../constant'
 const router = AutoRouter({ base: '/api/file' })
 
 /**
+/**
  * 列出指定前缀下的所有文件
  * @route GET /api/file/list
  * @returns {Promise<Response>} 文件列表
@@ -26,7 +27,7 @@ router.get('/list', async (request, env) => {
  * @returns {Promise<Response>} 文件内容
  */
 router.get('/:name', async (request, env) => {
-  const name = request.param('name')
+  const { name } = request.params
   const prefix = `${env.word}/${Constant.FILE_FOLDER}`
   return R2.download(env, { prefix, name })
 })
@@ -40,7 +41,7 @@ router.get('/:name', async (request, env) => {
  * @returns {Promise<Response>} 上传结果
  */
 router.post('/:name', async (request, env) => {
-  const name = request.param('name')
+  const { name } = request.params
   const length = request.headers.get('content-length')
   const prefix = `${env.word}/${Constant.FILE_FOLDER}`
   return R2.upload(env, {
@@ -58,7 +59,7 @@ router.post('/:name', async (request, env) => {
  * @returns {Promise<Response>} 删除结果
  */
 router.delete('/:name', async (request, env) => {
-  const name = request.param('name')
+  const { name } = request.params
   const prefix = `${env.word}/${Constant.FILE_FOLDER}`
   return R2.delete(env, { prefix, name })
 })

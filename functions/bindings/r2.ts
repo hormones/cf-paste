@@ -164,7 +164,7 @@ export const R2 = {
     try {
       const list = await env.CF_PASTE.list({ prefix: prefix })
       const data = list.objects.map((obj) => ({
-        name: obj.key,
+        name: obj.key.replace(prefix + '/', ''),
         size: obj.size,
         uploaded: obj.uploaded,
         etag: obj.etag,

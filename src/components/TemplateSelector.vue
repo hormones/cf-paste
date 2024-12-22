@@ -21,8 +21,10 @@ const loadTemplate = async (templateId: TemplateKey) => {
 
 // 监听模板变化
 watch(model, (value = 'default') => {
-  localStorage.setItem('template', value)
-  loadTemplate(value)
+  if (value) {
+    localStorage.setItem('template', value)
+    loadTemplate(value)
+  }
 }, { immediate: true })
 </script>
 
@@ -31,7 +33,6 @@ watch(model, (value = 'default') => {
     <el-select
       v-model="model"
       placeholder="选择模板"
-      size="large"
       style="width: 120px"
     >
       <el-option
@@ -46,9 +47,6 @@ watch(model, (value = 'default') => {
 
 <style scoped>
 .template-selector {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 100;
+  display: inline-block;
 }
 </style>

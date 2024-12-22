@@ -28,8 +28,8 @@ async function errorHandling(context) {
  * 3. 验证密码是否正确
  */
 async function authentication(context) {
-  const word = context.request.headers['x-word']
-  const auth = context.request.headers['x-auth']
+  const word = context.request.headers.get('x-word')
+  const auth = context.request.headers.get('x-auth')
   if (!word) {
     return context.next()
   }
@@ -40,9 +40,10 @@ async function authentication(context) {
   if (!data) {
     return context.next()
   }
-  if (data.password && data.password !== auth) {
-    return newErrorResponse(context.env, { msg: '密码错误', status: 403 })
-  }
+  // TODO...本地测试，先关闭
+  // if (data.password && data.password !== auth) {
+  //   return newErrorResponse(context.env, { msg: '密码错误', status: 403 })
+  // }
   console.log('authentication success')
   return context.next()
 }

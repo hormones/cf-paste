@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, shallowRef } from 'vue'
+import { ref, shallowRef, onMounted } from 'vue'
 import type { Component } from 'vue'
 import type { TemplateKey } from '@/config/templates'
 import TemplateSelector from '@/components/TemplateSelector.vue'
+import { TEMPLATES } from '@/config/templates'
 
 const templateId = ref<TemplateKey>((localStorage.getItem('template') || 'default') as TemplateKey)
 const currentTemplate = shallowRef<Component>()
@@ -10,14 +11,29 @@ const currentTemplate = shallowRef<Component>()
 const handleTemplateLoaded = (component: Component) => {
   currentTemplate.value = component
 }
+
+// 初始加载默认模板
+onMounted(async () => {
+  const module = await TEMPLATES[templateId.value].component()
+  currentTemplate.value = module.default
+})
 </script>
 
 <template>
   <Suspense>
     <template #default>
       <main>
-        <TemplateSelector v-model="templateId" @template-loaded="handleTemplateLoaded" />
-        <component :is="currentTemplate" />
+        <component
+          :is="currentTemplate"
+          v-if="currentTemplate"
+        >
+          <template #template-selector>
+            <TemplateSelector
+              v-model="templateId"
+              @template-loaded="handleTemplateLoaded"
+            />
+          </template>
+        </component>
       </main>
     </template>
     <template #fallback>

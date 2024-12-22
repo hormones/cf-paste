@@ -8,7 +8,7 @@ export interface ApiResponse<T = never> {
 /** 关键词数据结构 */
 export interface Keyword {
   id?: number
-  word: string
+  word?: string
   view_word: string
   content?: string
   password?: string
@@ -26,3 +26,9 @@ export interface FileInfo {
   uploaded: string
   etag: string
 }
+
+/** 文件上传限制 */
+export const FILE_UPLOAD_LIMITS = {
+  MAX_FILES: 10,
+  MAX_TOTAL_SIZE: 100 * 1024 * 1024, // 100MB in bytes
+} as const

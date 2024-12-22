@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
+import Cookies from 'js-cookie'
 import type {
   AxiosInstance,
   AxiosRequestConfig,
@@ -47,7 +48,8 @@ export interface InterceptorHooks {
 // 请求拦截器
 const transform: InterceptorHooks = {
   requestInterceptor(config) {
-    // 请求头部处理，如添加 token
+    // 请求头部处理，追加cookie键值对：word:123
+    Cookies.set('word', useWordStore().word)
     return config
   },
   requestInterceptorCatch(err) {

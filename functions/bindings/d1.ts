@@ -142,6 +142,7 @@ export const D1 = {
     sql += whereClause
     values.push(...whereValues)
 
+    Utils.log(env, sql, values)
     return env.DB.prepare(sql)
       .bind(...values)
       .run()

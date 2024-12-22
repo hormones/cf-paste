@@ -8,6 +8,7 @@ import { AutoRouter, error } from 'itty-router'
 import { newErrorResponse } from '../utils/response'
 import data from './data'
 import file from './file'
+import { Utils } from '../utils'
 
 const router = AutoRouter()
 
@@ -39,7 +40,7 @@ export const onRequest = async (context) => {
     context.env.method = context.request.method
     context.env.functionPath = context.functionPath
     context.env.location = `${context.request?.cf?.city}-${context.request?.cf?.country}`
-    context.env.word = context.request.headers.get('x-word')
+    context.env.word = Utils.getCookie(context.request, 'word')
     return router.fetch(context.request, context.env)
   } catch (error) {
     return newErrorResponse(context.env, { error })

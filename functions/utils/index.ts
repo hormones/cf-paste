@@ -47,6 +47,14 @@ export const Utils = {
     return `${size.toFixed(2)} ${units[unitIndex]}`
   },
 
+  getCookie(request: Request, name: string) {
+    // 获取cookie
+    const cookies = request.headers.get('Cookie')
+    if (!cookies) return null
+    const cookie = cookies.split(';').find((c) => c.trim().startsWith(`${name}=`))
+    return cookie ? cookie.split('=')[1] : null
+  },
+
   /**
    * 打印普通日志
    * @param env 环境变量
