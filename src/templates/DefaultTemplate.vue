@@ -7,6 +7,7 @@ import type { Keyword, FileInfo } from '../types'
 import { useWordStore } from '@/stores'
 import { Utils } from '@/utils'
 import { FILE_UPLOAD_LIMITS } from '@/types'
+import type { UploadRequestOptions } from 'element-plus'
 
 const wordStore = useWordStore()
 
@@ -60,7 +61,7 @@ const fetchContent = async () => {
       password.value = data.password || ''
     }
     fileList.value = files || []
-  } catch (error) {
+  } catch (_error: any) {
     ElMessage.error('获取内容失败')
   } finally {
     loading.value = false
@@ -68,15 +69,15 @@ const fetchContent = async () => {
 }
 
 // 添加防抖函数
-const debounce = (fn: Function, delay: number) => {
+const debounce = <T extends (...args: any[]) => any>(fn: T, delay: number) => {
   let timer: number | null = null
-  return (...args: any[]) => {
+  return (...args: Parameters<T>) => {
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => fn(...args), delay)
   }
 }
 
-// 修改保存函数，使其可以���存
+// 修改保存函数，使其可以存
 const handleSave = async (silent = false) => {
   if (!keyword.value.content && fileList.value.length === 0) {
     if (!silent) ElMessage.warning('请输入内容或上传文件')
@@ -102,7 +103,7 @@ const handleSave = async (silent = false) => {
     }
     if (!silent) ElMessage.success('保存成功')
     await fetchContent()
-  } catch (error) {
+  } catch (_error: any) {
     if (!silent) ElMessage.error('保存失败')
   } finally {
     loading.value = false
@@ -132,7 +133,7 @@ const handleFileDelete = async (fileName: string) => {
     await fileApi.deleteFile(fileName)
     ElMessage.success('删除成功')
     await fetchContent()
-  } catch (error) {
+  } catch (_error: any) {
     ElMessage.error('删除失败')
   }
 }
@@ -150,7 +151,7 @@ const handleDelete = async () => {
       expire_time: expiryOptions[2].value + Date.now(),
     }
     fileList.value = []
-  } catch (error) {
+  } catch (_error: any) {
     ElMessage.error('删除失败')
   }
 }
@@ -221,7 +222,7 @@ const qrCodeUrl = computed(() => {
                 <el-upload
                   :auto-upload="true"
                   :show-file-list="false"
-                  :http-request="({ file }) => handleFileUpload(file)"
+                  :http-request="(options: UploadRequestOptions) => handleFileUpload(options.file)"
                   :disabled="uploadLoading || fileList.length >= FILE_UPLOAD_LIMITS.MAX_FILES"
                 >
                   <el-button
@@ -390,7 +391,7 @@ const qrCodeUrl = computed(() => {
   text-align: center;
 }
 
-/* 美化输入框和标签页 */
+/* 美化输入框和标��页 */
 :deep(.el-tabs__header) {
   margin-bottom: 20px;
 }

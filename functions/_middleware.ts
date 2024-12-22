@@ -7,6 +7,7 @@
 import { newErrorResponse } from './utils/response'
 import { D1 } from './bindings/d1'
 import { Keyword, KeywordDB } from './types/worker-configuration'
+import { Utils } from './utils'
 
 /**
  * 错误处理中间件
@@ -28,8 +29,8 @@ async function errorHandling(context) {
  * 3. 验证密码是否正确
  */
 async function authentication(context) {
-  const word = context.request.headers.get('x-word')
-  const auth = context.request.headers.get('x-auth')
+  const word = Utils.getCookie(context.request, 'word')
+  const auth = Utils.getCookie(context.request, 'auth')
   if (!word) {
     return context.next()
   }
