@@ -1,7 +1,12 @@
 import { AutoRouter } from 'itty-router'
 import { R2 } from '../bindings/r2'
 import { ReadableStream } from '@cloudflare/workers-types/experimental'
+import { Constant } from '../constant'
 
+/**
+ * 文件相关API
+ * 存储在R2中，每个word下都有一个files文件夹
+ */
 const router = AutoRouter({ base: '/api/file' })
 
 /**
@@ -10,7 +15,8 @@ const router = AutoRouter({ base: '/api/file' })
  * @returns {Promise<Response>} 文件列表
  */
 router.get('/list', async (request, env) => {
-  return R2.list(env, { prefix: env.word })
+  const prefix = `${env.word}/${Constant.FILE_FOLDER}`
+  return R2.list(env, { prefix })
 })
 
 /**
@@ -21,10 +27,8 @@ router.get('/list', async (request, env) => {
  */
 router.get('/:name', async (request, env) => {
   const name = request.param('name')
-  return R2.download(env, {
-    prefix: env.word,
-    name: name,
-  })
+  const prefix = `${env.word}/${Constant.FILE_FOLDER}`
+  return R2.download(env, { prefix, name })
 })
 
 /**
@@ -38,9 +42,10 @@ router.get('/:name', async (request, env) => {
 router.post('/:name', async (request, env) => {
   const name = request.param('name')
   const length = request.headers.get('content-length')
+  const prefix = `${env.word}/${Constant.FILE_FOLDER}`
   return R2.upload(env, {
-    prefix: env.word,
-    name: name,
+    prefix,
+    name,
     length: Number(length),
     stream: request.body as ReadableStream<Uint8Array>,
   })
@@ -54,10 +59,8 @@ router.post('/:name', async (request, env) => {
  */
 router.delete('/:name', async (request, env) => {
   const name = request.param('name')
-  return R2.delete(env, {
-    prefix: env.word,
-    name: name,
-  })
+  const prefix = `${env.word}/${Constant.FILE_FOLDER}`
+  return R2.delete(env, { prefix, name })
 })
 
 export default { ...router }

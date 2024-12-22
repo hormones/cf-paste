@@ -9,6 +9,7 @@ export interface ApiResponse<T = never> {
 export interface Keyword {
   id: number
   word: string
+  content?: string
   password?: string
   expire_time: string
   create_time: string

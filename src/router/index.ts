@@ -1,19 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import { useWordStore } from '@/stores'
+import { Utils } from '@/utils'
 
-// 生成随机word
-function generateRandomWord(length = 6): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
-  return Array.from({ length }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join(
-    '',
-  )
-}
-
-// 验证word格式
-function isValidWord(word: string): boolean {
-  return /^[a-zA-Z0-9_]{3,20}$/.test(word)
-}
+const store = useWordStore()
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,8 +13,7 @@ const router = createRouter({
       name: 'root',
       component: HomeView,
       beforeEnter: (to, from, next) => {
-        const randomWord = generateRandomWord()
-        next(`/${randomWord}`)
+        next(`/${Utils.getRandomWord()}`)
       },
     },
     {
@@ -34,10 +23,9 @@ const router = createRouter({
       component: HomeView,
       beforeEnter: (to, from, next) => {
         const word = to.path.slice(1) // 移除开头的 /
-        const store = useWordStore()
         // 如果word无效，重定向到随机word
-        if (!isValidWord(word)) {
-          next(`/${generateRandomWord()}`)
+        if (!Utils.isValidWord(word)) {
+          next(`/${Utils.getRandomWord()}`)
           return
         }
         // 设置新的word

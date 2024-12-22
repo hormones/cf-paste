@@ -45,6 +45,8 @@ export interface Keyword {
   id: number
   /** 关键词 */
   word: string
+  /** 剪切板内容，最后会放到R2的word文件夹下，文件名为index.txt，不会存入到D1数据库中 */
+  content: string
   /** 密码 */
   password?: string
   /** 过期时间 */
@@ -59,4 +61,19 @@ export interface Keyword {
   last_view_time: string
   /** 访问次数 */
   view_count: number
+}
+
+type KeywordDB = Exclude<keyof Keyword, 'content'>
+
+/** 数据库查询操作符 */
+type Operator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'LIKE' | 'IN'
+
+/** 查询条件结构 */
+type WhereCondition<K> = {
+  /** 字段名 */
+  key: K
+  /** 字段值 */
+  value: string | number | Array<string | number>
+  /** 操作符，默认为 = */
+  operator?: Operator
 }

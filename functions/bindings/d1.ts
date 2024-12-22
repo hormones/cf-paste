@@ -4,27 +4,14 @@
  * @module bindings/d1
  */
 
-import { Env } from '../types/worker-configuration'
-
-/** 数据库查询操作符 */
-type Operator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'LIKE' | 'IN'
-
-/** 查询条件结构 */
-type WhereCondition = {
-  /** 字段名 */
-  key: string
-  /** 字段值 */
-  value: string | number | Array<string | number>
-  /** 操作符，默认为 = */
-  operator?: Operator
-}
+import { Env, WhereCondition } from '../types/worker-configuration'
 
 /**
  * 处理SQL查询条件
  * @param where 查询条件数组
  * @returns 处理后的SQL条件子句和参数值
  */
-const processWhere = (where?: WhereCondition[]) => {
+const processWhere = <K>(where?: WhereCondition<K>[]) => {
   if (!where || where.length === 0) {
     return { whereClause: '', values: [] }
   }
@@ -58,9 +45,9 @@ export const D1 = {
    * @param where 查询条件
    * @returns 单条记录或null
    */
-  first: async <T>(env: Env, table: string, where?: WhereCondition[]): Promise<T | null> => {
+  first: async <K, T>(env: Env, table: string, where?: WhereCondition<K>[]): Promise<T | null> => {
     let sql = `SELECT * FROM ${table}`
-    const { whereClause, values } = processWhere(where)
+    const { whereClause, values } = processWhere<K>(where)
     sql += whereClause + ' LIMIT 1'
     return env.DB.prepare(sql)
       .bind(...values)
@@ -76,15 +63,15 @@ export const D1 = {
    * @param size 每页大小，-1表示不限制
    * @returns 数据列表
    */
-  page: async <T>(
+  page: async <K, T>(
     env: Env,
     table: string,
-    where?: WhereCondition[],
+    where?: WhereCondition<K>[],
     page = 1,
     size = 10,
   ): Promise<T[]> => {
     let sql = `SELECT * FROM ${table}`
-    const { whereClause, values } = processWhere(where)
+    const { whereClause, values } = processWhere<K>(where)
     sql += whereClause
 
     if (page !== -1 && size !== -1) {
@@ -106,11 +93,7 @@ export const D1 = {
    * @returns 插入记录的ID
    * @throws 插入失败时抛出错误
    */
-  insert: async (
-    env: Env,
-    table: string,
-    data: Record<string, string | number>,
-  ): Promise<number> => {
+  insert: async (env: Env, table: string, data: Record<string, unknown>): Promise<number> => {
     const keys = Object.keys(data)
     const sql = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`
     const values = Object.values(data)
@@ -134,18 +117,22 @@ export const D1 = {
    * @param where 更新条件
    * @returns 更新的记录数
    */
-  update: async (
+  update: async <K>(
     env: Env,
     table: string,
     data: Record<string, string | number>,
-    where?: WhereCondition[],
+    where?: WhereCondition<K>[],
   ): Promise<number> => {
-    let sql = `UPDATE ${table} SET ${Object.keys(data)
+    // 过滤掉id字段，不允许更新id
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _id, ...updateData } = data
+
+    let sql = `UPDATE ${table} SET ${Object.keys(updateData)
       .map((key) => `${key} = ?`)
       .join(', ')}`
-    const values = Object.values(data)
+    const values = Object.values(updateData)
 
-    const { whereClause, values: whereValues } = processWhere(where)
+    const { whereClause, values: whereValues } = processWhere<K>(where)
     sql += whereClause
     values.push(...whereValues)
 
@@ -162,9 +149,9 @@ export const D1 = {
    * @param where 删除条件
    * @returns 删除的记录数
    */
-  delete: async (env: Env, table: string, where?: WhereCondition[]): Promise<number> => {
+  delete: async <K>(env: Env, table: string, where?: WhereCondition<K>[]): Promise<number> => {
     let sql = `DELETE FROM ${table}`
-    const { whereClause, values } = processWhere(where)
+    const { whereClause, values } = processWhere<K>(where)
     sql += whereClause
 
     return env.DB.prepare(sql)
