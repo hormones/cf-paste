@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Download, Delete } from '@element-plus/icons-vue'
 import { dataApi } from '../api/data'
 import { fileApi } from '../api/file'
 import type { Keyword, FileInfo } from '../types'
@@ -80,7 +81,7 @@ const debounce = <T extends (...args: any[]) => any>(fn: T, delay: number) => {
 // 修改保存函数，使其可以存
 const handleSave = async (silent = false) => {
   if (!keyword.value.content && fileList.value.length === 0) {
-    if (!silent) ElMessage.warning('请输入内容或上传文件')
+    if (!silent) ElMessage.warning('请��入内容或上传文件')
     return
   }
 
@@ -159,7 +160,7 @@ const handleDelete = async () => {
 // 添加文件下载处理函数
 const handleFileDownload = async (fileName: string) => {
   const url = await fileApi.downloadFile(fileName)
-  window.location.href = url
+  window.value.location.href = url
 }
 
 // 页面加载时获取数据
@@ -169,14 +170,29 @@ fetchContent()
 const qrCodeUrl = computed(() => {
   return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(document.location.href)}`
 })
+
+const window = ref(globalThis.window)
+
+// 监听窗口大��变化
+const handleResize = () => {
+  window.value = globalThis.window
+}
+
+onMounted(() => {
+  globalThis.window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  globalThis.window.removeEventListener('resize', handleResize)
+})
 </script>
 
 <template>
   <div class="paste-container">
     <div class="header">
-      <div class="left">
+      <div class="header-content">
         <div class="input-group">
-          <el-select v-model="expiry" placeholder="选择有效期" style="width: 120px">
+          <el-select v-model="expiry" placeholder="选择有效期" class="expiry-select">
             <el-option
               v-for="option in expiryOptions"
               :key="option.value"
@@ -188,18 +204,18 @@ const qrCodeUrl = computed(() => {
             v-model="password"
             placeholder="密码(可选)"
             show-password
-            style="width: 200px"
+            class="password-input"
           />
         </div>
-      </div>
-      <div class="right">
-        <span class="time-info">{{ remainingTime }}</span>
-        <el-button-group>
-          <el-button type="danger" plain @click="handleDelete"> 删除 </el-button>
-          <el-button type="primary" @click="handleSave" :loading="loading"> 保存 </el-button>
-        </el-button-group>
-        <div class="divider"></div>
-        <slot name="template-selector" />
+        <div class="action-group">
+          <span class="time-info">{{ remainingTime }}</span>
+          <el-button-group>
+            <el-button type="danger" plain @click="handleDelete"> 删除 </el-button>
+            <el-button type="primary" @click="handleSave" :loading="loading"> 保存 </el-button>
+          </el-button-group>
+          <div class="divider"></div>
+          <slot name="template-selector" />
+        </div>
       </div>
     </div>
 
@@ -250,7 +266,7 @@ const qrCodeUrl = computed(() => {
             </div>
 
             <el-table :data="fileList" style="width: 100%">
-              <el-table-column prop="name" label="文件名">
+              <el-table-column prop="name" label="文件名" min-width="140">
                 <template #default="{ row }">
                   <el-tooltip
                     :content="row.name"
@@ -267,25 +283,38 @@ const qrCodeUrl = computed(() => {
                   </el-tooltip>
                 </template>
               </el-table-column>
-              <el-table-column prop="size" label="大小" width="120">
+              <el-table-column prop="size" label="大小" min-width="90">
                 <template #default="{ row }">
                   {{ Utils.humanReadableSize(row.size) }}
                 </template>
               </el-table-column>
-              <el-table-column prop="uploaded" label="上传时间" width="180">
+              <el-table-column
+                prop="uploaded"
+                label="上传时间"
+                min-width="120"
+                v-if="window.innerWidth > 768"
+              >
                 <template #default="{ row }">
-                  {{ new Date(row.uploaded).toLocaleString() }}
+                  <span class="hide-on-mobile">
+                    {{ new Date(row.uploaded).toLocaleString() }}
+                  </span>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="180" fixed="right">
+              <el-table-column label="操作" fixed="right" align="center">
                 <template #default="{ row }">
                   <el-button-group>
-                    <el-button type="primary" link @click="handleFileDownload(row.name)">
-                      下载
-                    </el-button>
-                    <el-button type="danger" link @click="handleFileDelete(row.name)">
-                      删除
-                    </el-button>
+                    <el-button
+                      type="primary"
+                      :icon="Download"
+                      @click="handleFileDownload(row.name)"
+                      text
+                    />
+                    <el-button
+                      type="danger"
+                      :icon="Delete"
+                      @click="handleFileDelete(row.name)"
+                      text
+                    />
                   </el-button-group>
                 </template>
               </el-table-column>
@@ -345,20 +374,104 @@ const qrCodeUrl = computed(() => {
 }
 
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 20px;
-  padding: 15px 20px;
   background: #f8f9fa;
   border: 1px solid #e4e7ed;
   border-radius: 8px;
+  padding: 15px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.input-group {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.expiry-select {
+  width: 120px;
+}
+
+.password-input {
+  width: 200px;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .main-content {
   display: flex;
   gap: 20px;
   margin-top: 20px;
+  flex-direction: row;
+}
+
+@media (max-width: 768px) {
+  .paste-container {
+    padding: 10px;
+  }
+
+  .header {
+    padding: 10px;
+  }
+
+  .main-content {
+    flex-direction: column;
+  }
+
+  .side-panel {
+    display: none;
+  }
+
+  .expiry-select,
+  .password-input {
+    width: 100%;
+  }
+
+  .hide-on-mobile {
+    display: none;
+  }
+
+  .upload-info {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .upload-limits {
+    margin-top: 10px;
+  }
+
+  :deep(.el-table .cell) {
+    padding: 8px !important;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  :deep(.el-button) {
+    height: 32px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  .filename-cell {
+    max-width: 160px;
+  }
 }
 
 .tabs-container {
@@ -391,7 +504,7 @@ const qrCodeUrl = computed(() => {
   text-align: center;
 }
 
-/* 美化输入框和标��页 */
+/* 美化输入框和标页 */
 :deep(.el-tabs__header) {
   margin-bottom: 20px;
 }
