@@ -35,17 +35,6 @@ const uploadLoading = ref(false)
 const password = ref('')
 const expiry = ref(expiryOptions[2].value)
 
-// 计算剩余有效期
-const remainingTime = computed(() => {
-  if (!keyword.value.expire_time) return ''
-  const remaining = keyword.value.expire_time - Date.now()
-  if (remaining <= 0) return '已过期'
-  const days = Math.floor(remaining / (24 * 60 * 60 * 1000))
-  const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000))
-  const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000))
-  return `${days}天${hours}小时${minutes}分钟`
-})
-
 // 计算剩余可上传空间
 const remainingUploadSpace = computed(() => {
   const currentSize = fileList.value.reduce((sum, file) => sum + file.size, 0)
@@ -208,7 +197,6 @@ onUnmounted(() => {
           />
         </div>
         <div class="action-group">
-          <span class="time-info">{{ remainingTime }}</span>
           <el-button-group>
             <el-button type="danger" plain @click="handleDelete"> 删除 </el-button>
             <el-button type="primary" @click="handleSave" :loading="loading"> 保存 </el-button>
