@@ -13,6 +13,8 @@ export interface Env {
   DB: D1Database
   /** R2存储桶实例 */
   CF_PASTE: R2Bucket
+  /** 加密密钥 */
+  AUTH_KEY: string
   /** 请求唯一标识 */
   requestId: string
   /** 请求方法 */

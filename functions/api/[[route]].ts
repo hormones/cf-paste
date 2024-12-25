@@ -4,23 +4,22 @@
  * @module api/route
  */
 
-import { AutoRouter, error } from 'itty-router'
+import { AutoRouter } from 'itty-router'
 import { newErrorResponse } from '../utils/response'
 import data from './data'
 import file from './file'
-import { Utils } from '../utils'
 
 const router = AutoRouter()
 
-/**
- * 全局前置中间件：检查word参数
- * 所有API请求都需要提供有效的word参数
- */
-router.all('*', (request, env) => {
-  if (!env.word) {
-    return error(401, 'invalid request')
-  }
-})
+// /**
+//  * 全局前置中间件：检查word参数
+//  * 所有API请求都需要提供有效的word参数
+//  */
+// router.all('*', (request, env) => {
+//   if (!env.word) {
+//     return error(401, 'invalid request')
+//   }
+// })
 
 // 子路由注册
 router.all('/api/data/*', data.fetch) // 数据操作路由
@@ -40,7 +39,6 @@ export const onRequest = async (context) => {
     context.env.method = context.request.method
     context.env.functionPath = context.functionPath
     context.env.location = `${context.request?.cf?.city}-${context.request?.cf?.country}`
-    context.env.word = Utils.getCookie(context.request, 'word')
     return router.fetch(context.request, context.env)
   } catch (error) {
     return newErrorResponse(context.env, { error })
