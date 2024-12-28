@@ -130,7 +130,6 @@ export const D1 = {
     where?: WhereCondition<K>[],
   ): Promise<number> => {
     // 过滤掉id字段，不允许更新id
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id, ...updateData } = data
 
     let sql = `UPDATE ${table} SET ${Object.keys(updateData)

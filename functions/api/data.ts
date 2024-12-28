@@ -16,16 +16,15 @@ const router = AutoRouter({ base: '/api/data' })
  * @returns {Promise<Response>} 关键词信息
  */
 router.get('', async (request, env: Env) => {
-  // 获取数据库中的关键词信息
-  return D1.first<KeywordDB, Keyword>(env, keyword, [{ key, value: env.word }]).then(
-    async (data) => {
-      if (data) {
-        // 获取R2中word文件夹下的index.txt文件内容
-        data.content = await downloadContent(env, env.word)
-      }
-      return newResponse({ data })
-    },
-  )
+  // 1. 先获取数据库中的关键词信息
+  const data = await D1.first<KeywordDB, Keyword>(env, keyword, [{ key, value: env.word }])
+
+  // 2. 如果找到数据，则获取对应的内容
+  if (data) {
+    data.content = await downloadContent(env, env.word)
+  }
+
+  return newResponse({ data: data })
 })
 
 /**
@@ -96,8 +95,9 @@ const uploadContent = async (env: Env, word: string, content: string) => {
 
 const downloadContent = async (env: Env, word: string) => {
   return await R2.download(env, { prefix: word, name: Constant.PASTE_NAME })
-    .then((res) => res.text())
-    .catch(() => {
+    .then((res) => (res.status === 404 ? '' : res.text()))
+    .catch((error) => {
+      console.error(error)
       return ''
     })
 }

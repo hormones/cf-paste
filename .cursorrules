@@ -1,0 +1,21 @@
+{
+  "apply_to_large_files": true,
+  "formatter": "prettier",
+  "formatters": {
+    "*.{js,jsx,ts,tsx,vue}": "prettier",
+    "*.{css,scss,less}": "prettier",
+    "*.{json,md}": "prettier"
+  },
+  "linter": "eslint",
+  "linters": {
+    "*.{js,jsx,ts,tsx,vue}": "eslint"
+  },
+  "exclude": [
+    "dist/**/*",
+    "node_modules/**/*",
+    ".git/**/*",
+    ".wrangler/**/*",
+    "*.lock",
+    "*.log"
+  ]
+}

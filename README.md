@@ -55,3 +55,18 @@ bucket_name = "cf-paste"
 # 最后启动开发环境
 npm run preview
 ```
+
+````
+
+## DEMO
+
+主页-tab-剪贴板
+![主页-tab-剪贴板](./demo/主页-tab-剪贴板.png)
+
+主页-tab-文件列表
+![主页-tab-文件列表](./demo/主页-tab-文件列表.png)
+
+## 参考资料
+- [Cloudflare Workers 文档](https://developers.cloudflare.com/workers/)
+- [Vue 3 文档](https://vuejs.org/)
+- [TypeScript 文档](https://www.typescriptlang.org/docs/) 

@@ -11,7 +11,7 @@ const cookieOptions = {
 }
 
 export const Auth = {
-  getCookie(request: Request, name: string) {
+  getCookie(request: Request, name: string): string | null {
     // 获取cookie
     const cookies = request.headers.get('Cookie')
     if (!cookies) return null

@@ -4,10 +4,10 @@
  * @module middleware
  */
 
-import { newErrorResponse, newResponse } from './utils/response'
-import { D1 } from './bindings/d1'
-import { Keyword, KeywordDB } from './types/worker-configuration'
-import { Auth } from './utils/auth'
+import { newErrorResponse, newResponse } from '../utils/response'
+import { D1 } from '../bindings/d1'
+import { Keyword, KeywordDB } from '../types/worker-configuration'
+import { Auth } from '../utils/auth'
 
 /**
  * 错误处理中间件
@@ -34,16 +34,18 @@ async function authentication(context) {
   const c_view_word = Auth.getCookie(context.request, 'view_word')
   const c_authorization = Auth.getCookie(context.request, 'authorization')
   const c_timestamp = Auth.getCookie(context.request, 'timestamp')
+
   console.log('authentication start', c_word, c_view_word, c_authorization, c_timestamp)
-  if (!c_word || !c_view_word) {
+
+  if (!c_word && !c_view_word) {
     return newErrorResponse(context.env, { msg: '访问出错了，请刷新页面', status: 400 })
   }
 
   // 如果请求地址是/api/verify，则执行密码验证
-  if (context.request.url.includes('/api/verify')) {
+  if (context.request.url.endsWith('/api/verify')) {
     const { password } = await context.request.json()
     const keyword = await D1.first<KeywordDB, Keyword>(context.env, 'keyword', [
-      { key: 'word', value: c_word },
+      { key: 'word', value: c_word! },
     ])
     if (keyword && keyword.password) {
       // 密码存在，且密码验证失败，返回403
@@ -65,11 +67,11 @@ async function authentication(context) {
     let keyword: Keyword | null
     if (c_word) {
       keyword = await D1.first<KeywordDB, Keyword>(context.env, 'keyword', [
-        { key: 'word', value: c_word },
+        { key: 'word', value: c_word! },
       ])
     } else {
       keyword = await D1.first<KeywordDB, Keyword>(context.env, 'keyword', [
-        { key: 'view_word', value: c_view_word },
+        { key: 'view_word', value: c_view_word! },
       ])
       if (!keyword) {
         return newErrorResponse(context.env, { msg: '访问出错了，页面不存在', status: 403 })
@@ -80,12 +82,13 @@ async function authentication(context) {
     if (password) {
       return newErrorResponse(context.env, { msg: '拒绝访问', status: 403 })
     }
+    context.env.word = c_word || keyword?.word
+
+    const response = await context.next()
     const timestamp = Date.now().toString()
     const authorization = await Auth.encrypt(context.env, `${c_word}:${timestamp}`)
-    const response = await context.next()
     Auth.setCookie(response, 'timestamp', timestamp)
     Auth.setCookie(response, 'authorization', authorization)
-    context.env.word = c_word || keyword?.word
     return response
   }
 

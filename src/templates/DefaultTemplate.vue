@@ -45,12 +45,13 @@ const remainingUploadSpace = computed(() => {
 const fetchContent = async () => {
   loading.value = true
   try {
-    const [data, files] = await Promise.all([dataApi.getKeyword(), fileApi.getFileList()])
+    const data = await dataApi.getKeyword()
     if (data) {
       keyword.value = data
       password.value = data.password || ''
+      const files = await fileApi.getFileList()
+      fileList.value = files || []
     }
-    fileList.value = files || []
   } catch (_error: any) {
     ElMessage.error('获取内容失败')
   } finally {
@@ -152,9 +153,6 @@ const handleFileDownload = async (fileName: string) => {
   window.value.location.href = url
 }
 
-// 页面加载时获取数据
-fetchContent()
-
 // Add this computed property in the script section
 const qrCodeUrl = computed(() => {
   return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(document.location.href)}`
@@ -167,8 +165,12 @@ const handleResize = () => {
   window.value = globalThis.window
 }
 
-onMounted(() => {
+onMounted(async () => {
   globalThis.window.addEventListener('resize', handleResize)
+  // 页面加载时获取数据
+  await fetchContent()
+  // 设置view_word
+  wordStore.setViewWord(keyword.value.view_word)
 })
 
 onUnmounted(() => {
@@ -210,7 +212,7 @@ onUnmounted(() => {
     <div class="main-content">
       <div class="tabs-container">
         <el-tabs>
-          <el-tab-pane label="剪贴板文本">
+          <el-tab-pane label="剪贴板">
             <el-input
               v-model="keyword.content"
               type="textarea"

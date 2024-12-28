@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
 import Cookies from 'js-cookie'
 import type {
@@ -48,8 +47,9 @@ export interface InterceptorHooks {
 // 请求拦截器
 const transform: InterceptorHooks = {
   requestInterceptor(config) {
-    // 请求头部处理，追加cookie键值对：word:123
+    // 请求头部处理，追加cookie键值对：word:xxx;view_word:xxx
     Cookies.set('word', useWordStore().word)
+    Cookies.set('view_word', useWordStore().view_word)
     return config
   },
   requestInterceptorCatch(err) {

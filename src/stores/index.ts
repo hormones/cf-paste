@@ -5,10 +5,14 @@ export const pinia = createPinia()
 export const useWordStore = defineStore('word', {
   state: () => ({
     word: '' as string,
+    view_word: '' as string,
   }),
   actions: {
     setWord(word: string) {
       this.word = word
+    },
+    setViewWord(word: string) {
+      this.view_word = word
     },
   },
 })
