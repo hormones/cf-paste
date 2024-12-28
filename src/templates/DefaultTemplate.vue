@@ -36,6 +36,7 @@ const uploadLoading = ref(false)
 const password = ref('')
 const expiry = ref(expiryOptions[2].value)
 const showPasswordDialog = ref(false)
+const newWord = ref<boolean>(true)
 
 // 计算剩余可上传空间
 const remainingUploadSpace = computed(() => {
@@ -49,14 +50,15 @@ const fetchContent = async () => {
   try {
     const data = await dataApi.getKeyword()
     if (data) {
+      newWord.value = false
       keyword.value = data
       password.value = data.password || ''
       const files = await fileApi.getFileList()
       fileList.value = files || []
     }
-  } catch (error: any) {
+  } catch (response: any) {
     // 如果是403错误，说明需要密码
-    if (error.response?.status === 403) {
+    if (response?.status === 403) {
       showPasswordDialog.value = true
     } else {
       ElMessage.error('获取内容失败')
@@ -148,7 +150,11 @@ const handleDelete = async () => {
       content: '',
       expire_time: expiryOptions[2].value + Date.now(),
     }
+    password.value = ''
     fileList.value = []
+    newWord.value = true
+    wordStore.setViewWord(keyword.value.view_word)
+    await fetchContent()
   } catch (_error: any) {
     ElMessage.error('删除失败')
   }
@@ -182,7 +188,7 @@ onMounted(async () => {
   // 页面加载时获取数据
   await fetchContent()
   // 设置view_word
-  wordStore.setViewWord(keyword.value.view_word)
+  wordStore.setViewWord(keyword.value.view_word!)
 })
 
 onUnmounted(() => {

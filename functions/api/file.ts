@@ -48,7 +48,7 @@ router.post('/:name', async (request, env) => {
     prefix,
     name,
     length: Number(length),
-    stream: request.body as ReadableStream<Uint8Array>,
+    stream: request.body as unknown as ReadableStream<Uint8Array>,
   })
 })
 

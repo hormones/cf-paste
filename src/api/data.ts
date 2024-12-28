@@ -3,13 +3,17 @@
  */
 import { request } from './request'
 import type { Keyword } from '@/types'
+import { Utils } from '@/utils'
 
 export const dataApi = {
   /**
    * 获取word详情
    */
   getKeyword() {
-    return request.get<Keyword>('/data')
+    return request.get<Keyword>('/data').then((data) => {
+      Utils.cookies2Store()
+      return data
+    })
   },
 
   /**
@@ -30,6 +34,9 @@ export const dataApi = {
    * 删除word
    */
   deleteKeyword() {
-    return request.delete<number>('/data')
+    return request.delete<number>('/data').then((data) => {
+      Utils.clearStoreAndCookies()
+      return data
+    })
   },
 }

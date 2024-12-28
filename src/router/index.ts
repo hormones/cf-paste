@@ -15,7 +15,17 @@ const router = createRouter({
       },
     },
     {
-      // 捕获所有路径
+      path: '/v/:view_word',
+      name: 'view_word',
+      component: HomeView,
+      beforeEnter: (to, from, next) => {
+        const store = useWordStore()
+        store.setViewWord(to.params.view_word as string)
+        next()
+      },
+    },
+    {
+      // 捕获其它所有路径
       path: '/:pathMatch(.*)*',
       name: 'home',
       component: HomeView,
@@ -35,4 +45,3 @@ const router = createRouter({
   ],
 })
 export default router
-

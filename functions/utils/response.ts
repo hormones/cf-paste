@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * API响应工具函数
  * @module utils/response
@@ -38,14 +37,16 @@ export function newErrorResponse<T>(
   {
     error,
     msg = '',
+    logMsg = msg,
     status = 500,
     code = status,
   }: {
     error?: any
     status?: number
+    logMsg?: string
   } & ApiResponse<T>,
 ): Response {
   msg = msg || (error && error.message) || 'function execute error'
-  Utils.error(env, `request error: ${msg}`, error)
+  Utils.error(env, `request error: ${logMsg}`, error)
   return new Response(JSON.stringify({ code, msg }), { status })
 }

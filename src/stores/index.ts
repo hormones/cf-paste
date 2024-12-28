@@ -6,6 +6,8 @@ export const useWordStore = defineStore('word', {
   state: () => ({
     word: '' as string,
     view_word: '' as string,
+    timestamp: '' as string,
+    authorization: '' as string,
   }),
   actions: {
     setWord(word: string) {
@@ -13,6 +15,12 @@ export const useWordStore = defineStore('word', {
     },
     setViewWord(word: string) {
       this.view_word = word
+    },
+    setTimestamp(timestamp: string) {
+      this.timestamp = timestamp
+    },
+    setAuthorization(authorization: string) {
+      this.authorization = authorization
     },
   },
 })

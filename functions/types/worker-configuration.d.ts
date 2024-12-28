@@ -25,6 +25,8 @@ export interface Env {
   location: string
   /** 关键词 */
   word: string
+  /** 编辑模式，0表示浏览模式，1表示编辑模式 */
+  edit: number
 }
 
 /**

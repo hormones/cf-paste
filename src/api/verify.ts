@@ -1,3 +1,4 @@
+import { Utils } from '@/utils'
 import { request } from './request'
 
 export const verifyApi = {
@@ -6,6 +7,9 @@ export const verifyApi = {
    * @param password 密码
    */
   verify(password: string) {
-    return request.post<void>('/verify', { password })
+    return request.post<void>('/verify', { password }).then((data) => {
+      Utils.store2Cookies()
+      return data
+    })
   },
 }

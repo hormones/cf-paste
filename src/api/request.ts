@@ -1,5 +1,4 @@
 import axios from 'axios'
-import Cookies from 'js-cookie'
 import type {
   AxiosInstance,
   AxiosRequestConfig,
@@ -7,7 +6,7 @@ import type {
   InternalAxiosRequestConfig,
 } from 'axios'
 import type { ApiResponse } from '@/types'
-import { useWordStore } from '@/stores'
+import { Utils } from '@/utils'
 
 // 与后端约定的请求成功码
 const SUCCESS_CODE = 0
@@ -47,9 +46,7 @@ export interface InterceptorHooks {
 // 请求拦截器
 const transform: InterceptorHooks = {
   requestInterceptor(config) {
-    // 请求头部处理，追加cookie键值对：word:xxx;view_word:xxx
-    Cookies.set('word', useWordStore().word)
-    Cookies.set('view_word', useWordStore().view_word)
+    Utils.store2Cookies()
     return config
   },
   requestInterceptorCatch(err) {
@@ -89,7 +86,7 @@ const transform: InterceptorHooks = {
     const message = mapErrorStatus.get(err.response.status) || '请求出错，请稍后再试'
     // 此处全局报错
     console.error(message)
-    return Promise.reject(err)
+    return Promise.reject(err.response)
   },
 }
 

@@ -4,6 +4,7 @@
  * @module bindings/d1
  */
 
+import { Constant } from '../constant'
 import { Env, WhereCondition } from '../types/worker-configuration'
 import { Utils } from '../utils'
 
@@ -19,6 +20,7 @@ const processWhere = <K>(where?: WhereCondition<K>[]) => {
 
   const values: (string | number)[] = []
   const whereClause = where
+    .filter((w) => !(w.key === 'password' && w.value === Constant.PASSWORD_DISPLAY))
     .map((w) => {
       const operator = w.operator || '='
       if (operator === 'IN' && Array.isArray(w.value)) {

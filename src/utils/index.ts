@@ -1,3 +1,6 @@
+import { useWordStore } from '@/stores'
+import Cookies from 'js-cookie'
+
 export const Utils = {
   // 生成随机word
   getRandomWord: (length = 6): string => {
@@ -19,5 +22,39 @@ export const Utils = {
       unitIndex++
     }
     return `${size.toFixed(2)} ${units[unitIndex]}`
+  },
+  cookies2Store() {
+    const store = useWordStore()
+    const timestamp = Cookies.get('timestamp')
+    const authorization = Cookies.get('authorization')
+    if (timestamp) {
+      store.setTimestamp(timestamp)
+    }
+    if (authorization) {
+      store.setAuthorization(authorization)
+    }
+  },
+  store2Cookies() {
+    const store = useWordStore()
+    if (store.word) {
+      Cookies.set('word', store.word)
+    }
+    if (store.view_word) {
+      Cookies.set('view_word', store.view_word)
+    }
+    if (store.authorization) {
+      Cookies.set('authorization', store.authorization)
+    }
+    if (store.timestamp) {
+      Cookies.set('timestamp', store.timestamp)
+    }
+  },
+  clearStoreAndCookies() {
+    const store = useWordStore()
+    store.setTimestamp('')
+    store.setAuthorization('')
+    store.setViewWord('')
+    Cookies.remove('authorization')
+    Cookies.remove('timestamp')
   },
 }

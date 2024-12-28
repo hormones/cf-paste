@@ -2,7 +2,7 @@ import { AutoRouter } from 'itty-router'
 import { Env, Keyword, KeywordDB } from '../types/worker-configuration'
 import { D1 } from '../bindings/d1'
 import { R2 } from '../bindings/r2'
-import { newResponse } from '../utils/response'
+import { newErrorResponse, newResponse } from '../utils/response'
 import { Auth } from '../utils/auth'
 import { Constant } from '../constant'
 
@@ -17,12 +17,24 @@ const router = AutoRouter({ base: '/api/data' })
  * @returns {Promise<Response>} 关键词信息
  */
 router.get('', async (request, env: Env) => {
+  console.log('get', env.word)
   // 1. 先获取数据库中的关键词信息
   const data = await D1.first<KeywordDB, Keyword>(env, keyword, [{ key, value: env.word }])
 
   // 2. 如果找到数据，则获取对应的内容
   if (data) {
+    if (data.password) {
+      data.password = Constant.PASSWORD_DISPLAY
+    }
+    if (!env.edit) {
+      data.word = ''
+    }
     data.content = await downloadContent(env, env.word)
+  }
+
+  // 浏览模式找不到数据则抛出404异常
+  if (!data && !env.edit) {
+    return newErrorResponse(env, { msg: '关键词不存在', status: 404 })
   }
 
   return newResponse({ data: data })
@@ -68,13 +80,15 @@ router.put('', async (request, env: Env) => {
 router.delete('', async (request, env: Env) => {
   // 删除R2中的index.txt文件
   await R2.delete(env, { prefix: env.word, name: Constant.PASTE_NAME })
+  // TODO...删除R2中的文件夹files 不生效
+  await R2.delete(env, { prefix: env.word, name: Constant.FILE_FOLDER })
   // 删除数据库中的关键词信息
-  return D1.delete<KeywordDB>(env, keyword, [{ key, value: env.word }]).then((data) => {
-    const response = newResponse({ data })
-    Auth.clearCookie(response, 'authorization')
-    Auth.clearCookie(response, 'timestamp')
-    return response
-  })
+  await D1.delete<KeywordDB>(env, keyword, [{ key, value: env.word }])
+
+  // 清除cookie
+  const response = newResponse({ data: 1 })
+  Auth.clearCookie(response, 'authorization', 'timestamp')
+  return response
 })
 
 /**

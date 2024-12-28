@@ -68,7 +68,7 @@ export const R2 = {
     const path = `${prefix}/${name}`
     Utils.log(env, `upload file: ${path}, size: ${Utils.humanReadableSize(length)}`)
     if (!stream || length <= 0) {
-      return newErrorResponse(env, { msg: 'file is required' })
+      return newErrorResponse(env, { logMsg: 'stream或length为空', msg: 'file is required' })
     }
     // 小文件直接上传
     if (length <= CHUNK_SIZE) {
@@ -77,7 +77,7 @@ export const R2 = {
         customMetadata: { uploadedAt: new Date().toISOString() },
       })
         .then(() => newResponse({}))
-        .catch((error) => newErrorResponse(env, { error }))
+        .catch((error) => newErrorResponse(env, { error, logMsg: '上传文件失败' }))
     }
 
     // 创建分片上传任务
@@ -151,7 +151,7 @@ export const R2 = {
     const path = `${prefix}/${name}`
     return env.CF_PASTE.delete(path)
       .then(() => newResponse({}))
-      .catch((error) => newErrorResponse(env, { error }))
+      .catch((error) => newErrorResponse(env, { error, logMsg: '删除文件失败' }))
   },
 
   /**
@@ -171,7 +171,7 @@ export const R2 = {
       }))
       return newResponse({ data })
     } catch (error) {
-      return newErrorResponse(env, { error })
+      return newErrorResponse(env, { error, logMsg: 'LIST文件失败' })
     }
   },
 }
