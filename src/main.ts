@@ -1,7 +1,5 @@
 import './assets/main.css'
 import 'element-plus/dist/index.css'
-import 'element-plus/es/components/dialog/style/css'
-import 'element-plus/es/components/overlay/style/css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
