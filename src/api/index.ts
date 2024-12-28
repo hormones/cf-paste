@@ -3,3 +3,4 @@
  */
 export { dataApi } from './data'
 export { fileApi } from './file'
+export { verifyApi } from './verify'

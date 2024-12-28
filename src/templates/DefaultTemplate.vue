@@ -9,6 +9,7 @@ import { useWordStore } from '@/stores'
 import { Utils } from '@/utils'
 import { FILE_UPLOAD_LIMITS } from '@/types'
 import type { UploadRequestOptions } from 'element-plus'
+import PasswordDialog from '@/components/PasswordDialog.vue'
 
 const wordStore = useWordStore()
 
@@ -34,6 +35,7 @@ const fileList = ref<FileInfo[]>([])
 const uploadLoading = ref(false)
 const password = ref('')
 const expiry = ref(expiryOptions[2].value)
+const showPasswordDialog = ref(false)
 
 // 计算剩余可上传空间
 const remainingUploadSpace = computed(() => {
@@ -52,8 +54,13 @@ const fetchContent = async () => {
       const files = await fileApi.getFileList()
       fileList.value = files || []
     }
-  } catch (_error: any) {
-    ElMessage.error('获取内容失败')
+  } catch (error: any) {
+    // 如果是403错误，说明需要密码
+    if (error.response?.status === 403) {
+      showPasswordDialog.value = true
+    } else {
+      ElMessage.error('获取内容失败')
+    }
   } finally {
     loading.value = false
   }
@@ -71,7 +78,7 @@ const debounce = <T extends (...args: any[]) => any>(fn: T, delay: number) => {
 // 修改保存函数，使其可以存
 const handleSave = async (silent = false) => {
   if (!keyword.value.content && fileList.value.length === 0) {
-    if (!silent) ElMessage.warning('请��入内容或上传文件')
+    if (!silent) ElMessage.warning('请输入内容或上传文件')
     return
   }
 
@@ -160,9 +167,14 @@ const qrCodeUrl = computed(() => {
 
 const window = ref(globalThis.window)
 
-// 监听窗口大��变化
+// 监听窗口大小变化
 const handleResize = () => {
   window.value = globalThis.window
+}
+
+// 添加密码验证成功的处理函数
+const handlePasswordVerified = () => {
+  fetchContent()
 }
 
 onMounted(async () => {
@@ -351,6 +363,8 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+
+    <PasswordDialog v-model="showPasswordDialog" @verified="handlePasswordVerified" />
   </div>
 </template>
 
@@ -361,6 +375,7 @@ onUnmounted(() => {
   margin: 0 auto;
   min-height: 100vh;
   background: #fff;
+  backdrop-filter: blur(10px); /* 设置毛玻璃效果 */
 }
 
 .header {

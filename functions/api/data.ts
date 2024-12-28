@@ -3,6 +3,7 @@ import { Env, Keyword, KeywordDB } from '../types/worker-configuration'
 import { D1 } from '../bindings/d1'
 import { R2 } from '../bindings/r2'
 import { newResponse } from '../utils/response'
+import { Auth } from '../utils/auth'
 import { Constant } from '../constant'
 
 const keyword = 'keyword'
@@ -68,9 +69,12 @@ router.delete('', async (request, env: Env) => {
   // 删除R2中的index.txt文件
   await R2.delete(env, { prefix: env.word, name: Constant.PASTE_NAME })
   // 删除数据库中的关键词信息
-  return D1.delete<KeywordDB>(env, keyword, [{ key, value: env.word }]).then((data) =>
-    newResponse({ data }),
-  )
+  return D1.delete<KeywordDB>(env, keyword, [{ key, value: env.word }]).then((data) => {
+    const response = newResponse({ data })
+    Auth.clearCookie(response, 'authorization')
+    Auth.clearCookie(response, 'timestamp')
+    return response
+  })
 })
 
 /**

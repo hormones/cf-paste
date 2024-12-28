@@ -89,7 +89,7 @@ const transform: InterceptorHooks = {
     const message = mapErrorStatus.get(err.response.status) || '请求出错，请稍后再试'
     // 此处全局报错
     console.error(message)
-    return Promise.reject(err.response)
+    return Promise.reject(err)
   },
 }
 
