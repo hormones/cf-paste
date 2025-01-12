@@ -63,11 +63,16 @@ router.post('', async (request, env: Env) => {
  */
 router.put('', async (request, env: Env) => {
   const data: Keyword = (await request.json()) as Keyword
-  const { content, ...keywordDB } = data
+  // 过滤掉id字段，不允许更新id、word字段
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { content, id, word, ...updateData } = data
+  if (updateData.password === Constant.PASSWORD_DISPLAY) {
+    delete updateData.password
+  }
   // 将content上传到R2
   await uploadContent(env, data.word, content)
   // word信息插入数据库
-  return D1.update<KeywordDB>(env, keyword, keywordDB, [{ key, value: env.word }]).then((data) =>
+  return D1.update<KeywordDB>(env, keyword, updateData, [{ key, value: env.word }]).then((data) =>
     newResponse({ data }),
   )
 })

@@ -131,13 +131,10 @@ export const D1 = {
     data: Record<string, string | number>,
     where?: WhereCondition<K>[],
   ): Promise<number> => {
-    // 过滤掉id字段，不允许更新id
-    const { _id, ...updateData } = data
-
-    let sql = `UPDATE ${table} SET ${Object.keys(updateData)
+    let sql = `UPDATE ${table} SET ${Object.keys(data)
       .map((key) => `${key} = ?`)
       .join(', ')}`
-    const values = Object.values(updateData)
+    const values = Object.values(data)
 
     const { whereClause, values: whereValues } = processWhere<K>(where)
     sql += whereClause
