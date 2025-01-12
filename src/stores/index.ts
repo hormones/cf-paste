@@ -16,11 +16,5 @@ export const useWordStore = defineStore('word', {
     setViewWord(word: string) {
       this.view_word = word
     },
-    setTimestamp(timestamp: string) {
-      this.timestamp = timestamp
-    },
-    setAuthorization(authorization: string) {
-      this.authorization = authorization
-    },
   },
 })

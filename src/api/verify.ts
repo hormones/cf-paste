@@ -8,7 +8,7 @@ export const verifyApi = {
    */
   verify(password: string) {
     return request.post<void>('/verify', { password }).then((data) => {
-      Utils.store2Cookies()
+      Utils.cookies2LocalStorage()
       return data
     })
   },

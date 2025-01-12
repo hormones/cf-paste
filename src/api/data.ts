@@ -11,7 +11,7 @@ export const dataApi = {
    */
   getKeyword() {
     return request.get<Keyword>('/data').then((data) => {
-      Utils.cookies2Store()
+      Utils.cookies2LocalStorage()
       return data
     })
   },
@@ -35,7 +35,7 @@ export const dataApi = {
    */
   deleteKeyword() {
     return request.delete<number>('/data').then((data) => {
-      Utils.clearStoreAndCookies()
+      Utils.clearLocalStorageAndCookies()
       return data
     })
   },

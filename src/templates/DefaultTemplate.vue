@@ -61,6 +61,7 @@ const fetchContent = async () => {
     if (response?.status === 403) {
       showPasswordDialog.value = true
     } else {
+      console.error(response)
       ElMessage.error('获取内容失败')
     }
   } finally {
@@ -143,10 +144,11 @@ const handleDelete = async () => {
   try {
     await dataApi.deleteKeyword()
     ElMessage.success('删除成功')
+    wordStore.setViewWord(Utils.getRandomWord(6))
     // 重置表单
     keyword.value = {
       word: wordStore.word,
-      view_word: Utils.getRandomWord(6),
+      view_word: wordStore.view_word,
       content: '',
       expire_time: expiryOptions[2].value + Date.now(),
     }

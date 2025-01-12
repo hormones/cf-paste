@@ -104,7 +104,7 @@ async function authentication(context) {
     return response
   }
 
-  // 其它请求地址，存在authorization且word有密码，验证authorization
+  // 其它请求地址，存在authorization，验证authorization
   try {
     const a_authorization = await Auth.decrypt(context.env, c_authorization)
     const [a_word, a_timestamp, a_edit] = a_authorization.split(':')

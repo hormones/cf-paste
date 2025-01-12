@@ -1,5 +1,6 @@
 import { useWordStore } from '@/stores'
 import Cookies from 'js-cookie'
+import { LocalStorage } from './storage'
 
 export const Utils = {
   // 生成随机word
@@ -23,37 +24,28 @@ export const Utils = {
     }
     return `${size.toFixed(2)} ${units[unitIndex]}`
   },
-  cookies2Store() {
+  cookies2LocalStorage() {
     const store = useWordStore()
     const timestamp = Cookies.get('timestamp')
     const authorization = Cookies.get('authorization')
-    if (timestamp) {
-      store.setTimestamp(timestamp)
-    }
-    if (authorization) {
-      store.setAuthorization(authorization)
-    }
+    LocalStorage.set(store.word || store.view_word, { timestamp, authorization })
   },
-  store2Cookies() {
+  localstorage2Cookies() {
     const store = useWordStore()
-    if (store.word) {
-      Cookies.set('word', store.word)
-    }
-    if (store.view_word) {
-      Cookies.set('view_word', store.view_word)
-    }
-    if (store.authorization) {
-      Cookies.set('authorization', store.authorization)
-    }
-    if (store.timestamp) {
-      Cookies.set('timestamp', store.timestamp)
-    }
+    void (store.word ? Cookies.set('word', store.word) : Cookies.remove('word'))
+    void (store.view_word ? Cookies.set('view_word', store.view_word) : Cookies.remove('view_word'))
+
+    const data: any = LocalStorage.get(store.word || store.view_word) || {}
+    void (data.authorization
+      ? Cookies.set('authorization', data.authorization)
+      : Cookies.remove('authorization'))
+    void (data.timestamp ? Cookies.set('timestamp', data.timestamp) : Cookies.remove('timestamp'))
   },
-  clearStoreAndCookies() {
+  clearLocalStorageAndCookies() {
     const store = useWordStore()
-    store.setTimestamp('')
-    store.setAuthorization('')
-    store.setViewWord('')
+    LocalStorage.remove(store.word || store.view_word)
+    Cookies.remove('word')
+    Cookies.remove('view_word')
     Cookies.remove('authorization')
     Cookies.remove('timestamp')
   },

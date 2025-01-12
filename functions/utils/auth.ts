@@ -7,7 +7,7 @@ const cookieOptions = {
   httpOnly: true,
   secure: true, // 仅在 HTTPS 下发送
   sameSite: 'Strict',
-  maxAge: 7 * 24 * 60 * 60, // 7天过期
+  // maxAge: 7 * 24 * 60 * 60, // 7天过期
 }
 
 export const Auth = {

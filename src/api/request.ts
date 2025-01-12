@@ -46,7 +46,7 @@ export interface InterceptorHooks {
 // 请求拦截器
 const transform: InterceptorHooks = {
   requestInterceptor(config) {
-    Utils.store2Cookies()
+    Utils.localstorage2Cookies()
     return config
   },
   requestInterceptorCatch(err) {
