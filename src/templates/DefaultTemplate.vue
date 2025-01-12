@@ -56,13 +56,15 @@ const fetchContent = async () => {
       const files = await fileApi.getFileList()
       fileList.value = files || []
     }
+    // 设置view_word
+    wordStore.setViewWord(keyword.value.view_word!)
   } catch (response: any) {
     // 如果是403错误，说明需要密码
     if (response?.status === 403) {
       showPasswordDialog.value = true
     } else {
       console.error(response)
-      ElMessage.error('获取内容失败')
+      ElMessage.error(response?.data?.msg || '获取内容失败')
     }
   } finally {
     loading.value = false
@@ -155,7 +157,6 @@ const handleDelete = async () => {
     password.value = ''
     fileList.value = []
     newWord.value = true
-    wordStore.setViewWord(keyword.value.view_word)
     await fetchContent()
   } catch (_error: any) {
     ElMessage.error('删除失败')
@@ -189,8 +190,6 @@ onMounted(async () => {
   globalThis.window.addEventListener('resize', handleResize)
   // 页面加载时获取数据
   await fetchContent()
-  // 设置view_word
-  wordStore.setViewWord(keyword.value.view_word!)
 })
 
 onUnmounted(() => {

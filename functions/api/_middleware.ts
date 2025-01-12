@@ -59,6 +59,14 @@ async function authentication(context) {
     const { password } = await context.request.json()
     const keyword: Keyword | null = await getKeyword(context.env, c_word, c_view_word)
 
+    if (!keyword) {
+      return newErrorResponse(context.env, {
+        logMsg: `通过 ${c_word} | ${c_view_word} 找不到对应的keyword信息`,
+        msg: '访问出错了，页面不存在',
+        status: 404,
+      })
+    }
+
     context.env.edit = c_word ? 1 : 0
 
     // 密码存在，且密码验证失败，返回403
