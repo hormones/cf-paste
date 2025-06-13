@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.node.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
+    "types": [ "./paste-configuration.d.ts","./worker-configuration.d.ts","vite/client"],
+  },
+  "include": [
+    "server"
+  ],
+}
