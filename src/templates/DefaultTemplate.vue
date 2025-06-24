@@ -161,14 +161,14 @@ const fetchContent = async () => {
 }
 
 const handleFetchError = (response: any) => {
-  if (response?.status === 403) {
+  if (response?.status === 401) {
     showPasswordDialog.value = true
   } else {
     console.error(response)
-    // 只在非保存操作时显示错误提示
-    if (!response?.config?.url?.includes('/api/data')) {
-      showMessage(response?.data?.msg || Constant.MESSAGES.FETCH_FAILED, 'error')
-    }
+    showMessage(
+      response?.data?.msg || response?.data?.error || Constant.MESSAGES.FETCH_FAILED,
+      'error'
+    )
   }
 }
 

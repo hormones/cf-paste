@@ -6,7 +6,6 @@ export const useWordStore = defineStore('word', {
   state: () => ({
     word: '' as string,
     view_word: '' as string,
-    timestamp: '' as string,
     authorization: '' as string,
   }),
   actions: {

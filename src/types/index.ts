@@ -32,5 +32,5 @@ export interface FileInfo {
 /** 文件上传限制 */
 export const FILE_UPLOAD_LIMITS = {
   MAX_FILES: 10,
-  MAX_TOTAL_SIZE: 100 * 1024 * 1024, // 100MB in bytes
+  MAX_TOTAL_SIZE: 300 * 1024 * 1024, // 300MB in bytes
 } as const

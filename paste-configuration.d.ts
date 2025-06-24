@@ -75,8 +75,8 @@ declare global {
     edit: number
     /** 授权信息 */
     authorization: string
-    /** 时间戳 */
-    timestamp: number
+    /** 清理授权信息 */
+    clearAuthCookie: boolean
   } & IContext & IRequestStrict
 }
 

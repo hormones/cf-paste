@@ -26,9 +26,8 @@ export const Utils = {
   },
   cookies2LocalStorage() {
     const store = useWordStore()
-    const timestamp = Cookies.get('timestamp')
     const authorization = Cookies.get('authorization')
-    LocalStorage.set(store.word || store.view_word, { timestamp, authorization })
+    LocalStorage.set(store.word || store.view_word, { timestamp: Date.now(), authorization })
   },
   localstorage2Cookies() {
     const store = useWordStore()
@@ -39,7 +38,6 @@ export const Utils = {
     void (data.authorization
       ? Cookies.set('authorization', data.authorization)
       : Cookies.remove('authorization'))
-    void (data.timestamp ? Cookies.set('timestamp', data.timestamp) : Cookies.remove('timestamp'))
   },
   clearLocalStorageAndCookies() {
     const store = useWordStore()
@@ -47,6 +45,5 @@ export const Utils = {
     Cookies.remove('word')
     Cookies.remove('view_word')
     Cookies.remove('authorization')
-    Cookies.remove('timestamp')
   },
 }

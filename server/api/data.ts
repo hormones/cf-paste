@@ -82,16 +82,10 @@ router.put('', async (req: IRequest, env: Env) => {
  * @returns {Promise<Response>} 删除结果，包含删除的记录数
  */
 router.delete('', async (req: IRequest, env: Env) => {
-  // 删除R2中的index.txt文件
-  await R2.delete(env, req, { prefix: req.word, name: Constant.PASTE_FILE })
-  // 删除R2中的文件夹files
-  await R2.deleteFolder(env, req, { prefix: req.word + '/' + Constant.FILE_FOLDER })
-  // 删除数据库中的关键词信息
-  await D1.delete(env, req, keyword, [{ key, value: req.word }])
-
+  await deleteKeyword(req, env)
   // 清除cookie
-  const response = newResponse({ data: 1 })
-  Auth.clearCookie(response, 'authorization', 'timestamp')
+  const response = newResponse({ data: null })
+  Auth.clearCookie(response, 'authorization')
   return response
 })
 
@@ -149,7 +143,7 @@ router.post('/verify', async (req: IRequest, env: Env) => {
 
   if (!keyword) {
     Utils.error(req, `通过 ${c_word} | ${c_view_word} 找不到对应的keyword信息`)
-    return error(404, '访问出错了，页面不存在')
+    return error(410, '访问出错了，页面不存在')
   }
 
   // 密码存在，且密码验证失败，返回403
@@ -158,8 +152,7 @@ router.post('/verify', async (req: IRequest, env: Env) => {
   }
 
   // 密码不存在或验证成功，设置cookie，返回200
-  req.timestamp = Date.now()
-  req.authorization = await Auth.encrypt(env, `${keyword!.word!}:${req.timestamp!}:${req.edit}`)
+  req.authorization = await Auth.encrypt(env, `${keyword!.word!}:${Date.now}`)
   return newResponse({})
 })
 
@@ -191,12 +184,28 @@ const downloadContent = async (env: Env, req: IRequest) => {
     })
 }
 
-export const getKeyword = async (env: Env, req: IRequest, c_word: string | null, c_view_word: string | null) => {
+export const deleteKeyword = async (context: IContext, env: Env) => {
+  // 删除R2中的index.txt文件
+  await R2.delete(env, context, { prefix: context.word, name: Constant.PASTE_FILE })
+  // 删除R2中的文件夹files
+  await R2.deleteFolder(env, context, { prefix: context.word + '/' + Constant.FILE_FOLDER })
+  // 删除数据库中的关键词信息
+  await D1.delete(env, context, keyword, [{ key, value: context.word }])
+}
+
+export const getKeyword = async (
+  env: Env,
+  req: IRequest,
+  c_word: string | null,
+  c_view_word: string | null
+) => {
   let keyword: Keyword | null = null
   if (c_word) {
     keyword = await D1.first<Keyword>(env, req, 'keyword', [{ key: 'word', value: c_word }])
   } else if (c_view_word) {
-    keyword = await D1.first<Keyword>(env, req, 'keyword', [{ key: 'view_word', value: c_view_word }])
+    keyword = await D1.first<Keyword>(env, req, 'keyword', [
+      { key: 'view_word', value: c_view_word },
+    ])
   }
   return keyword
 }
