@@ -11,7 +11,6 @@ declare module 'vue' {
     ElButton: typeof import('element-plus/es')['ElButton']
     ElButtonGroup: typeof import('element-plus/es')['ElButtonGroup']
     ElIcon: typeof import('element-plus/es')['ElIcon']
-    ElImage: typeof import('element-plus/es')['ElImage']
     ElInput: typeof import('element-plus/es')['ElInput']
     ElOption: typeof import('element-plus/es')['ElOption']
     ElSelect: typeof import('element-plus/es')['ElSelect']
@@ -24,6 +23,7 @@ declare module 'vue' {
     GlassDialog: typeof import('./src/components/GlassDialog.vue')['default']
     GlassOverlay: typeof import('./src/components/GlassOverlay.vue')['default']
     PasswordDialog: typeof import('./src/components/PasswordDialog.vue')['default']
+    QRCode: typeof import('./src/components/QRCode.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

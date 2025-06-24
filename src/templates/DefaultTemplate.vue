@@ -12,25 +12,13 @@ import type { UploadRequestOptions } from 'element-plus'
 import PasswordDialog from '@/components/PasswordDialog.vue'
 import GlassDialog from '@/components/GlassDialog.vue'
 import { Constant } from '@/constant'
+import QRCode from '@/components/QRCode.vue'
 
 // ===================
 // 常量定义
 // ===================
-const MESSAGES = {
-  NO_CONTENT: '请输入内容或上传文件',
-  SAVE_SUCCESS: '保存成功',
-  SAVE_FAILED: '保存失败',
-  UPLOAD_SUCCESS: '上传成功',
-  UPLOAD_FAILED: '上传失败',
-  DELETE_SUCCESS: '删除成功',
-  DELETE_FAILED: '删除失败',
-  SETTINGS_SAVED: '设置已保存',
-  FETCH_FAILED: '获取内容失败',
-} as const
-
 const DEBOUNCE_DELAY = 1000
 const DEFAULT_EXPIRY_INDEX = 2
-const QR_CODE_SIZE = '150x150'
 
 // ===================
 // Store 和基础状态
@@ -72,11 +60,7 @@ const remainingUploadSpace = computed(() => {
 
 const usedSpace = computed(() => FILE_UPLOAD_LIMITS.MAX_TOTAL_SIZE - remainingUploadSpace.value)
 
-const qrCodeUrl = computed(() => {
-  const baseUrl = 'https://api.qrserver.com/v1/create-qr-code/'
-  const params = `?size=${QR_CODE_SIZE}&data=${encodeURIComponent(document.location.href)}`
-  return baseUrl + params
-})
+const readOnlyLink = computed(() => `${window.location.origin}/v/${keyword.value.view_word}`)
 
 // 添加只读链接计算属性
 const readOnlyUrl = computed(() => {
@@ -93,7 +77,7 @@ const fileTabLabel = computed(() => `文件(${fileList.value.length}个)`)
 // 工具函数
 // ===================
 const debounce = <T extends (...args: any[]) => any>(fn: T, delay: number) => {
-  let timer: number | null = null
+  let timer: ReturnType<typeof setTimeout> | null = null
   return (...args: Parameters<T>) => {
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => fn(...args), delay)
@@ -183,7 +167,7 @@ const handleFetchError = (response: any) => {
     console.error(response)
     // 只在非保存操作时显示错误提示
     if (!response?.config?.url?.includes('/api/data')) {
-      showMessage(response?.data?.msg || MESSAGES.FETCH_FAILED, 'error')
+      showMessage(response?.data?.msg || Constant.MESSAGES.FETCH_FAILED, 'error')
     }
   }
 }
@@ -210,10 +194,10 @@ const handleSave = async (silent = false) => {
     lastSavedContent.value = keyword.value.content || ''
 
     if (!silent) {
-      showMessage(MESSAGES.SAVE_SUCCESS)
+      showMessage(Constant.MESSAGES.SAVE_SUCCESS)
     }
   } catch (_error: any) {
-    showMessage(MESSAGES.SAVE_FAILED, 'error')
+    showMessage(Constant.MESSAGES.SAVE_FAILED, 'error')
   } finally {
     loading.value = false
   }
@@ -234,7 +218,7 @@ const handleFileUpload = async (file: File) => {
   uploadLoading.value = true
   try {
     await fileApi.uploadFile(file)
-    showMessage(MESSAGES.UPLOAD_SUCCESS)
+    showMessage(Constant.MESSAGES.UPLOAD_SUCCESS)
 
     // 如果是新的word，需要先创建keyword记录，确保文件能正确显示
     if (!keyword.value.id) {
@@ -245,7 +229,7 @@ const handleFileUpload = async (file: File) => {
     const files = await fileApi.getFileList()
     fileList.value = files || []
   } catch (error: any) {
-    showMessage(error?.message || MESSAGES.UPLOAD_FAILED, 'error')
+    showMessage(error?.message || Constant.MESSAGES.UPLOAD_FAILED, 'error')
   } finally {
     uploadLoading.value = false
   }
@@ -254,10 +238,10 @@ const handleFileUpload = async (file: File) => {
 const handleFileDelete = async (fileName: string) => {
   try {
     await fileApi.deleteFile(fileName)
-    showMessage(MESSAGES.DELETE_SUCCESS)
+    showMessage(Constant.MESSAGES.DELETE_SUCCESS)
     await fetchContent()
   } catch (_error: any) {
-    showMessage(MESSAGES.DELETE_FAILED, 'error')
+    showMessage(Constant.MESSAGES.DELETE_FAILED, 'error')
   }
 }
 
@@ -269,9 +253,9 @@ const handleDelete = async () => {
     // 清空cookie
     Utils.clearLocalStorageAndCookies()
     resetForm()
-    showMessage(MESSAGES.DELETE_SUCCESS)
+    showMessage(Constant.MESSAGES.DELETE_SUCCESS)
   } catch (_error: any) {
-    showMessage(MESSAGES.DELETE_FAILED, 'error')
+    showMessage(Constant.MESSAGES.DELETE_FAILED, 'error')
   }
 }
 
@@ -329,7 +313,7 @@ const handleSettingsSave = async () => {
     await fetchContent()
 
     showSettings.value = false
-    showMessage(MESSAGES.SETTINGS_SAVED)
+    showMessage(Constant.MESSAGES.SETTINGS_SAVED)
   } catch (_error: any) {
     showMessage('保存设置失败', 'error')
   } finally {
@@ -485,11 +469,19 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="qrcode">
-          <div class="qrcode-label">只读链接</div>
-          <div class="qrcode-content" @click="copyReadOnlyLink">
-            <el-image style="width: 150px; height: 150px" :src="qrCodeUrl" />
-            <div class="copy-link">点击复制只读链接</div>
+        <div class="operation" v-if="keyword.id">
+          <div class="qrcode">
+            <div class="qrcode-label">只读链接</div>
+            <div class="qrcode-content" @click="copyReadOnlyLink">
+              <QRCode :data="readOnlyLink" :size="150" />
+              <div class="copy-link">点击复制只读链接</div>
+            </div>
+          </div>
+          <div class="info">
+            <div class="info-item">
+              <div class="label">口令:</div>
+              <div class="value">{{ keyword.view_word }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -640,28 +632,90 @@ onMounted(async () => {
   font-size: var(--font-size-normal);
 }
 
-.qrcode {
+.operation {
   background: var(--bg-color);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   padding: var(--spacing-large);
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  .info-item {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    justify-content: center;
+    gap: var(--spacing-small);
+  }
+
+  .info-item .label {
+    width: auto;
+  }
+}
+
+.qrcode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  position: relative;
 }
 
 .qrcode-content {
+  width: 150px;
+  height: 150px;
   cursor: pointer;
+  background-color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+
+  .copy-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    font-size: 14px;
+    padding: 10px;
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+
+  &:hover .copy-link {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .qrcode-label {
-  margin-bottom: var(--spacing-medium);
+  font-size: 14px;
   color: var(--text-secondary);
-  font-size: var(--font-size-normal);
+  margin-bottom: var(--spacing-small);
 }
 
-.copy-link {
-  font-size: var(--font-size-small);
-  user-select: none;
-  transition: color 0.2s ease;
+.info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-item {
+  margin-bottom: 10px;
 }
 
 .file-header {

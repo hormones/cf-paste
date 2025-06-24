@@ -31,4 +31,15 @@ export const Constant = {
     { label: '1个月', value: 30 * 24 * 60 * 60 },
     { label: '3个月', value: 90 * 24 * 60 * 60 },
   ],
+  MESSAGES: {
+    NO_CONTENT: '请输入内容或上传文件',
+    SAVE_SUCCESS: '保存成功',
+    SAVE_FAILED: '保存失败',
+    UPLOAD_SUCCESS: '上传成功',
+    UPLOAD_FAILED: '上传失败',
+    DELETE_SUCCESS: '删除成功',
+    DELETE_FAILED: '删除失败',
+    SETTINGS_SAVED: '设置已保存',
+    FETCH_FAILED: '获取内容失败',
+  },
 }

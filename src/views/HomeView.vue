@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { shallowRef } from 'vue'
 import type { Component } from 'vue'
-import DefaultTemplate from '@/templates/DefaultTemplate.vue'
+import Template from '@/templates/DefaultTemplate.vue'
 
-const currentTemplate = shallowRef<Component>(DefaultTemplate)
+const currentTemplate = shallowRef<Component>(Template)
 </script>
 
 <template>
