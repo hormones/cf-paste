@@ -5,7 +5,6 @@ import { newErrorResponse, newResponse } from '../utils/response'
 import { Auth } from '../utils/auth'
 import { Constant } from '../constant'
 import { validateExpireValue, calculateExpireTime } from '../utils/time'
-import { Utils } from '../utils'
 
 const keyword = 'keyword'
 const key = 'word'
@@ -142,7 +141,7 @@ router.post('/verify', async (req: IRequest, env: Env) => {
   const keyword: Keyword | null = await getKeyword(env, req, c_word, c_view_word)
 
   if (!keyword) {
-    Utils.error(req, `通过 ${c_word} | ${c_view_word} 找不到对应的keyword信息`)
+    console.error(`通过 ${c_word} | ${c_view_word} 找不到对应的keyword信息`)
     return error(410, '访问出错了，页面不存在')
   }
 

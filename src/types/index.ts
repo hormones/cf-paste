@@ -29,8 +29,5 @@ export interface FileInfo {
   etag: string
 }
 
-/** 文件上传限制 */
-export const FILE_UPLOAD_LIMITS = {
-  MAX_FILES: 10,
-  MAX_TOTAL_SIZE: 300 * 1024 * 1024, // 300MB in bytes
-} as const
+/** 重新导出上传配置类型 */
+export type { UploadConfig } from '@/api/config'

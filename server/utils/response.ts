@@ -3,8 +3,6 @@
  * @module utils/response
  */
 
-import { Utils } from './index'
-
 /**
  * 创建成功响应
  * @param code 状态码
@@ -46,6 +44,6 @@ export function newErrorResponse<T>(
   } & ApiResponse<T>,
 ): Response {
   msg = msg || (error && error.message) || 'function execute error'
-  Utils.error(context, `request error: ${logMsg}`, error)
+  console.error(`request error: ${logMsg}`, error)
   return new Response(JSON.stringify({ code, msg }), { status })
 }

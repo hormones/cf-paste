@@ -32,7 +32,7 @@ export const authenticate: RequestHandler<IRequest> = async (
 
   // cookie中c_word和c_view_word二者必有其一
   if (!c_word && !c_view_word) {
-    Utils.error(req, 'c_word和c_view_word都为空')
+    console.error('c_word和c_view_word都为空')
     return error(400, '访问出错了，请刷新页面')
   }
 
@@ -40,7 +40,7 @@ export const authenticate: RequestHandler<IRequest> = async (
 
   let keyword: Keyword | null = await getKeyword(env, req, c_word, c_view_word)
   if (!c_word && c_view_word && !keyword) {
-    Utils.error(req, `通过${c_view_word}找不到对应的keyword信息`)
+    console.error(`通过${c_view_word}找不到对应的keyword信息`)
     return error(404, '访问出错了，页面不存在')
   }
 
@@ -81,7 +81,7 @@ export const authenticate: RequestHandler<IRequest> = async (
 
     if ((c_word && c_word !== a_word) || (!c_word && keyword!.word !== a_word)) {
       req.clearAuthCookie = true
-      Utils.error(req, '密钥不匹配')
+      console.error('密钥不匹配')
       return error(403, '拒绝访问')
     }
 
@@ -94,13 +94,13 @@ export const authenticate: RequestHandler<IRequest> = async (
     // 如果浏览模式，不允许访问PUT/POST/DELETE请求
     if (!req.edit) {
       if (req.method === 'PUT' || req.method === 'POST' || req.method === 'DELETE') {
-        Utils.error(req, '浏览模式非法调用')
+        console.error('浏览模式非法调用')
         return error(403, '拒绝访问')
       }
     }
   } catch (err) {
     req.clearAuthCookie = true
-    Utils.error(req, '解密失败', err)
+    console.error('解密失败', err)
     return error(403, '拒绝访问')
   }
   console.log('authentication success')
@@ -115,7 +115,7 @@ export const handle = (res: Response, req: IRequest) => {
     Auth.clearCookie(res, 'authorization')
   }
   if (res.status !== 200) {
-    Utils.error(req, `response error, url=${req.functionPath}, status=${res.status}`)
+    console.error(`response error, url=${req.functionPath}, status=${res.status}`)
   }
   console.log(req.url, 'served in', Date.now() - req.startTime, 'ms')
 }

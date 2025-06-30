@@ -7,8 +7,7 @@
 import { Utils } from '../utils'
 import { newErrorResponse, newResponse } from '../utils/response'
 
-/** 分片上传的块大小：10MB */
-const CHUNK_SIZE = 10 * 1024 * 1024
+
 
 /**
  * R2对象存储操作封装
@@ -40,9 +39,9 @@ export const R2 = {
     })
   },
 
-  /**
-   * 上传文件
-   * 支持大文件分片上传，超过10MB的文件会自动使用分片上传
+    /**
+   * 直接上传文件到 R2
+   * 前端已处理分片逻辑，这里只负责直接上传
    * @param env 环境变量
    * @param prefix 文件路径前缀
    * @param name 文件名
@@ -61,80 +60,19 @@ export const R2 = {
     }: { prefix: string; name: string; length: number; stream: ReadableStream<Uint8Array> | null }
   ) => {
     const path = `${prefix}/${name}`
-    Utils.log(context, `upload file: ${path}, size: ${Utils.humanReadableSize(length)}`)
+    console.log(`upload file: ${path}, size: ${Utils.humanReadableSize(length)}`)
+
     if (!stream || length <= 0) {
       return newErrorResponse(context, { logMsg: 'stream或length为空', msg: 'file is required' })
     }
-    // 小文件直接上传
-    if (length <= CHUNK_SIZE) {
-      return env.R2.put(path, stream, {
-        httpMetadata: { contentType: 'application/octet-stream' },
-        customMetadata: { uploadedAt: new Date().toISOString() },
-      })
-        .then(() => newResponse({}))
-        .catch((error) => newErrorResponse(context, { error, logMsg: '上传文件失败' }))
-    }
 
-    // 创建分片上传任务
-    let multipartUpload: R2MultipartUpload | null = null
-    try {
-      multipartUpload = await env.R2.createMultipartUpload(path, {
-        httpMetadata: { contentType: 'application/octet-stream' },
-        customMetadata: { uploadedAt: new Date().toISOString() },
-      })
-      const reader = stream.getReader()
-      const uploadedParts: R2UploadedPart[] = []
-      const chunks: Uint8Array[] = [] // 使用数组存储数据块
-      let totalLength = 0
-      let partNumber = 1
-      while (true) {
-        const { done, value } = await reader.read()
-        if (value) {
-          chunks.push(value)
-          totalLength += value.length
-        }
-        // 当累积长度达到或超过分片大小，或者是最后一块数据时，执行上传
-        while (totalLength >= CHUNK_SIZE || (done && totalLength > 0)) {
-          // 确定这次要上传的大小（取CHUNK_SIZE和totalLength的较小值）
-          const uploadSize = Math.min(CHUNK_SIZE, totalLength)
-          const uploadChunk = new Uint8Array(uploadSize)
-          let offset = 0
-
-          while (offset < uploadSize) {
-            const chunk = chunks[0]
-            const remainingSpace = uploadSize - offset
-            if (chunk.length <= remainingSpace) {
-              uploadChunk.set(chunk, offset)
-              offset += chunk.length
-              totalLength -= chunk.length
-              chunks.shift()
-            } else {
-              uploadChunk.set(chunk.subarray(0, remainingSpace), offset)
-              chunks[0] = chunk.subarray(remainingSpace)
-              totalLength -= remainingSpace
-              break
-            }
-          }
-          const uploadedPart = await multipartUpload?.uploadPart(partNumber, uploadChunk)
-          if (uploadedPart) {
-            uploadedParts.push(uploadedPart)
-          }
-          partNumber++
-          Utils.log(
-            context,
-            `uploaded part: ${partNumber}, size: ${Utils.humanReadableSize(uploadChunk.length)}`
-          )
-        }
-        if (done) break
-      }
-
-      // 完成分片上传
-      return multipartUpload?.complete(uploadedParts).then(() => newResponse({}))
-    } catch (error) {
-      // 出错时中止分片上传
-      await multipartUpload?.abort()
-      return newErrorResponse(context, { error })
-    }
+    // 直接上传到 R2（前端已处理分片逻辑）
+    return env.R2.put(path, stream, {
+      httpMetadata: { contentType: 'application/octet-stream' },
+      customMetadata: { uploadedAt: new Date().toISOString() },
+    })
+      .then(() => newResponse({}))
+      .catch((error) => newErrorResponse(context, { error, logMsg: '上传文件失败' }))
   },
 
   /**
@@ -150,7 +88,7 @@ export const R2 = {
     { prefix, name }: { prefix: string; name: string }
   ) => {
     const path = `${prefix}/${name}`
-    Utils.log(context, `delete file: ${path}`)
+    console.log(`delete file: ${path}`)
     return env.R2.delete(path)
       .then(() => newResponse({}))
       .catch((error: any) => newErrorResponse(context, { error, logMsg: '删除文件失败' }))
@@ -211,10 +149,7 @@ export const R2 = {
         deletedCount += listResult.objects.length
 
         // 记录删除日志
-        Utils.log(
-          context,
-          `Deleted ${listResult.objects.length} files from ${prefix}, total: ${deletedCount}`
-        )
+        console.log(`Deleted ${listResult.objects.length} files from ${prefix}, total: ${deletedCount}`)
 
         // 获取下一批的游标
         if (listResult.truncated && listResult.objects.length > 0) {
@@ -224,10 +159,10 @@ export const R2 = {
         }
       } while (cursor)
 
-      Utils.log(context, `Folder deletion completed: ${prefix}, total deleted: ${deletedCount}`)
+      console.log(`Folder deletion completed: ${prefix}, total deleted: ${deletedCount}`)
       return deletedCount
     } catch (error) {
-      Utils.error(context, `Failed to delete folder ${prefix}`, error)
+      console.error(`Failed to delete folder ${prefix}`, error)
       throw error
     }
   },
@@ -252,7 +187,7 @@ export const R2 = {
         const batch = keys.slice(i, i + batchSize)
         const deletePromises = batch.map((key) =>
           env.R2.delete(key).catch((error: any) => {
-            Utils.error(context, `Failed to delete ${key}`, error)
+            console.error(`Failed to delete ${key}`, error)
             return null // 继续删除其他文件
           })
         )
@@ -261,13 +196,156 @@ export const R2 = {
         const successCount = results.filter((result: any) => result !== null).length
         deletedCount += successCount
 
-        Utils.log(context, `Batch deleted ${successCount}/${batch.length} files`)
+        console.log(`Batch deleted ${successCount}/${batch.length} files`)
       }
 
-      Utils.log(context, `Batch deletion completed: ${deletedCount}/${keys.length} files`)
+      console.log(`Batch deletion completed: ${deletedCount}/${keys.length} files`)
       return deletedCount
     } catch (error) {
-      Utils.error(context, 'Batch deletion failed', error)
+      console.error('Batch deletion failed', error)
+      throw error
+    }
+  },
+
+  /**
+   * 初始化分片上传
+   * @param env 环境变量
+   * @param context 上下文
+   * @param prefix 文件路径前缀
+   * @param name 文件名
+   * @returns 分片上传对象
+   */
+  createMultipartUpload: async (
+    env: Env,
+    context: IContext,
+    { prefix, name }: { prefix: string; name: string }
+  ) => {
+    const path = `${prefix}/${name}`
+    console.log(`create multipart upload: ${path}`)
+
+    try {
+      const multipartUpload = await env.R2.createMultipartUpload(path, {
+        httpMetadata: { contentType: 'application/octet-stream' },
+        customMetadata: { uploadedAt: new Date().toISOString() }
+      })
+
+      return {
+        uploadId: multipartUpload.uploadId,
+        key: path
+      }
+    } catch (error) {
+      console.error(`Failed to create multipart upload for ${path}`, error)
+      throw error
+    }
+  },
+
+  /**
+   * 上传分片
+   * @param env 环境变量
+   * @param context 上下文
+   * @param uploadId 上传ID
+   * @param key 文件路径
+   * @param partNumber 分片号（从1开始）
+   * @param data 分片数据
+   * @returns 上传结果
+   */
+  uploadPart: async (
+    env: Env,
+    context: IContext,
+    {
+      uploadId,
+      key,
+      partNumber,
+      data
+    }: {
+      uploadId: string
+      key: string
+      partNumber: number
+      data: ArrayBuffer
+    }
+  ) => {
+    console.log(`upload part ${partNumber} for ${key}, size: ${Utils.humanReadableSize(data.byteLength)}`)
+
+    try {
+      const multipartUpload = await env.R2.resumeMultipartUpload(key, uploadId)
+      const uploadedPart = await multipartUpload.uploadPart(partNumber, data)
+
+      return {
+        partNumber,
+        etag: uploadedPart.etag
+      }
+    } catch (error) {
+      console.error(`Failed to upload part ${partNumber} for ${key}`, error)
+      throw error
+    }
+  },
+
+  /**
+   * 完成分片上传
+   * @param env 环境变量
+   * @param context 上下文
+   * @param uploadId 上传ID
+   * @param key 文件路径
+   * @param parts 分片信息数组
+   * @returns 完成结果
+   */
+  completeMultipartUpload: async (
+    env: Env,
+    context: IContext,
+    {
+      uploadId,
+      key,
+      parts
+    }: {
+      uploadId: string
+      key: string
+      parts: Array<{ partNumber: number; etag: string }>
+    }
+  ) => {
+    console.log(`complete multipart upload for ${key}, parts: ${parts.length}`)
+
+    try {
+      const multipartUpload = await env.R2.resumeMultipartUpload(key, uploadId)
+      const result = await multipartUpload.complete(parts)
+
+      return {
+        etag: result.etag,
+        size: result.size
+      }
+    } catch (error) {
+      console.error(`Failed to complete multipart upload for ${key}`, error)
+      throw error
+    }
+  },
+
+  /**
+   * 取消分片上传
+   * @param env 环境变量
+   * @param context 上下文
+   * @param uploadId 上传ID
+   * @param key 文件路径
+   * @returns 取消结果
+   */
+  abortMultipartUpload: async (
+    env: Env,
+    context: IContext,
+    {
+      uploadId,
+      key
+    }: {
+      uploadId: string
+      key: string
+    }
+  ) => {
+    console.log(`abort multipart upload for ${key}`)
+
+    try {
+      const multipartUpload = await env.R2.resumeMultipartUpload(key, uploadId)
+      await multipartUpload.abort()
+
+      return { success: true }
+    } catch (error) {
+      console.error(`Failed to abort multipart upload for ${key}`, error)
       throw error
     }
   },

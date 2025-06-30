@@ -5,7 +5,6 @@
  */
 
 import { Constant } from '../constant'
-import { Utils } from '../utils'
 
 /**
  * 处理SQL查询条件
@@ -51,7 +50,7 @@ export const D1 = {
     let sql = `SELECT * FROM ${table}`
     const { whereClause, values } = processWhere(where)
     sql += whereClause + ' LIMIT 1'
-    Utils.log(context, sql, values)
+    console.log('SQL:', sql, 'Values:', values)
     return env.DB.prepare(sql)
       .bind(...values)
       .first<T>()
@@ -105,7 +104,7 @@ export const D1 = {
     const sql = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`
     const values = Object.values(data)
 
-    Utils.log(context, sql, values)
+    console.log('SQL:', sql, 'Values:', values)
     return env.DB.prepare(sql)
       .bind(...values)
       .run()
@@ -116,7 +115,7 @@ export const D1 = {
         throw new Error(`insert failed, affected rows: ${result.meta?.changes}`)
       })
       .catch((error) => {
-        Utils.error(context, 'insert failed', error, sql, values)
+        console.error('insert failed', error, 'SQL:', sql, 'Values:', values)
         throw new Error('insert failed')
       })
   },
@@ -145,7 +144,7 @@ export const D1 = {
     sql += whereClause
     values.push(...whereValues)
 
-    Utils.log(context, sql, values)
+    console.log('SQL:', sql, 'Values:', values)
     return env.DB.prepare(sql)
       .bind(...values)
       .run()
@@ -164,7 +163,7 @@ export const D1 = {
     const { whereClause, values } = processWhere(where)
     sql += whereClause
 
-    Utils.log(context, sql, values)
+    console.log('SQL:', sql, 'Values:', values)
     return env.DB.prepare(sql)
       .bind(...values)
       .run()

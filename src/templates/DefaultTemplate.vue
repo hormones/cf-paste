@@ -1,332 +1,245 @@
 <script setup lang="ts">
+/**
+ * 默认模板组件 - 重构版
+ * 采用Composable架构，轻量化设计，职责分离
+ */
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Download, Delete, Setting } from '@element-plus/icons-vue'
-import { dataApi } from '../api/data'
-import { fileApi } from '../api/file'
-import type { Keyword, FileInfo } from '../types'
-import { useWordStore } from '@/stores'
-import { Utils } from '@/utils'
-import { FILE_UPLOAD_LIMITS } from '@/types'
+import { Download, Delete, Setting, UploadFilled } from '@element-plus/icons-vue'
+import { ElMessageBox } from 'element-plus'
 import type { UploadRequestOptions } from 'element-plus'
+
+// 组件导入
 import PasswordDialog from '@/components/PasswordDialog.vue'
 import GlassDialog from '@/components/GlassDialog.vue'
-import { Constant } from '@/constant'
 import QRCode from '@/components/QRCode.vue'
+import UploadProgress from '@/components/upload/UploadProgress.vue'
+
+// Composable导入 - 业务逻辑分离
+import { useUploadConfig } from '@/composables/useUploadConfig'
+import { useFileUpload } from '@/composables/useFileUpload'
+import { useClipboard } from '@/composables/useClipboard'
+import { useSettings } from '@/composables/useSettings'
+
+// 工具导入
+import { useWordStore } from '@/stores'
+import { Utils } from '@/utils'
 
 // ===================
-// 常量定义
-// ===================
-const DEBOUNCE_DELAY = 1000
-const DEFAULT_EXPIRY_INDEX = 2
-
-// ===================
-// Store 和基础状态
+// Composable逻辑组合
 // ===================
 const wordStore = useWordStore()
-const expiryOptions = Constant.EXPIRY_OPTIONS
+
+// 上传配置管理
+const { fetchConfig, maxFiles, maxTotalSize } = useUploadConfig()
+
+// 文件上传管理
+const {
+  fileList,
+  uploadLoading,
+  uploadStates,
+  remainingUploadSpace,
+  usedSpace,
+  canUpload,
+  fileTabLabel,
+  fetchFileList,
+  uploadFile,
+  cancelUpload,
+  deleteFile,
+  downloadFile,
+} = useFileUpload()
+
+// 剪贴板管理
+const {
+  loading,
+  keyword,
+  showPasswordDialog,
+  readOnlyLink,
+  formatDate,
+  fetchContent,
+  saveContent,
+  deleteContent,
+  handlePasswordVerified,
+  createAutoSave,
+  copyReadOnlyLink,
+} = useClipboard()
+
+// 设置管理
+const {
+  showSettings,
+  password,
+  expiry,
+  loading: settingsLoading,
+  openSettings,
+  closeSettings,
+  saveSettings,
+  getExpiryOptions,
+} = useSettings()
 
 // ===================
-// 响应式状态
+// 本地状态
 // ===================
-// UI 状态
-const loading = ref(false)
-const uploadLoading = ref(false)
-const showPasswordDialog = ref(false)
-const showSettings = ref(false)
 const viewMode = ref(true)
 const activeTab = ref('clipboard')
 
-// 数据状态
-const keyword = ref<Keyword>({
-  word: wordStore.word,
-  view_word: Utils.getRandomWord(6),
-  content: '',
-  expire_time: Date.now() + expiryOptions[DEFAULT_EXPIRY_INDEX].value * 1000,
-  expire_value: expiryOptions[DEFAULT_EXPIRY_INDEX].value, // 添加expire_value初始值
-})
-const fileList = ref<FileInfo[]>([])
-const password = ref('')
-const expiry = ref(expiryOptions[DEFAULT_EXPIRY_INDEX].value)
-const lastSavedContent = ref('')
-
 // ===================
-// 计算属性
+// 防抖自动保存
 // ===================
-const remainingUploadSpace = computed(() => {
-  const currentSize = fileList.value.reduce((sum, file) => sum + file.size, 0)
-  return FILE_UPLOAD_LIMITS.MAX_TOTAL_SIZE - currentSize
-})
-
-const usedSpace = computed(() => FILE_UPLOAD_LIMITS.MAX_TOTAL_SIZE - remainingUploadSpace.value)
-
-const readOnlyLink = computed(() => `${window.location.origin}/v/${keyword.value.view_word}`)
-
-// 添加只读链接计算属性
-const readOnlyUrl = computed(() => {
-  return `/v/${keyword.value.view_word}`
-})
-
-const canUpload = computed(
-  () => !uploadLoading.value && fileList.value.length < FILE_UPLOAD_LIMITS.MAX_FILES
-)
-
-const fileTabLabel = computed(() => `文件(${fileList.value.length}个)`)
-
-// ===================
-// 工具函数
-// ===================
-const debounce = <T extends (...args: any[]) => any>(fn: T, delay: number) => {
-  let timer: ReturnType<typeof setTimeout> | null = null
-  return (...args: Parameters<T>) => {
-    if (timer) clearTimeout(timer)
-    timer = setTimeout(() => fn(...args), delay)
-  }
-}
-
-const showMessage = (message: string, type: 'success' | 'error' | 'warning' = 'success') => {
-  ElMessage({
-    message,
-    type,
-    duration: type === 'success' ? 2000 : 3000,
-  })
-}
-
-const formatDate = (timestamp?: number) => {
-  return !keyword.value.id ? '-' : new Date(timestamp || Date.now()).toLocaleString()
-}
-
-// 添加复制链接功能
-const copyReadOnlyLink = async () => {
-  try {
-    const fullUrl = `${window.location.origin}${readOnlyUrl.value}`
-    await navigator.clipboard.writeText(fullUrl)
-    showMessage('链接已复制到剪贴板')
-  } catch (error) {
-    // 兜底方案：使用传统方法复制
-    const textArea = document.createElement('textarea')
-    textArea.value = `${window.location.origin}${readOnlyUrl.value}`
-    document.body.appendChild(textArea)
-    textArea.select()
-    document.execCommand('copy')
-    document.body.removeChild(textArea)
-    showMessage('链接已复制到剪贴板')
-  }
-}
-
-const resetForm = () => {
-  keyword.value = {
-    id: null,
-    word: wordStore.word,
-    view_word: wordStore.view_word,
-    content: '',
-    expire_time: Date.now() + expiryOptions[DEFAULT_EXPIRY_INDEX].value * 1000,
-    expire_value: expiryOptions[DEFAULT_EXPIRY_INDEX].value,
-  }
-  password.value = ''
-  expiry.value = expiryOptions[DEFAULT_EXPIRY_INDEX].value // 重置前端设置变量
-  fileList.value = []
-  lastSavedContent.value = ''
-}
-
-// ===================
-// API 处理函数
-// ===================
-const fetchContent = async () => {
-  loading.value = true
-  try {
-    const data = await dataApi.getKeyword()
-    if (data) {
-      keyword.value = data
-      password.value = data.password || ''
-      lastSavedContent.value = data.content || ''
-
-      // 从服务器数据中读取expire_value并设置到前端变量
-      if (data.expire_value) {
-        expiry.value = data.expire_value
-      }
-
-      const files = await fileApi.getFileList()
-      fileList.value = files || []
-    } else {
-      // 如果没有数据，确保 lastSavedContent 与当前内容一致
-      lastSavedContent.value = keyword.value.content || ''
-    }
-    wordStore.setViewWord(keyword.value.view_word!)
-  } catch (response: any) {
-    handleFetchError(response)
-  } finally {
-    loading.value = false
-  }
-}
-
-const handleFetchError = (response: any) => {
-  if (response?.status === 401) {
-    showPasswordDialog.value = true
-  } else {
-    console.error(response)
-    showMessage(
-      response?.data?.msg || response?.data?.error || Constant.MESSAGES.FETCH_FAILED,
-      'error'
-    )
-  }
-}
-
-const handleSave = async (silent = false) => {
-  loading.value = true
-  try {
-    if (keyword.value.id) {
-      const data: Partial<Keyword> = {
-        content: keyword.value.content,
-      }
-      await dataApi.updateKeyword(data)
-    } else {
-      const data: Keyword = {
-        word: keyword.value.word,
-        view_word: keyword.value.view_word,
-        content: keyword.value.content,
-        expire_time: keyword.value.expire_time, // 保持现有过期时间
-      }
-      keyword.value.id = await dataApi.createKeyword(data)
-    }
-
-    // 在fetchContent后更新最后保存的内容，确保与服务器数据一致
-    lastSavedContent.value = keyword.value.content || ''
-
-    if (!silent) {
-      showMessage(Constant.MESSAGES.SAVE_SUCCESS)
-    }
-  } catch (_error: any) {
-    showMessage(Constant.MESSAGES.SAVE_FAILED, 'error')
-  } finally {
-    loading.value = false
-  }
-}
+const autoSave = createAutoSave(1000)
 
 // ===================
 // 事件处理函数
 // ===================
-const autoSave = debounce(() => {
-  // 检查剪贴板内容是否有变化
-  if ((keyword.value.content || '') === lastSavedContent.value) {
-    return // 内容没有变化，不需要保存
-  }
-  handleSave()
-}, DEBOUNCE_DELAY)
-
-const handleFileUpload = async (file: File) => {
-  uploadLoading.value = true
+const handleFileUpload = async (options: UploadRequestOptions) => {
   try {
-    await fileApi.uploadFile(file)
-    showMessage(Constant.MESSAGES.UPLOAD_SUCCESS)
+    await uploadFile(options.file as File)
 
-    // 如果是新的word，需要先创建keyword记录，确保文件能正确显示
+    // 如果是新的word，需要先创建keyword记录
     if (!keyword.value.id) {
-      await handleSave(true) // 静默保存，创建keyword记录
+      await saveContent(true)
     }
 
-    // 更新文件列表
-    const files = await fileApi.getFileList()
-    fileList.value = files || []
-  } catch (error: any) {
-    showMessage(error?.message || Constant.MESSAGES.UPLOAD_FAILED, 'error')
-  } finally {
-    uploadLoading.value = false
+    await fetchFileList()
+  } catch (error) {
+    console.error('文件上传失败:', error)
   }
 }
 
 const handleFileDelete = async (fileName: string) => {
   try {
-    await fileApi.deleteFile(fileName)
-    showMessage(Constant.MESSAGES.DELETE_SUCCESS)
-    await fetchContent()
-  } catch (_error: any) {
-    showMessage(Constant.MESSAGES.DELETE_FAILED, 'error')
+    // 显示确认对话框
+    await ElMessageBox.confirm(`确定要删除文件 "${fileName}" 吗？此操作不可恢复。`, '确认删除', {
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+      type: 'warning',
+      dangerouslyUseHTMLString: false,
+      cancelButtonClass: 'el-button--default',
+      confirmButtonClass: 'el-button--danger',
+    })
+
+    // 用户确认后执行删除
+    await deleteFile(fileName)
+    await fetchContent() // 刷新页面数据
+  } catch (error) {
+    // 用户取消删除或删除失败
+    if (error === 'cancel') {
+      console.log('用户取消删除操作')
+      return
+    }
+    console.error('删除文件失败:', error)
   }
 }
 
-const handleDelete = async () => {
+const handleDeleteAllFiles = async () => {
+  if (fileList.value.length === 0) return
+
   try {
-    await dataApi.deleteKeyword()
-    // 重新生成view_word
-    wordStore.setViewWord(Utils.getRandomWord(6))
-    // 清空cookie
-    Utils.clearLocalStorageAndCookies()
-    resetForm()
-    showMessage(Constant.MESSAGES.DELETE_SUCCESS)
-  } catch (_error: any) {
-    showMessage(Constant.MESSAGES.DELETE_FAILED, 'error')
+    // 显示确认对话框
+    await ElMessageBox.confirm(
+      `确定要删除所有 ${fileList.value.length} 个文件吗？此操作不可恢复。`,
+      '确认删除',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+        dangerouslyUseHTMLString: false,
+        cancelButtonClass: 'el-button--default',
+        confirmButtonClass: 'el-button--danger',
+      }
+    )
+
+    // 批量删除所有文件
+    const deletePromises = fileList.value.map((file) => deleteFile(file.name))
+    await Promise.all(deletePromises)
+
+    // 刷新页面数据
+    await fetchContent()
+    console.log(`成功删除 ${fileList.value.length} 个文件`)
+  } catch (error) {
+    // 用户取消删除或删除失败
+    if (error === 'cancel') {
+      console.log('用户取消删除操作')
+      return
+    }
+    console.error('批量删除文件失败:', error)
   }
 }
 
 const handleFileDownload = async (fileName: string) => {
   try {
-    // 方案1：使用 fetch + blob 方式，避免 SPA 路由拦截
-    const response = await fetch(`/api/file/download?name=${encodeURIComponent(fileName)}`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        Accept: 'application/octet-stream',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error('下载失败')
-    }
-
-    // 获取文件内容
-    const blob = await response.blob()
-
-    // 创建下载链接
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = fileName
-    a.style.display = 'none'
-
-    // 触发下载
-    document.body.appendChild(a)
-    a.click()
-
-    // 清理
-    document.body.removeChild(a)
-    window.URL.revokeObjectURL(url)
-  } catch (error: any) {
-    showMessage(error?.message || '下载失败', 'error')
+    await downloadFile(fileName)
+  } catch (error) {
+    console.error('下载文件失败:', error)
   }
 }
 
-const handlePasswordVerified = () => {
-  fetchContent()
+const handleDelete = async () => {
+  try {
+    // 显示确认对话框
+    await ElMessageBox.confirm(
+      '确定要删除所有数据吗？包括剪贴板内容和所有文件，此操作不可恢复。',
+      '确认删除',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'error',
+        dangerouslyUseHTMLString: false,
+        cancelButtonClass: 'el-button--default',
+        confirmButtonClass: 'el-button--danger',
+      }
+    )
+
+    // 用户确认后执行删除
+    await deleteContent()
+  } catch (error) {
+    // 用户取消删除或删除失败
+    if (error === 'cancel') {
+      console.log('用户取消删除操作')
+      return
+    }
+    console.error('删除内容失败:', error)
+  }
+}
+
+const handleOpenSettings = () => {
+  openSettings(password.value, keyword.value.expire_value)
 }
 
 const handleSettingsSave = async () => {
-  loading.value = true
   try {
-    // 调用专用的设置保存API
-    await dataApi.saveSettings({
-      expire_value: expiry.value,
-      password: password.value,
-    })
-
-    // 重新加载数据以获取更新后的expire_time
-    await fetchContent()
-
-    showSettings.value = false
-    showMessage(Constant.MESSAGES.SETTINGS_SAVED)
-  } catch (_error: any) {
-    showMessage('保存设置失败', 'error')
-  } finally {
-    loading.value = false
+    await saveSettings()
+    await fetchContent() // 重新加载数据获取更新后的expire_time
+  } catch (error) {
+    console.error('保存设置失败:', error)
   }
+}
+
+const handleRetry = async (fileName: string) => {
+  const state = uploadStates.value.get(fileName)
+  if (state?.currentFile) {
+    const file = state.currentFile
+    await handleFileUpload({ file } as UploadRequestOptions)
+  }
+}
+
+/**
+ * 手动关闭上传进度显示
+ */
+const handleDismissUpload = (fileName: string) => {
+  uploadStates.value.delete(fileName)
 }
 
 // ===================
 // 生命周期
 // ===================
 onMounted(async () => {
+  // 初始化配置
+  await fetchConfig()
+
+  // 加载内容和文件
   await fetchContent()
-  // 如果wordStore.word为空，则进入查看模式，否则进入编辑模式
+  await fetchFileList()
+
+  // 设置查看模式
   viewMode.value = !wordStore.word
 })
 </script>
@@ -366,31 +279,53 @@ onMounted(async () => {
               :disabled="viewMode"
             />
           </div>
-
           <div v-show="activeTab === 'files'" class="tab-pane">
-            <div class="file-header">
+            <div class="file-header upload-area">
               <div class="upload-info">
                 <el-upload
-                  v-if="!viewMode"
-                  :auto-upload="true"
-                  :show-file-list="false"
-                  :http-request="(options: UploadRequestOptions) => handleFileUpload(options.file)"
+                  v-if="uploadStates.size === 0"
+                  :http-request="handleFileUpload"
                   :disabled="!canUpload"
+                  :drag="true"
+                  class="upload-dragger"
                 >
-                  <el-button type="primary" :loading="uploadLoading" :disabled="!canUpload">
-                    {{ uploadLoading ? '上传中...' : '上传文件' }}
-                  </el-button>
-                </el-upload>
-                <div class="upload-limits">
-                  <div>最多上传 {{ FILE_UPLOAD_LIMITS.MAX_FILES }} 个文件</div>
-                  <div>
-                    已用空间:
-                    {{ Utils.humanReadableSize(usedSpace) }}
-                    /
-                    {{ Utils.humanReadableSize(FILE_UPLOAD_LIMITS.MAX_TOTAL_SIZE) }}
+                  <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
+                  <div class="el-upload__text">
+                    将文件拖到此处，或<em>点击上传</em>
                   </div>
-                </div>
+                  <div class="upload-info-text">
+                    <div class="upload-limit-info">
+                      最多上传 {{ maxFiles }} 个文件，单文件最大 {{ Utils.humanReadableSize(maxTotalSize) }}
+                    </div>
+                    <div class="upload-space-info" v-if="!viewMode">
+                      已用空间: {{ Utils.humanReadableSize(usedSpace) }} / {{ Utils.humanReadableSize(maxTotalSize) }}
+                    </div>
+                  </div>
+                </el-upload>
+                <UploadProgress
+                  v-else
+                  :upload-states="uploadStates"
+                  @retry="handleRetry"
+                  @cancel="cancelUpload"
+                  @dismiss="handleDismissUpload"
+                />
               </div>
+            </div>
+
+            <!-- 文件操作栏 -->
+            <div v-if="fileList.length > 0 && !viewMode" class="file-actions-bar">
+              <div class="file-stats">
+                共 {{ fileList.length }} 个文件，{{ Utils.humanReadableSize(usedSpace) }}
+              </div>
+              <el-button
+                type="danger"
+                size="small"
+                :icon="Delete"
+                @click="handleDeleteAllFiles"
+                plain
+              >
+                全部删除
+              </el-button>
             </div>
 
             <el-table :data="fileList" style="width: 100%">
@@ -421,7 +356,7 @@ onMounted(async () => {
                   {{ new Date(row.uploaded).toLocaleString() }}
                 </template>
               </el-table-column>
-              <el-table-column label="操作" fixed="right" align="center">
+              <el-table-column label="操作" fixed="right" align="center" width="120">
                 <template #default="{ row }">
                   <el-button-group>
                     <el-button
@@ -496,7 +431,7 @@ onMounted(async () => {
           <label class="setting-label">过期时间</label>
           <el-select v-model="expiry" placeholder="选择有效期" style="width: 100%">
             <el-option
-              v-for="option in expiryOptions"
+              v-for="option in getExpiryOptions()"
               :key="option.value"
               :label="option.label"
               :value="option.value"
@@ -722,15 +657,52 @@ onMounted(async () => {
   margin-bottom: var(--spacing-large);
 }
 
-.upload-info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-large);
+.upload-area {
+  position: relative;
 }
 
-.upload-limits {
+.upload-info {
+  width: 100%;
+  height: var(--upload-area-height, 245px); /* Configurable and consistent height */
+  transition: height 0.3s ease-in-out;
+  border-radius: 6px;
+  overflow: hidden; /* Ensure children conform to border-radius */
+}
+
+.upload-info :deep(.el-upload),
+.upload-info :deep(.el-upload-dragger) {
+  width: 100%;
+  height: 100%;
+}
+
+.upload-info :deep(.el-upload-dragger) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.upload-dragger {
+  width: 100% !important;
+}
+
+.upload-info-text {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.upload-limit-info {
   color: var(--text-secondary);
   font-size: var(--font-size-small);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.upload-space-info {
+  color: var(--text-primary);
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .filename-cell {
@@ -739,6 +711,24 @@ onMounted(async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 文件操作栏样式 */
+.file-actions-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-small) var(--spacing-medium);
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--spacing-medium);
+}
+
+.file-stats {
+  color: var(--text-secondary);
+  font-size: var(--font-size-small);
+  font-weight: 500;
 }
 
 /* 设置对话框样式 */
@@ -823,5 +813,26 @@ onMounted(async () => {
   .side-panel {
     display: none;
   }
+}
+
+.upload-area :deep(.el-upload-dragger) {
+  transition: all 0.3s ease-in-out;
+}
+
+.upload-area :deep(.el-upload.is-uploading .el-upload-dragger) {
+  height: auto;
+  min-height: 180px; /* Match default height for seamless transition start */
+  padding: 24px 0;
+  border-style: solid;
+  border-color: var(--el-border-color); /* Use a standard border color */
+  background-color: var(--el-fill-color-lightest); /* A very subtle background change */
+}
+
+.filename-cell {
+  display: inline-block;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

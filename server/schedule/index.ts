@@ -15,18 +15,18 @@ export default async (controller: ScheduledController, env: Env, _ctx: Execution
       word: '',
       startTime,
     }
-    Utils.log(context, `🕒 Scheduled task started at ${new Date().toISOString()}`)
+    console.log(`🕒 Scheduled task started at ${new Date().toISOString()}`)
 
     try {
       // 执行清理任务
       await cleanupExpiredData(env, context)
-      Utils.log(context, `✅ Scheduled task completed successfully`)
+      console.log(`✅ Scheduled task completed successfully`)
     } catch (error) {
-      Utils.error(context, `❌ Scheduled task failed`, error)
+      console.error(`❌ Scheduled task failed`, error)
       throw error
     } finally {
       const executionTime = Date.now() - startTime
-      Utils.log(context, `Scheduled task ended after ${executionTime}ms`)
+      console.log(`Scheduled task ended after ${executionTime}ms`)
     }
   }
 
@@ -46,7 +46,7 @@ async function cleanupExpiredData(
   const cleanupStartTime = Date.now()
   const currentTimestamp = Date.now()
 
-  Utils.log(context, `🔍 Starting cleanup process, current timestamp: ${currentTimestamp}`)
+  console.log(`🔍 Starting cleanup process, current timestamp: ${currentTimestamp}`)
 
   // 1. 查询所有过期的记录
   const expiredRecords = await D1.page<KeywordDB>(
@@ -58,7 +58,7 @@ async function cleanupExpiredData(
   )
 
   if (expiredRecords.length === 0) {
-    Utils.log(context, '✨ No expired records found, cleanup completed')
+    console.log('✨ No expired records found, cleanup completed')
     return {
       deletedRecords: 0,
       deletedFiles: 0,
@@ -66,7 +66,7 @@ async function cleanupExpiredData(
     }
   }
 
-  Utils.log(context, `📋 Found ${expiredRecords.length} expired records to clean up`)
+  console.log(`📋 Found ${expiredRecords.length} expired records to clean up`)
 
   let totalDeletedFiles = 0
   const deletedWords: string[] = []
@@ -75,12 +75,7 @@ async function cleanupExpiredData(
   for (const record of expiredRecords) {
     try {
       context.word = record.word
-      Utils.log(
-        context,
-        `🗑️  Cleaning up word: ${record.word}, expired at: ${new Date(
-          record.expire_time
-        ).toISOString()}`
-      )
+      console.log(`🗑️  Cleaning up word: ${record.word}, expired at: ${new Date(record.expire_time).toISOString()}`)
 
       // 删除该word下的所有文件（包括index.txt和files文件夹）
       const deletedFileCount = await R2.deleteFolder(env, context, { prefix: record.word })
@@ -88,9 +83,9 @@ async function cleanupExpiredData(
 
       deletedWords.push(record.word)
 
-      Utils.log(context, `✅ Cleaned up ${deletedFileCount} files for word: ${record.word}`)
+      console.log(`✅ Cleaned up ${deletedFileCount} files for word: ${record.word}`)
     } catch (error) {
-      Utils.error(context, `❌ Failed to cleanup R2 files for word: ${record.word}`, error)
+      console.error(`❌ Failed to cleanup R2 files for word: ${record.word}`, error)
       // 继续处理其他记录，不因为单个记录失败而停止整个清理过程
     } finally {
       context.word = ''
@@ -105,10 +100,10 @@ async function cleanupExpiredData(
       deletedRecords = await D1.delete(env, context, 'keyword', [
         { key: 'word', value: deletedWords, operator: 'IN' },
       ])
-      Utils.log(context, `🗃️  Deleted ${deletedRecords} database records`)
+      console.log(`🗃️  Deleted ${deletedRecords} database records`)
     }
   } catch (error) {
-    Utils.error(context, '❌ Failed to delete database records', error)
+    console.error('❌ Failed to delete database records', error)
     // 即使数据库删除失败，R2文件已经删除，也算是部分成功
   }
 
@@ -120,7 +115,7 @@ async function cleanupExpiredData(
     totalExecutionTime,
   }
 
-  Utils.log(context, `🎉 Cleanup completed`, result)
+  console.log(`🎉 Cleanup completed`, result)
 
   return result
 }

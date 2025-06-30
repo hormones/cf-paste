@@ -4,25 +4,6 @@
  */
 
 /**
- * 统一日志打印格式
- * 格式: 2024-12-20T15:00:00.000Z [id] [location] [functionPath][method] msg
- * @param env 环境变量
- * @param msg 日志内容
- * @param func 日志打印函数
- */
-const consoleLog = (
-  req: IContext,
-  func: (msg: string, ...optionalParams: unknown[]) => void,
-  msg: string,
-  ...optionalParams: unknown[]
-) => {
-  func(
-    `${new Date().toISOString()} [${req.id}] [${req.word}] ${msg}`,
-    ...optionalParams,
-  )
-}
-
-/**
  * 工具函数集合
  */
 export const Utils = {
@@ -142,32 +123,5 @@ export const Utils = {
       unitIndex++
     }
     return `${size.toFixed(2)} ${units[unitIndex]}`
-  },
-
-  /**
-   * 打印普通日志
-   * @param env 环境变量
-   * @param msg 日志内容
-   */
-  log(req: IContext, msg: string, ...optionalParams: unknown[]) {
-    consoleLog(req, console.log, msg, ...optionalParams)
-  },
-
-  /**
-   * 打印警告日志
-   * @param env 环境变量
-   * @param msg 日志内容
-   */
-  warn(req: IContext, msg: string, ...optionalParams: unknown[]) {
-    consoleLog(req, console.warn, msg, ...optionalParams)
-  },
-
-  /**
-   * 打印错误日志
-   * @param env 环境变量
-   * @param msg 日志内容
-   */
-  error(req: IContext, msg: string, ...optionalParams: unknown[]) {
-    consoleLog(req, console.error, msg, ...optionalParams)
   },
 }

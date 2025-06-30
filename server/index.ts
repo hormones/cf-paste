@@ -8,6 +8,7 @@ import { AutoRouter, error } from 'itty-router'
 import { newResponse } from './utils/response'
 import data from './api/data'
 import file from './api/file'
+import config from './api/config'
 import { prepare, authenticate, handle } from './authentication'
 import schedule from './schedule'
 
@@ -18,7 +19,8 @@ const router = AutoRouter({
 
 // 注册API路由
 router.all('/api/data/*', data.fetch) // 数据操作路由
-router.all('/api/file/*', file.fetch) // 文件操作路由
+router.all('/api/file/*', file.fetch) // 文件操作路由 (包含分片上传)
+router.all('/api/config/*', config.fetch) // 配置信息路由
 // 404处理
 router.all('/*', () => error(404, 'Resource Not Found'))
 
