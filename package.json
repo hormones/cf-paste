@@ -11,7 +11,7 @@
 		"build-only": "vite build",
 		"type-check": "vue-tsc --build",
 		"deploy": "npm run build && wrangler deploy",
-		"cf-typegen": "wrangler types"
+		"cf-typegen": "wrangler types server/types/worker-configuration.d.ts"
 	},
 	"dependencies": {
 		"axios": "^1.9.0",

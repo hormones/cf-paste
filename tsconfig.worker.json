@@ -1,10 +1,16 @@
 {
   "extends": "./tsconfig.node.json",
   "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "strict": true,
+    "noEmit": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
-    "types": [ "./paste-configuration.d.ts","./worker-configuration.d.ts","vite/client"],
+    "types": ["./server/types/worker-configuration.d.ts", "./paste-configuration.d.ts"]
   },
   "include": [
-    "server"
-  ],
+    "server",
+    "./paste-configuration.d.ts"
+  ]
 }
