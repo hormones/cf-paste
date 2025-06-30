@@ -112,8 +112,7 @@ router.post('/multipart/init', async (req: IRequest, env: Env) => {
     }
 
     // 文件大小验证
-    const envVars = env as any
-    const maxFileSize = parseInt(envVars.MAX_FILE_SIZE || '300') * 1024 * 1024
+    const maxFileSize = parseInt(env.MAX_FILE_SIZE || '300') * 1024 * 1024
     if (fileSize > maxFileSize) {
       return newErrorResponse(req, {
         msg: `文件大小超过限制 ${maxFileSize / (1024 * 1024)}MB`,
