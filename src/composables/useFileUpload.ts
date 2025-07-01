@@ -129,7 +129,7 @@ export function useFileUpload() {
         state.canCancel = false
 
         // 如果是用户取消，则不显示错误信息，并直接清理状态
-        if (error instanceof Error && (error.name === 'CanceledError' || error.name === 'AbortError')) {
+        if (error instanceof Error && (error.name === 'CanceledError' || error.name === 'AbortError' || error.message === '上传已取消')) {
           if (state) {
             uploadStates.value.delete(file.name)
           }

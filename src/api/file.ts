@@ -241,9 +241,8 @@ export const fileApi = {
       }
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : '上传失败'
-      // 如果是取消错误，触发相应的回调或抛出特定错误
+      // 如果是取消错误，直接抛出特定错误，不触发 onError 回调
       if (error.name === 'AbortError' || errorMessage === '上传已取消') {
-        callbacks.onError?.('上传已取消')
         throw new Error('上传已取消')
       }
       // 对于其他错误，触发 onError
