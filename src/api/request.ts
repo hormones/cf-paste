@@ -71,7 +71,11 @@ const transform: InterceptorHooks = {
     // 请求返回值，建议将 返回值 进行解构
     return result.data
   },
-  responseInterceptorCatch(err) {
+  responseInterceptorCatch(err: any) {
+    // 如果是取消请求导致的错误，则直接抛出，由业务代码处理
+    if (axios.isCancel(err) || err.name === 'AbortError' || err.name === 'CanceledError') {
+      return Promise.reject(err)
+    }
     // 这里用来处理 http 常见错误，进行全局提示
     const mapErrorStatus = new Map([
       [400, '请求方式错误'],
@@ -83,10 +87,15 @@ const transform: InterceptorHooks = {
       [503, '服务不可用'],
       [504, '请求超时'],
     ])
+    // 网络错误或服务器未返回响应
+    if (!err.response) {
+      console.error('网络错误，请检查您的网络连接')
+      return Promise.reject(err)
+    }
     const message = mapErrorStatus.get(err.response.status) || '请求出错，请稍后再试'
     // 此处全局报错
     console.error(message)
-    return Promise.reject(err.response)
+    return Promise.reject(err)
   },
 }
 

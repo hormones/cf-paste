@@ -129,16 +129,20 @@ export function useFileUpload() {
         state.canCancel = false
 
         // 如果是用户取消，则不显示错误信息，并直接清理状态
-        if (state.error === '上传已取消') {
-          uploadStates.value.delete(file.name)
+        if (error instanceof Error && (error.name === 'CanceledError' || error.name === 'AbortError')) {
+          if (state) {
+            uploadStates.value.delete(file.name)
+          }
           ElMessage.info('上传已取消')
           return // 提前返回，避免显示多余的 ElMessage.error
         }
 
-        // 清理上传状态
-        setTimeout(() => {
-          uploadStates.value.delete(file.name)
-        }, 5000) // 错误状态保持稍长时间让用户看到错误信息
+        // 如果有 state，则在短暂延迟后清理状态
+        if (state) {
+          setTimeout(() => {
+            uploadStates.value.delete(file.name)
+          }, 5000) // 错误状态保持稍长时间让用户看到错误信息
+        }
       }
 
       ElMessage.error(error instanceof Error ? error.message : Constant.MESSAGES.UPLOAD_FAILED)

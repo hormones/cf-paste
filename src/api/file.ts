@@ -29,6 +29,72 @@ interface CompleteChunkedUploadResponse {
   size: number
 }
 
+/**
+ * 普通上传进度跟踪器
+ */
+class DirectUploadProgressTracker {
+  private startTime: number = 0
+  private lastTime: number = 0
+  private lastLoaded: number = 0
+  private fileSize: number = 0
+  private currentSpeed: number = 0
+  private speedHistory: number[] = []
+  private readonly maxSpeedHistorySize = 5
+
+  constructor(fileSize: number) {
+    this.fileSize = fileSize
+    this.startTime = Date.now()
+    this.lastTime = this.startTime
+    this.lastLoaded = 0
+  }
+
+  /**
+   * 计算上传进度信息
+   */
+  calculateProgress(percentage: number) {
+    const now = Date.now()
+    const loaded = (percentage / 100) * this.fileSize
+
+    // 计算时间差和字节差
+    const timeDiff = (now - this.lastTime) / 1000
+    const bytesDiff = loaded - this.lastLoaded
+
+    // 更新速度计算
+    if (timeDiff > 0.05) { // 降低到50ms间隔，提高更新频率
+      // 计算瞬时速度
+      const instantSpeed = bytesDiff / timeDiff
+
+      // 将速度添加到历史记录
+      this.speedHistory.push(instantSpeed)
+      if (this.speedHistory.length > this.maxSpeedHistorySize) {
+        this.speedHistory.shift()
+      }
+
+      // 计算平滑速度（使用历史记录的平均值）
+      this.currentSpeed = this.speedHistory.reduce((sum, speed) => sum + speed, 0) / this.speedHistory.length
+
+      // 更新上次记录
+      this.lastTime = now
+      this.lastLoaded = loaded
+    }
+    // 如果时间差太小，保持当前速度不变，避免频繁的0值
+
+    // 计算剩余时间
+    const remainingBytes = this.fileSize - loaded
+    const remainingTime = this.currentSpeed > 0 ? remainingBytes / this.currentSpeed : 0
+
+    return {
+      loaded,
+      total: this.fileSize,
+      percentage,
+      completedChunks: percentage === 100 ? 1 : 0,
+      totalChunks: 1,
+      speed: Math.max(0, this.currentSpeed), // 确保速度不为负数
+      remainingTime: Math.max(0, remainingTime) // 确保剩余时间不为负数
+    }
+  }
+}
+
 export const fileApi = {
   /**
    * 获取文件列表
@@ -156,17 +222,13 @@ export const fileApi = {
         const controller = new AbortController()
         callbacks.onReady?.({ abort: () => controller.abort() })
 
+        // 创建进度跟踪器
+        const progressTracker = new DirectUploadProgressTracker(file.size)
+
         // 转换进度回调
         const onProgress = callbacks.onProgress ? (percentage: number) => {
-          callbacks.onProgress?.({
-            loaded: (percentage / 100) * file.size,
-            total: file.size,
-            percentage,
-            completedChunks: percentage === 100 ? 1 : 0,
-            totalChunks: 1,
-            speed: 0,
-            remainingTime: 0
-          })
+          const progress = progressTracker.calculateProgress(percentage)
+          callbacks.onProgress?.(progress)
         } : undefined
 
         const result = await this.uploadFileDirectly(file, onProgress, controller.signal)
@@ -179,10 +241,13 @@ export const fileApi = {
       }
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : '上传失败'
-      // 如果不是取消错误，才触发 onError
-      if (errorMessage !== '上传已取消' && error.name !== 'AbortError') {
-        callbacks.onError?.(errorMessage)
+      // 如果是取消错误，触发相应的回调或抛出特定错误
+      if (error.name === 'AbortError' || errorMessage === '上传已取消') {
+        callbacks.onError?.('上传已取消')
+        throw new Error('上传已取消')
       }
+      // 对于其他错误，触发 onError
+      callbacks.onError?.(errorMessage)
       throw error
     }
   },

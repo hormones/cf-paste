@@ -23,7 +23,7 @@
         <div class="item-body">
           <el-progress
             :percentage="state.progress?.percentage || (state.status === 'completed' ? 100 : 0)"
-            :stroke-width="12"
+            :stroke-width="20"
             :status="getProgressStatus(state.status)"
             :text-inside="true"
             striped
