@@ -1,9 +1,6 @@
 <template>
-  <!-- 上传进度蒙层 - 覆盖上传区域 -->
-  <div
-    v-if="uploadStates.size > 0"
-    class="upload-overlay"
-  >
+  <!-- 上传进度卡片 - 使用简洁样式，不改变边框 -->
+  <el-card class="upload-progress-card" shadow="never">
     <div class="upload-progress-container">
       <div
         v-for="[fileName, state] in uploadStates"
@@ -22,7 +19,7 @@
 
         <div class="item-body">
           <el-progress
-            :percentage="state.progress?.percentage || (state.status === 'completed' ? 100 : 0)"
+            :percentage="state.progress || (state.status === 'completed' ? 100 : 0)"
             :stroke-width="20"
             :status="getProgressStatus(state.status)"
             :text-inside="true"
@@ -33,9 +30,6 @@
             <el-tag :type="getTagType(state.status)" size="small" effect="light" round>
               {{ getStatusText(state.status) }}
             </el-tag>
-            <el-text v-if="state.status === 'uploading' && state.progress && state.progress.speed > 0" size="small" type="success">
-              {{ formatSpeed(state.progress.speed) }} | 剩余 {{ formatTime(state.progress.remainingTime) }}
-            </el-text>
             <el-text v-if="state.status === 'error'" size="small" type="danger">
               {{ state.error || '上传失败' }}
             </el-text>
@@ -53,7 +47,7 @@
             重试
           </el-button>
           <el-button
-            v-if="state.canCancel && state.status === 'uploading'"
+            v-if="state.cancel && state.status === 'uploading'"
             type="danger"
             size="small"
             text
@@ -74,12 +68,12 @@
         </div>
       </div>
     </div>
-  </div>
+  </el-card>
 </template>
 
 <script setup lang="ts">
 import { Document } from '@element-plus/icons-vue'
-import type { UploadState } from '@/composables/useFileUpload'
+import type { UploadState } from '@/types'
 import { Utils } from '@/utils'
 
 interface Props {
@@ -126,65 +120,32 @@ const getStatusText = (status: string) => {
       return '等待'
   }
 }
-
-const formatSpeed = (bytesPerSecond: number): string => {
-  if (bytesPerSecond === 0) return ''
-  if (bytesPerSecond < 1024) {
-    return `${bytesPerSecond.toFixed(0)} B/s`
-  } else if (bytesPerSecond < 1024 * 1024) {
-    return `${(bytesPerSecond / 1024).toFixed(1)} KB/s`
-  } else {
-    return `${(bytesPerSecond / (1024 * 1024)).toFixed(1)} MB/s`
-  }
-}
-
-const formatTime = (seconds: number): string => {
-  if (seconds === Infinity || seconds === 0) return '0秒'
-  if (seconds < 60) {
-    return `${Math.ceil(seconds)}秒`
-  } else if (seconds < 3600) {
-    return `${Math.ceil(seconds / 60)}分钟`
-  } else {
-    return `${Math.ceil(seconds / 3600)}小时`
-  }
-}
 </script>
 
 <style scoped>
-.upload-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  padding: 20px;
+.upload-progress-card {
+  /* 移除边框和背景，使用容器的虚线边框 */
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 .upload-progress-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
+  gap: 20px;
+  padding: 20px;
 }
 
 .upload-item {
   width: 100%;
-  max-width: 500px;
 }
 
 .item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .file-name {
@@ -197,10 +158,11 @@ const formatTime = (seconds: number): string => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
 }
 
 .item-body {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .progress-details {
@@ -216,6 +178,6 @@ const formatTime = (seconds: number): string => {
   justify-content: flex-end;
   align-items: center;
   gap: 12px;
-  height: 32px; /* Reserve space to prevent layout shift */
+  min-height: 32px; /* Reserve space to prevent layout shift */
 }
 </style>

@@ -31,3 +31,11 @@ export interface FileInfo {
 
 /** 重新导出上传配置类型 */
 export type { UploadConfig } from '@/api/config'
+
+export interface UploadState {
+  currentFile: File
+  progress: number
+  status: 'uploading' | 'completed' | 'error'
+  error: string | null
+  cancel?: () => void
+}

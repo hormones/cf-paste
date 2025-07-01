@@ -164,6 +164,42 @@ class Request {
     config!.added!.skipResponseTransform = true
     return this._instance.get(url, config)
   }
+
+  /**
+   * 文件上传专用方法 - 针对文件上传场景优化
+   * @param url 上传地址
+   * @param file 文件数据
+   * @param options 上传选项
+   */
+  public uploadFile<T = any>(
+    url: string,
+    file: File | Blob,
+    options?: {
+      onProgress?: (percentage: number) => void
+      signal?: AbortSignal
+      timeout?: number
+      headers?: Record<string, string>
+    }
+  ): Promise<T> {
+    const config: ExpandAxiosRequestConfig = {
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        ...options?.headers
+      },
+      timeout: options?.timeout || 10 * 60 * 1000, // 默认10分钟超时
+      signal: options?.signal,
+      onUploadProgress: options?.onProgress ? (progressEvent) => {
+        if (progressEvent.total) {
+          const percentage = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+          options.onProgress!(percentage)
+        }
+      } : undefined,
+    }
+
+    return this._instance.post(url, file, config)
+  }
+
+
 }
 
 // 具体使用时先实例一个请求对象

@@ -7,7 +7,7 @@ import GlassDialog from './GlassDialog.vue'
 const modelValue = defineModel<boolean>()
 
 const emit = defineEmits<{
-  'verified': []
+  (e: 'verified'): void
 }>()
 
 const password = ref('')

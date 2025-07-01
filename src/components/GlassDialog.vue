@@ -49,8 +49,10 @@
 import { computed } from 'vue'
 import GlassOverlay from './GlassOverlay.vue'
 
-interface Props {
-  visible?: boolean
+// Vue 3.4+ an v-model
+const visible = defineModel<boolean>('visible', { default: false })
+
+const props = withDefaults(defineProps<{
   title?: string
   width?: string | number
   height?: string | number
@@ -61,15 +63,7 @@ interface Props {
   closeOnClickOutside?: boolean
   showClose?: boolean
   zIndex?: number
-}
-
-interface Emits {
-  (e: 'close'): void
-  (e: 'update:visible', value: boolean): void
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  visible: false,
+}>(), {
   size: 'medium',
   center: true,
   blur: 10,
@@ -79,7 +73,9 @@ const props = withDefaults(defineProps<Props>(), {
   zIndex: 2000
 })
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
 
 const dialogStyle = computed(() => {
   const style: any = {}
@@ -97,7 +93,7 @@ const dialogStyle = computed(() => {
 
 const handleClose = () => {
   emit('close')
-  emit('update:visible', false)
+  visible.value = false // Directly update the model
 }
 
 const handleOverlayClick = () => {

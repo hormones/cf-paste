@@ -1,76 +1,93 @@
 /**
- * 设置管理 Composable
- * 负责过期时间、密码等设置的管理
+ * 设置管理 Composable - 重构版
+ * 使用统一的 Store 管理状态，Composable 只负责业务逻辑
  */
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { dataApi } from '@/api/data'
+import { useAppStore } from '@/stores'
 import { Constant } from '@/constant'
 
 export function useSettings() {
-  // 设置状态
-  const showSettings = ref(false)
-  const password = ref('')
-  const expiry = ref(Constant.EXPIRY_OPTIONS[2].value) // 默认3天
-  const loading = ref(false)
+  const appStore = useAppStore()
 
-  /**
+    /**
    * 打开设置对话框
    */
-  const openSettings = (currentPassword?: string, currentExpiry?: number) => {
-    password.value = currentPassword || ''
-    expiry.value = currentExpiry || Constant.EXPIRY_OPTIONS[2].value
-    showSettings.value = true
+  const openSettings = () => {
+    // 从 keyword 中读取当前设置
+    // 如果有密码，显示 ******；如果没有密码，显示空字符串
+    const passwordValue = appStore.keyword.password || ''
+
+    appStore.setSettingsData({
+      password: passwordValue,
+      expiry: appStore.keyword.expire_value || Constant.EXPIRY_OPTIONS[2].value
+    })
+    appStore.setShowSettings(true)
   }
 
   /**
    * 关闭设置对话框
    */
   const closeSettings = () => {
-    showSettings.value = false
-    password.value = ''
-    expiry.value = Constant.EXPIRY_OPTIONS[2].value
+    appStore.setShowSettings(false)
+    appStore.resetSettings()
   }
 
   /**
    * 保存设置
    */
   const saveSettings = async () => {
-    loading.value = true
+    appStore.setSettingsLoading(true)
     try {
-      await dataApi.saveSettings({
-        expire_value: expiry.value,
-        password: password.value,
-      })
+      const settings = {
+        expire_value: appStore.expiry,
+        password: appStore.password || undefined
+      }
 
+      await dataApi.saveSettings(settings)
+
+      // 更新本地状态
+      const updatedKeyword = {
+        ...appStore.keyword,
+        expire_value: appStore.expiry,
+        password: appStore.password || undefined,
+        expire_time: Date.now() + appStore.expiry * 1000
+      }
+      appStore.setKeyword(updatedKeyword)
+
+      appStore.setShowSettings(false)
       ElMessage.success(Constant.MESSAGES.SETTINGS_SAVED)
-      closeSettings()
-
-      return true
     } catch (error) {
       ElMessage.error('保存设置失败')
       throw error
     } finally {
-      loading.value = false
+      appStore.setSettingsLoading(false)
     }
   }
 
-  /**
-   * 获取过期选项
-   */
-  const getExpiryOptions = () => Constant.EXPIRY_OPTIONS
-
   return {
-    // 状态
-    showSettings,
-    password,
-    expiry,
-    loading,
+    // 状态 (来自 Store)
+    showSettings: computed(() => appStore.showSettings),
+    password: computed({
+      get: () => appStore.password,
+      set: (value: string) => appStore.setSettingsData({
+        password: value,
+        expiry: appStore.expiry
+      })
+    }),
+    expiry: computed({
+      get: () => appStore.expiry,
+      set: (value: number) => appStore.setSettingsData({
+        password: appStore.password,
+        expiry: value
+      })
+    }),
+    loading: computed(() => appStore.settingsLoading),
 
-    // 方法
+    // 业务方法
     openSettings,
     closeSettings,
     saveSettings,
-    getExpiryOptions
   }
 }

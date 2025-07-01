@@ -24,24 +24,44 @@ export const Utils = {
     }
     return `${size.toFixed(2)} ${units[unitIndex]}`
   },
-  cookies2LocalStorage() {
+  /**
+   * 将 Cookie 中的数据同步到 LocalStorage
+   */
+  cookies2Localstorage() {
     const store = useWordStore()
     const authorization = Cookies.get('authorization')
-    LocalStorage.set(store.word || store.view_word, { timestamp: Date.now(), authorization })
+    const key = store.word || store.view_word
+    if (key) {
+      LocalStorage.set(key, { timestamp: Date.now(), authorization })
+    }
   },
+  /**
+   * 将 LocalStorage 中的数据同步到 Cookie
+   */
   localstorage2Cookies() {
     const store = useWordStore()
+    // 同步word和view_word
     void (store.word ? Cookies.set('word', store.word) : Cookies.remove('word'))
     void (store.view_word ? Cookies.set('view_word', store.view_word) : Cookies.remove('view_word'))
 
-    const data: any = LocalStorage.get(store.word || store.view_word) || {}
-    void (data.authorization
-      ? Cookies.set('authorization', data.authorization)
-      : Cookies.remove('authorization'))
+    // 同步authorization
+    const key = store.word || store.view_word
+    if (key) {
+      const data: any = LocalStorage.get(key) || {}
+      void (data.authorization
+        ? Cookies.set('authorization', data.authorization)
+        : Cookies.remove('authorization'))
+    }
   },
+  /**
+   * 清理本地存储和 Cookie
+   */
   clearLocalStorageAndCookies() {
     const store = useWordStore()
-    LocalStorage.remove(store.word || store.view_word)
+    const key = store.word || store.view_word
+    if (key) {
+      LocalStorage.remove(key)
+    }
     Cookies.remove('word')
     Cookies.remove('view_word')
     Cookies.remove('authorization')

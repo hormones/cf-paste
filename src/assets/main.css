@@ -1,1 +1,36 @@
 @import './base.css';
+
+/* 全局布局规则 - 统一宽度继承约定 */
+.layout-container {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.layout-item {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.layout-flex {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Element Plus 组件统一宽度规则 */
+.el-space {
+  width: 100% !important;
+}
+
+.el-space .el-space__item {
+  width: 100% !important;
+}
+
+.el-tabs__content {
+  width: 100% !important;
+}
+
+.el-tab-pane {
+  width: 100% !important;
+}

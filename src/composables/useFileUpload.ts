@@ -1,169 +1,129 @@
 /**
- * 文件上传管理 Composable
- * 负责文件上传、进度管理、验证等功能
+ * 文件上传管理 Composable - 重构版
+ * 使用统一的 Store 管理状态，Composable 只负责业务逻辑
  */
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { fileApi } from '@/api/file'
-import { useUploadConfig } from './useUploadConfig'
-import type { FileInfo } from '@/types'
-import type { UploadProgress } from '@/utils/chunkUploader'
-import { Utils } from '@/utils'
-import { Constant } from '@/constant'
-
-export interface UploadState {
-  /** 当前上传的文件 */
-  currentFile: File | null
-  /** 上传进度信息 */
-  progress: UploadProgress | null
-  /** 上传状态 */
-  status: 'idle' | 'uploading' | 'completed' | 'error'
-  /** 错误信息 */
-  error: string | null
-  /** 是否可以取消 */
-  canCancel: boolean
-  /** 上传器实例，用于取消等操作 */
-  uploader?: { abort: () => void }
-}
+import { configApi } from '@/api/config'
+import { useAppStore } from '@/stores'
+import type { FileInfo, UploadState } from '@/types'
+import { handleError } from '@/utils/errorHandler'
 
 export function useFileUpload() {
-  const { uploadConfig, fetchConfig, maxFiles, maxTotalSize } = useUploadConfig()
+  const appStore = useAppStore()
 
-  // 文件状态
-  const fileList = ref<FileInfo[]>([])
-  const uploadLoading = ref(false)
-
-  // 上传状态管理
-  const uploadStates = ref(new Map<string, UploadState>())
+  /**
+   * 获取上传配置
+   */
+  const fetchConfig = async () => {
+    try {
+      const config = await configApi.getUploadConfig()
+      appStore.setUploadConfig({
+        maxFiles: config.maxFiles || 10,
+        maxTotalSize: config.maxTotalSize || 100 * 1024 * 1024
+      })
+    } catch (error) {
+      console.error('获取配置失败:', error)
+    }
+  }
 
   /**
    * 获取文件列表
    */
   const fetchFileList = async () => {
     try {
-      const files = await fileApi.getFileList()
-      fileList.value = files || []
-      return files
+      const files = await fileApi.list()
+      appStore.setFileList(files || [])
     } catch (error) {
       console.error('获取文件列表失败:', error)
-      return []
+      appStore.setFileList([])
     }
   }
 
   /**
-   * 验证文件上传
+   * 上传文件
    */
-  const validateFile = async (file: File): Promise<string | null> => {
-    const config = await fetchConfig()
-    return fileApi.validateFileUpload(file, fileList.value, config)
-  }
+  const uploadFile = async (file: File) => {
+    // 检查上传条件
+    if (!appStore.canUpload) {
+      ElMessage.error('无法上传：已达到文件数量或大小限制')
+      return
+    }
 
-  /**
-   * 上传单个文件
-   */
-  const uploadFile = async (file: File): Promise<void> => {
-    uploadLoading.value = true
+    // 创建取消控制器
+    const controller = new AbortController()
+
+    // 创建上传状态（包含取消函数）
+    const uploadState: UploadState = {
+      currentFile: file,
+      progress: 0,
+      status: 'uploading',
+      error: null,
+      cancel: () => controller.abort()
+    }
+    appStore.addUploadState(file.name, uploadState)
 
     try {
-      // 先验证文件，只有通过验证才创建上传状态
-      const validationError = await validateFile(file)
-      if (validationError) {
-        throw new Error(validationError)
-      }
+      // 执行上传
+      await fileApi.upload(file, (progress) => {
+        appStore.updateUploadState(file.name, { progress })
+      }, controller.signal)
 
-      // 验证通过后才初始化上传状态
-      const uploadState: UploadState = {
-        currentFile: file,
-        progress: null,
-        status: 'uploading',
-        error: null,
-        canCancel: true
-      }
-      uploadStates.value.set(file.name, uploadState)
-
-      // 开始上传
-      await fileApi.uploadFile(file, {
-        onReady: (uploader) => {
-          const state = uploadStates.value.get(file.name)
-          if (state) {
-            state.uploader = uploader
-          }
-        },
-        onProgress: (progress: UploadProgress) => {
-          const state = uploadStates.value.get(file.name)
-          if (state) {
-            state.progress = progress
-            state.status = 'uploading'
-          }
-        },
-        onComplete: () => {
-          const state = uploadStates.value.get(file.name)
-          if (state) {
-            state.status = 'completed'
-            state.canCancel = false
-            // 成功完成后立即清理状态
-            uploadStates.value.delete(file.name)
-          }
-        },
-        onError: (error: string) => {
-          const state = uploadStates.value.get(file.name)
-          if (state) {
-            state.status = 'error'
-            state.error = error
-            state.canCancel = false
-          }
-        }
+      // 上传成功
+      appStore.updateUploadState(file.name, {
+        status: 'completed',
+        progress: 100
       })
 
-      ElMessage.success(Constant.MESSAGES.UPLOAD_SUCCESS)
+      ElMessage.success(`文件 ${file.name} 上传成功`)
 
-      // 更新文件列表
+      // 刷新文件列表
       await fetchFileList()
 
+      // 立即清理上传状态
+      appStore.removeUploadState(file.name)
+
     } catch (error) {
-      const state = uploadStates.value.get(file.name)
-      if (state) {
-        // 只有在已创建上传状态的情况下才更新状态
-        state.status = 'error'
-        state.error = error instanceof Error ? error.message : '上传失败'
-        state.canCancel = false
-
-        // 如果是用户取消，则不显示错误信息，并直接清理状态
-        if (error instanceof Error && (error.name === 'CanceledError' || error.name === 'AbortError' || error.message === '上传已取消')) {
-          if (state) {
-            uploadStates.value.delete(file.name)
-          }
-          ElMessage.info('上传已取消')
-          return // 提前返回，避免显示多余的 ElMessage.error
-        }
-
-        // 如果有 state，则在短暂延迟后清理状态
-        if (state) {
-          setTimeout(() => {
-            uploadStates.value.delete(file.name)
-          }, 5000) // 错误状态保持稍长时间让用户看到错误信息
-        }
+            // 检查是否是用户取消
+      if (error instanceof Error && (
+        error.name === 'AbortError' ||
+        error.name === 'CanceledError' ||
+        error.message.includes('aborted') ||
+        error.message.includes('cancelled') ||
+        error.message.includes('canceled') ||
+        (error as any).code === 'ERR_CANCELED'
+      )) {
+        appStore.removeUploadState(file.name)
+        ElMessage.info(`文件 ${file.name} 上传已取消`)
+        return
       }
 
-      ElMessage.error(error instanceof Error ? error.message : Constant.MESSAGES.UPLOAD_FAILED)
-      throw error
-    } finally {
-      uploadLoading.value = false
+      // 上传失败
+      const errorMessage = handleError(error)
+      appStore.updateUploadState(file.name, {
+        status: 'error',
+        error: errorMessage
+      })
+      ElMessage.error(`文件 ${file.name} 上传失败: ${errorMessage}`)
     }
   }
 
   /**
-   * 取消上传
+   * 批量上传文件
    */
-  const cancelUpload = async (fileName: string) => {
-    const state = uploadStates.value.get(fileName)
-    if (state && state.canCancel && state.uploader) {
-      try {
-        await state.uploader.abort()
-      } catch (error) {
-        console.warn('取消上传时出错:', error)
+  const uploadFiles = async (files: File[]) => {
+    const validFiles = files.filter(file => {
+      if (appStore.fileList.length + appStore.uploadStates.size >= appStore.maxFiles) {
+        ElMessage.error(`文件 ${file.name} 跳过：已达到最大文件数量限制`)
+        return false
       }
-    }
+      return true
+    })
+
+    // 并发上传
+    const uploadPromises = validFiles.map(file => uploadFile(file))
+    await Promise.allSettled(uploadPromises)
   }
 
   /**
@@ -171,11 +131,31 @@ export function useFileUpload() {
    */
   const deleteFile = async (fileName: string) => {
     try {
-      await fileApi.deleteFile(fileName)
-      ElMessage.success(Constant.MESSAGES.DELETE_SUCCESS)
+      await fileApi.delete(fileName)
+      ElMessage.success(`文件 ${fileName} 删除成功`)
+
+      // 刷新文件列表
       await fetchFileList()
     } catch (error) {
-      ElMessage.error(Constant.MESSAGES.DELETE_FAILED)
+      const errorMessage = handleError(error)
+      ElMessage.error(`删除文件失败: ${errorMessage}`)
+      throw error
+    }
+  }
+
+  /**
+   * 删除所有文件
+   */
+  const deleteAllFiles = async () => {
+    try {
+      const result = await fileApi.deleteAll()
+      ElMessage.success(result.message || '所有文件删除成功')
+
+      // 刷新文件列表
+      await fetchFileList()
+    } catch (error) {
+      const errorMessage = handleError(error)
+      ElMessage.error(`删除所有文件失败: ${errorMessage}`)
       throw error
     }
   }
@@ -183,72 +163,52 @@ export function useFileUpload() {
   /**
    * 下载文件
    */
-  const downloadFile = async (fileName: string) => {
+  const downloadFile = (fileName: string) => {
     try {
-      const response = await fetch(`/api/file/download?name=${encodeURIComponent(fileName)}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          Accept: 'application/octet-stream',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('下载失败')
-      }
-
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = fileName
-      a.style.display = 'none'
-
-      document.body.appendChild(a)
-      a.click()
-
-      document.body.removeChild(a)
-      window.URL.revokeObjectURL(url)
+      fileApi.download(fileName)
     } catch (error) {
-      ElMessage.error(error instanceof Error ? error.message : '下载失败')
-      throw error
+      const errorMessage = handleError(error)
+      ElMessage.error(`下载文件失败: ${errorMessage}`)
     }
   }
 
-  // 计算属性
-  const remainingUploadSpace = computed(() => {
-    const currentSize = fileList.value.reduce((sum, file) => sum + file.size, 0)
-    return maxTotalSize.value - currentSize
-  })
+  /**
+   * 移除上传状态
+   */
+  const removeUploadState = (fileName: string) => {
+    appStore.removeUploadState(fileName)
+  }
 
-  const usedSpace = computed(() => maxTotalSize.value - remainingUploadSpace.value)
+  /**
+   * 清除所有上传状态
+   */
+  const clearUploadStates = () => {
+    appStore.clearUploadStates()
+  }
 
-  const canUpload = computed(() =>
-    !uploadLoading.value &&
-    fileList.value.length < maxFiles.value &&
-    remainingUploadSpace.value > 0
-  )
+  return {
+    // 状态 (来自 Store)
+    fileList: computed(() => appStore.fileList),
+    uploadStates: computed(() => appStore.uploadStates),
 
-  const fileTabLabel = computed(() => `文件(${fileList.value.length}个)`)
+    // 配置 (来自 Store)
+    maxFiles: computed(() => appStore.maxFiles),
+    maxTotalSize: computed(() => appStore.maxTotalSize),
 
-    return {
-    // 状态
-    fileList,
-    uploadLoading,
-    uploadStates: computed(() => uploadStates.value),
+    // 计算属性 (来自 Store)
+    fileTabLabel: computed(() => appStore.fileTabLabel),
+    usedSpace: computed(() => appStore.usedSpace),
+    canUpload: computed(() => appStore.canUpload),
 
-    // 计算属性
-    remainingUploadSpace,
-    usedSpace,
-    canUpload,
-    fileTabLabel,
-
-    // 方法
+    // 业务方法
+    fetchConfig,
     fetchFileList,
-    validateFile,
     uploadFile,
-    cancelUpload,
+    uploadFiles,
     deleteFile,
-    downloadFile
+    deleteAllFiles,
+    downloadFile,
+    removeUploadState,
+    clearUploadStates,
   }
 }

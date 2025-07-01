@@ -95,18 +95,5 @@ const handleOverlayClick = () => {
   backdrop-filter: blur(0px);
   -webkit-backdrop-filter: blur(0px);
 }
-
-/* 支持不同的模糊强度 */
-.glass-overlay.blur-light {
-  --blur-amount: 5px;
-}
-
-.glass-overlay.blur-medium {
-  --blur-amount: 10px;
-}
-
-.glass-overlay.blur-heavy {
-  --blur-amount: 20px;
-}
 </style>
 

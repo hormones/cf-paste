@@ -162,16 +162,19 @@ router.post('/verify', async (req: IRequest, env: Env) => {
  * @param content 剪贴板内容
  */
 const uploadContent = async (env: Env, req: IRequest, content: string) => {
-  if (content) {
-    const contentBuffer = new TextEncoder().encode(content)
-    // 使用 Response 创建一个固定长度的流
-    await R2.upload(env, req, {
-      prefix: req.word,
-      name: Constant.PASTE_FILE,
-      length: contentBuffer.length,
-      stream: new Response(contentBuffer).body,
-    })
+  // 如果content为空，则删除R2中的文件
+  if (!content) {
+    return R2.delete(env, req, { prefix: req.word, name: Constant.PASTE_FILE })
   }
+  // 如果content不为空，则上传到R2
+  const contentBuffer = new TextEncoder().encode(content)
+  // 使用 Response 创建一个固定长度的流
+  await R2.upload(env, req, {
+    prefix: req.word,
+    name: Constant.PASTE_FILE,
+    length: contentBuffer.length,
+    stream: new Response(contentBuffer).body,
+  })
 }
 
 const downloadContent = async (env: Env, req: IRequest) => {
