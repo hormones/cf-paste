@@ -14,9 +14,10 @@
 		"cf-typegen": "wrangler types server/types/worker-configuration.d.ts"
 	},
 	"dependencies": {
+		"aws4fetch": "^1.0.20",
 		"axios": "^1.9.0",
 		"crypto-js": "^4.2.0",
-		"element-plus": "^2.10.1",
+		"element-plus": "^2.10.2",
 		"itty-router": "^5.0.18",
 		"js-cookie": "^3.0.5",
 		"pinia": "^3.0.3",

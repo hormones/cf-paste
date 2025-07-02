@@ -1,7 +1,15 @@
 import CryptoJS from 'crypto-js'
 
+interface CookieOptions {
+  path: string
+  httpOnly: boolean
+  secure: boolean
+  sameSite: 'Strict' | 'Lax' | 'None'
+  'max-age'?: number
+}
+
 // 设置 cookie 的选项
-const cookieOptions = {
+const cookieOptions: CookieOptions = {
   path: '/',
   httpOnly: true,
   secure: true, // 仅在 HTTPS 下发送
@@ -17,10 +25,17 @@ export const Auth = {
     const cookie = cookies.split(';').find((c) => c.trim().startsWith(`${name}=`))
     return cookie ? cookie.split('=')[1] : null
   },
-  setCookie(response: Response, name: string, value: string) {
-    const cookie = Object.entries(cookieOptions).reduce((acc, [key, value]) => {
-      return `${acc}; ${key.replace(/([A-Z])/g, '-$1').toLowerCase()}=${value}`
-    }, `${name}=${value}`)
+  setCookie(response: Response, name: string, value: string, maxAge?: number) {
+    let cookie = `${name}=${value}`
+    const finalOptions: CookieOptions = { ...cookieOptions }
+    if (maxAge) {
+      finalOptions['max-age'] = maxAge
+    }
+
+    for (const [key, val] of Object.entries(finalOptions)) {
+      cookie += `; ${key}=${val}`
+    }
+
     response.headers.append('Set-Cookie', cookie)
   },
   clearCookie(response: Response, ...names: string[]) {

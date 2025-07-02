@@ -46,7 +46,11 @@ export const D1 = {
    * @param where 查询条件
    * @returns 单条记录或null
    */
-  first: async <T>(env: Env, context: IContext, table: string, where?: WhereCondition[]): Promise<T | null> => {
+  first: async <T>(
+    env: Env,
+    table: string,
+    where?: WhereCondition[]
+  ): Promise<T | null> => {
     let sql = `SELECT * FROM ${table}`
     const { whereClause, values } = processWhere(where)
     sql += whereClause + ' LIMIT 1'
@@ -74,7 +78,7 @@ export const D1 = {
     table: string,
     where?: WhereCondition[],
     page = 1,
-    size = 10,
+    size = 10
   ): Promise<T[]> => {
     let sql = `SELECT * FROM ${table}`
     const { whereClause, values } = processWhere(where)
@@ -99,21 +103,21 @@ export const D1 = {
    * @returns 插入记录的ID
    * @throws 插入失败时抛出错误
    */
-  insert: async (env: Env, context: IContext, table: string, data: Record<string, unknown>): Promise<number> => {
+  insert: async (
+    env: Env,
+    table: string,
+    data: Record<string, unknown>
+  ): Promise<D1Result> => {
     const keys = Object.keys(data)
-    const sql = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`
+    const sql = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys
+      .map(() => '?')
+      .join(', ')})`
     const values = Object.values(data)
 
     console.log('SQL:', sql, 'Values:', values)
     return env.DB.prepare(sql)
       .bind(...values)
       .run()
-      .then((result) => {
-        if (result.meta?.last_row_id) {
-          return result.meta.last_row_id
-        }
-        throw new Error(`insert failed, affected rows: ${result.meta?.changes}`)
-      })
       .catch((error) => {
         console.error('insert failed', error, 'SQL:', sql, 'Values:', values)
         throw new Error('insert failed')
@@ -130,11 +134,10 @@ export const D1 = {
    */
   update: async (
     env: Env,
-    context: IContext,
     table: string,
     data: Record<string, string | number>,
-    where?: WhereCondition[],
-  ): Promise<number> => {
+    where?: WhereCondition[]
+  ): Promise<D1Result> => {
     let sql = `UPDATE ${table} SET ${Object.keys(data)
       .map((key) => `${key} = ?`)
       .join(', ')}`
@@ -148,7 +151,10 @@ export const D1 = {
     return env.DB.prepare(sql)
       .bind(...values)
       .run()
-      .then((result) => result.meta?.changes || 0)
+      .catch((error) => {
+        console.error('update failed', error, 'SQL:', sql, 'Values:', values)
+        throw new Error('update failed')
+      })
   },
 
   /**
@@ -158,7 +164,11 @@ export const D1 = {
    * @param where 删除条件
    * @returns 删除的记录数
    */
-  delete: async (env: Env, context: IContext, table: string, where?: WhereCondition[]): Promise<number> => {
+  delete: async (
+    env: Env,
+    table: string,
+    where?: WhereCondition[]
+  ): Promise<D1Result> => {
     let sql = `DELETE FROM ${table}`
     const { whereClause, values } = processWhere(where)
     sql += whereClause
@@ -167,6 +177,9 @@ export const D1 = {
     return env.DB.prepare(sql)
       .bind(...values)
       .run()
-      .then((result) => result.meta?.changes || 0)
+      .catch((error) => {
+        console.error('delete failed', error, 'SQL:', sql, 'Values:', values)
+        throw new Error('delete failed')
+      })
   },
 }

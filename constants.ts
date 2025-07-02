@@ -40,10 +40,13 @@ export const MESSAGES = {
   SAVE_FAILED: '保存失败',
   UPLOAD_SUCCESS: '上传成功',
   UPLOAD_FAILED: '上传失败',
+  UPLOAD_CANCELLED: '上传已取消',
   DELETE_SUCCESS: '删除成功',
   DELETE_FAILED: '删除失败',
   SETTINGS_SAVED: '设置已保存',
+  SETTINGS_FAILED: '设置保存失败',
   FETCH_FAILED: '获取内容失败',
+  DOWNLOAD_FAILED: '下载失败',
 } as const
 
 // 向后兼容的统一导出

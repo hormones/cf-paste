@@ -1,10 +1,9 @@
 import { AutoRouter, error } from 'itty-router'
 import { D1 } from '../bindings/d1'
 import { R2 } from '../bindings/r2'
-import { newErrorResponse, newResponse } from '../utils/response'
+import { newResponse } from '../utils/response'
 import { Auth } from '../utils/auth'
 import { Constant } from '../constant'
-import { validateExpireValue, calculateExpireTime } from '../utils/time'
 
 const keyword = 'keyword'
 const key = 'word'
@@ -19,7 +18,7 @@ const router = AutoRouter({ base: '/api/data' })
 router.get('', async (req: IRequest, env: Env) => {
   console.log('data get', req.word)
   // 1. 先获取数据库中的关键词信息
-  const data = await D1.first<Keyword>(env, req, keyword, [{ key, value: req.word }])
+  const data = await D1.first<Keyword>(env, keyword, [{ key, value: req.word }])
 
   // 2. 如果找到数据，则获取对应的内容
   if (data) {
@@ -34,7 +33,7 @@ router.get('', async (req: IRequest, env: Env) => {
 
   // 浏览模式找不到数据则抛出404异常
   if (!data && !req.edit) {
-    return newErrorResponse(req, { msg: '关键词不存在', status: 404 })
+    return error(404, '关键词不存在')
   }
 
   return newResponse({ data: data })
@@ -54,7 +53,7 @@ router.post('', async (req: IRequest, env: Env) => {
   // 将content上传到R2
   await uploadContent(env, req, content)
   // word信息插入数据库
-  return D1.insert(env, req, keyword, keywordDB).then((data) => newResponse({ data }))
+  return D1.insert(env, keyword, keywordDB).then((data) => newResponse({ data }))
 })
 
 /**
@@ -70,7 +69,7 @@ router.put('', async (req: IRequest, env: Env) => {
   // 将content上传到R2
   await uploadContent(env, req, data.content)
   // 更新数据库中的更新时间
-  return D1.update(env, req, keyword, { word: req.word }, [{ key, value: req.word }]).then((data) =>
+  return D1.update(env, keyword, { word: req.word }, [{ key, value: req.word }]).then((data) =>
     newResponse({ data })
   )
 })
@@ -81,7 +80,7 @@ router.put('', async (req: IRequest, env: Env) => {
  * @returns {Promise<Response>} 删除结果，包含删除的记录数
  */
 router.delete('', async (req: IRequest, env: Env) => {
-  await deleteKeyword(req, env)
+  await deleteKeyword(env, req.word)
   // 清除cookie
   const response = newResponse({ data: null })
   Auth.clearCookie(response, 'authorization')
@@ -98,17 +97,14 @@ router.patch('/settings', async (req: IRequest, env: Env) => {
   const settings = (await req.json()) as { expire_value: number; password?: string | null }
 
   // 1. 验证expire_value是否在允许范围内
-  if (!validateExpireValue(settings.expire_value)) {
-    return newErrorResponse(req, {
-      msg: '无效的过期时间设置',
-      status: 400,
-    })
+  if (!Constant.ALLOWED_EXPIRE_VALUES.includes(settings.expire_value)) {
+    return error(400, '无效的过期时间设置')
   }
 
   // 2. 构建更新数据
   const updateData: Record<string, string | number> = {
     expire_value: settings.expire_value,
-    expire_time: calculateExpireTime(settings.expire_value),
+    expire_time: Date.now() + settings.expire_value * 1000,
   }
 
   // 3. 处理密码设置
@@ -123,36 +119,12 @@ router.patch('/settings', async (req: IRequest, env: Env) => {
 
   // 4. 更新数据库
   try {
-    const result = await D1.update(env, req, keyword, updateData, [{ key, value: req.word }])
+    const result = await D1.update(env, keyword, updateData, [{ key, value: req.word }])
     return newResponse({ data: result })
-  } catch (error) {
-    console.error('Settings update failed:', error)
-    return newErrorResponse(req, {
-      msg: '保存设置失败',
-      status: 500,
-    })
+  } catch (err) {
+    console.error('Settings update failed:', err)
+    return error(500, '保存设置失败')
   }
-})
-
-router.post('/verify', async (req: IRequest, env: Env) => {
-  const c_word = Auth.getCookie(req, 'word')
-  const c_view_word = Auth.getCookie(req, 'view_word')
-  const { password } = (await req.json()) as { password: string }
-  const keyword: Keyword | null = await getKeyword(env, req, c_word, c_view_word)
-
-  if (!keyword) {
-    console.error(`通过 ${c_word} | ${c_view_word} 找不到对应的keyword信息`)
-    return error(410, '访问出错了，页面不存在')
-  }
-
-  // 密码存在，且密码验证失败，返回403
-  if (keyword?.password && keyword?.password !== password) {
-    return error(403, '密码错误')
-  }
-
-  // 密码不存在或验证成功，设置cookie，返回200
-  req.authorization = await Auth.encrypt(env, `${keyword!.word!}:${Date.now}`)
-  return newResponse({})
 })
 
 /**
@@ -164,12 +136,12 @@ router.post('/verify', async (req: IRequest, env: Env) => {
 const uploadContent = async (env: Env, req: IRequest, content: string) => {
   // 如果content为空，则删除R2中的文件
   if (!content) {
-    return R2.delete(env, req, { prefix: req.word, name: Constant.PASTE_FILE })
+    return R2.delete(env, { prefix: req.word, name: Constant.PASTE_FILE })
   }
   // 如果content不为空，则上传到R2
   const contentBuffer = new TextEncoder().encode(content)
   // 使用 Response 创建一个固定长度的流
-  await R2.upload(env, req, {
+  await R2.upload(env, {
     prefix: req.word,
     name: Constant.PASTE_FILE,
     length: contentBuffer.length,
@@ -180,19 +152,19 @@ const uploadContent = async (env: Env, req: IRequest, content: string) => {
 const downloadContent = async (env: Env, req: IRequest) => {
   return await R2.download(env, req, { prefix: req.word, name: Constant.PASTE_FILE })
     .then((res) => (res.status === 404 ? '' : res.text()))
-    .catch((error) => {
-      console.error(error)
+    .catch((err) => {
+      console.error(err)
       return ''
     })
 }
 
-export const deleteKeyword = async (context: IContext, env: Env) => {
+export const deleteKeyword = async (env: Env, word: string) => {
   // 删除R2中的index.txt文件
-  await R2.delete(env, context, { prefix: context.word, name: Constant.PASTE_FILE })
+  await R2.delete(env, { prefix: word, name: Constant.PASTE_FILE })
   // 删除R2中的文件夹files
-  await R2.deleteFolder(env, context, { prefix: context.word + '/' + Constant.FILE_FOLDER })
+  await R2.deleteFolder(env, { prefix: word + '/' + Constant.FILE_FOLDER })
   // 删除数据库中的关键词信息
-  await D1.delete(env, context, keyword, [{ key, value: context.word }])
+  await D1.delete(env, keyword, [{ key, value: word }])
 }
 
 export const getKeyword = async (
@@ -203,9 +175,9 @@ export const getKeyword = async (
 ) => {
   let keyword: Keyword | null = null
   if (c_word) {
-    keyword = await D1.first<Keyword>(env, req, 'keyword', [{ key: 'word', value: c_word }])
+    keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: c_word }])
   } else if (c_view_word) {
-    keyword = await D1.first<Keyword>(env, req, 'keyword', [
+    keyword = await D1.first<Keyword>(env, 'keyword', [
       { key: 'view_word', value: c_view_word },
     ])
   }

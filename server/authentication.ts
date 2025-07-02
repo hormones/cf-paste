@@ -1,16 +1,14 @@
 import { RequestHandler, ResponseHandler, error } from 'itty-router'
 import { D1 } from './bindings/d1'
 import { Auth } from './utils/auth'
-import { Utils } from './utils'
 import { deleteKeyword, getKeyword } from './api/data'
 
 export const prepare: RequestHandler<IRequest> = async (
   req: IRequest,
-  env: Env,
-  ctx: ExecutionContext
+  _env: Env,
+  _ctx: ExecutionContext
 ) => {
-  // 设置请求上下文
-  req.id = Utils.generateId('uuid')
+  req.ip = req.headers.get('cf-connecting-ip') || 'unknown'
   req.startTime = Date.now()
   req.functionPath = new URL(req.url).pathname
   req.location = `${(req as any).cf?.city}-${(req as any).cf?.country}`
@@ -20,7 +18,7 @@ export const prepare: RequestHandler<IRequest> = async (
 export const authenticate: RequestHandler<IRequest> = async (
   req: IRequest,
   env: Env,
-  ctx: ExecutionContext
+  _ctx: ExecutionContext
 ) => {
   // authorization规则：Basic crypt(word:timestamp)
   const now = Date.now()
@@ -49,14 +47,14 @@ export const authenticate: RequestHandler<IRequest> = async (
   // word已经过期，删除word
   if (keyword && keyword.expire_time && keyword.expire_time <= now) {
     req.clearAuthCookie = true
-    await deleteKeyword(req, env)
+    await deleteKeyword(env, req.word)
     keyword = null
     c_authorization = null
     return error(410, '访问出错了，数据已被删除')
   }
 
-  // 如果请求地址是verify，则放行此接口以进行密码验证
-  if (req.url.endsWith('/api/data/verify')) {
+  // 如果请求地址带pass标识，则放行此接口
+  if (req.url.includes('/pass/')) {
     return
   }
 

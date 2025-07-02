@@ -116,12 +116,25 @@ export const Utils = {
    * @returns 格式化后的文件大小
    */
   humanReadableSize(size: number) {
-    const units = ['B', 'KB', 'MB', 'GB', 'TB']
-    let unitIndex = 0
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024
-      unitIndex++
+    if (size === 0) return '0 B'
+    const i = Math.floor(Math.log(size) / Math.log(1024))
+    return `${(size / Math.pow(1024, i)).toFixed(2)} ${['B', 'KB', 'MB', 'GB', 'TB'][i]}`
+  },
+
+  /**
+   * 解析Range请求头
+   * @param range Range请求头
+   * @param totalSize 文件总大小
+   * @returns 解析后的起始位置和结束位置
+   */
+  parseRange: (range: string, totalSize: number) => {
+    const [startStr, endStr] = range.replace(/bytes=/, '').split('-')
+    const start = parseInt(startStr, 10)
+    const end = endStr ? parseInt(endStr, 10) : totalSize - 1
+
+    return {
+      start: isNaN(start) ? 0 : start,
+      end: isNaN(end) ? totalSize - 1 : end,
     }
-    return `${size.toFixed(2)} ${units[unitIndex]}`
   },
 }

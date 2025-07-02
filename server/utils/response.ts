@@ -21,29 +21,3 @@ export function newResponse<T>({
   const json: ApiResponse<T> = { code, data, msg }
   return new Response(JSON.stringify(json), { status })
 }
-
-/**
- * 创建错误响应
- * @param error 错误对象
- * @param msg 错误消息
- * @param status HTTP状态码
- * @param code 业务状态码
- */
-export function newErrorResponse<T>(
-  context: IContext,
-  {
-    error,
-    msg = '',
-    logMsg = msg,
-    status = 500,
-    code = status,
-  }: {
-    error?: any
-    status?: number
-    logMsg?: string
-  } & ApiResponse<T>,
-): Response {
-  msg = msg || (error && error.message) || 'function execute error'
-  console.error(`request error: ${logMsg}`, error)
-  return new Response(JSON.stringify({ code, msg }), { status })
-}

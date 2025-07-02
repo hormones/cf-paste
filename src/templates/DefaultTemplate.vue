@@ -1,24 +1,16 @@
 <script setup lang="ts">
-/**
- * 默认模板组件 - Pinia-first 重构版
- * 使用统一的 Store 管理状态，Composables 只负责业务逻辑
- */
-import { ref, computed, onMounted } from 'vue'
-import { ElMessageBox } from 'element-plus'
+import { onMounted } from 'vue'
 
 // 组件导入
 import PasswordDialog from '@/components/PasswordDialog.vue'
 import GlassDialog from '@/components/GlassDialog.vue'
 import TabsContainer from '@/components/TabsContainer.vue'
-import ClipboardPanel from '@/components/ClipboardPanel.vue'
-import FileUploadPanel from '@/components/FileUploadPanel.vue'
-import FileTable from '@/components/FileTable.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
 import QRCodePanel from '@/components/QRCodePanel.vue'
 
 // Store 和 Composable 导入
-import { useAppStore, useWordStore } from '@/stores'
-import { useClipboard } from '@/composables/useClipboard'
+import { useAppStore } from '@/stores'
+import { useMain } from '@/composables/useMain'
 import { useFileUpload } from '@/composables/useFileUpload'
 import { useSettings } from '@/composables/useSettings'
 
@@ -26,131 +18,31 @@ import { useSettings } from '@/composables/useSettings'
 // Store 和 Composables
 // ===================
 const appStore = useAppStore()
-const wordStore = useWordStore()
 
 // 业务逻辑 Composables
-const {
-  fetchContent,
-  saveContent,
-  deleteContent,
-  handlePasswordVerified
-} = useClipboard()
+const { fetchKeyword } = useMain()
 
-const {
-  fetchConfig,
-  fetchFileList
-} = useFileUpload()
+const { fetchConfig, fetchFileList } = useFileUpload()
 
-const {
-  openSettings,
-  closeSettings,
-  saveSettings,
-} = useSettings()
-
-// ===================
-// 本地状态和计算属性
-// ===================
-const activeTab = ref('clipboard')
-
-// 视图模式计算属性
-const viewMode = computed(() => !wordStore.word)
+const { closeSettings, saveSettings } = useSettings()
 
 // ===================
 // 事件处理函数
 // ===================
 
-// 创建自动保存函数
-const autoSave = () => {
-  if (appStore.hasUnsavedChanges) {
-    saveContent()
-  }
-}
-
-const handleDelete = async () => {
-  try {
-    await ElMessageBox.confirm(
-      '确定要删除所有数据吗？包括剪贴板内容和所有文件，此操作不可恢复。',
-      '确认删除',
-      {
-        confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
-        type: 'error',
-        dangerouslyUseHTMLString: false,
-        cancelButtonClass: 'el-button--default',
-        confirmButtonClass: 'el-button--danger',
-      }
-    )
-
-    await deleteContent()
-
-    // 删除成功后重置文件列表和上传状态
-    appStore.setFileList([])
-    appStore.clearUploadStates()
-  } catch (error) {
-    if (error === 'cancel') {
-      console.log('用户取消删除操作')
-      return
-    }
-    console.error('删除内容失败:', error)
-  }
-}
-
-const handleOpenSettings = () => {
-  openSettings()
-}
-
-const handleSettingsSave = async () => {
-  try {
-    await saveSettings()
-    const keywordData = await fetchContent()
-    if (keywordData) {
-      await fetchFileList()
-    }
-  } catch (error) {
-    console.error('保存设置失败:', error)
-  }
-}
-
-const handleUploadSuccess = async () => {
-  // 如果是新的word，需要先创建keyword记录
-  if (!appStore.keyword.id) {
-    await saveContent()
-  }
-  // 刷新文件列表
-  await fetchFileList()
-}
-
-const handlePasswordVerifiedAndFetchFiles = async () => {
-  await handlePasswordVerified()
-  const keywordData = await fetchContent()
-  if (keywordData) {
-    await fetchFileList()
-  }
-}
-
-const handleFileDeleteSuccess = async () => {
-  await fetchContent()
-  await fetchFileList()
-}
-
-// ===================
-// 生命周期
-// ===================
 onMounted(async () => {
   // 初始化配置
   await fetchConfig()
 
   // 加载内容
-  const keywordData = await fetchContent()
+  const keywordData = await fetchKeyword()
   // 如果存在keyword，才加载文件列表
   if (keywordData) {
     await fetchFileList()
   }
 
-  // 在只读模式下，如果剪贴板为空但文件列表不为空，则默认显示文件tab
-  if (viewMode.value && !appStore.keyword.content && appStore.fileList.length > 0) {
-    activeTab.value = 'files'
-  }
+  // 设置全局 viewMode
+  appStore.viewMode = !appStore.keyword.word
 })
 </script>
 
@@ -158,49 +50,23 @@ onMounted(async () => {
   <div class="paste-container">
     <!-- 使用 el-row/el-col 替代自定义布局 -->
     <el-row :gutter="20" class="main-layout">
-      <el-col :span="viewMode ? 24 : 16" :xs="24" :sm="24" :md="viewMode ? 24 : 16">
-        <TabsContainer
-          v-model:active-tab="activeTab"
-          :file-tab-label="appStore.fileTabLabel"
-          :view-mode="viewMode"
-          :show-file-tab="!(viewMode && appStore.fileList.length === 0)"
-          :show-clipboard-tab="!(viewMode && !appStore.keyword.content)"
-          @delete="handleDelete"
-          @open-settings="handleOpenSettings"
-        >
-          <template #clipboard>
-            <ClipboardPanel
-              v-model="appStore.keyword.content"
-              :view-mode="viewMode"
-              @request-auto-save="autoSave"
-            />
-          </template>
-
-          <template #files>
-            <div class="layout-flex">
-                              <FileUploadPanel v-if="!viewMode" @upload-success="handleUploadSuccess" />
-              <FileTable
-                :view-mode="viewMode"
-                :file-list="appStore.fileList"
-                @delete-success="handleFileDeleteSuccess"
-              />
-            </div>
-          </template>
-        </TabsContainer>
+      <el-col
+        :span="appStore.viewMode ? 24 : 16"
+        :xs="24"
+        :sm="24"
+        :md="appStore.viewMode ? 24 : 16"
+      >
+        <TabsContainer />
       </el-col>
-
-      <el-col :span="8" :xs="0" :sm="0" :md="8" v-if="!viewMode">
-        <el-space direction="vertical" size="large" fill>
-          <InfoPanel :keyword="appStore.keyword" />
-          <QRCodePanel :keyword="appStore.keyword" />
-        </el-space>
+      <el-col :span="8" :xs="0" :sm="0" :md="8" v-if="!appStore.viewMode">
+        <div class="side-panel">
+          <InfoPanel />
+          <QRCodePanel />
+        </div>
       </el-col>
     </el-row>
 
-    <PasswordDialog
-      v-model="appStore.showPasswordDialog"
-      @verified="handlePasswordVerifiedAndFetchFiles"
-    />
+    <PasswordDialog v-model:visible="appStore.showPasswordDialog" />
 
     <!-- 设置对话框 -->
     <GlassDialog v-model:visible="appStore.showSettings" title="设置" size="small" width="420px">
@@ -217,7 +83,7 @@ onMounted(async () => {
           </el-select>
         </div>
 
-                <div class="setting-group">
+        <div class="setting-group">
           <label class="setting-label">访问密码</label>
           <el-input
             v-model="appStore.password"
@@ -230,7 +96,7 @@ onMounted(async () => {
 
       <template #footer>
         <el-button @click="closeSettings">取消</el-button>
-        <el-button type="primary" @click="handleSettingsSave">保存设置</el-button>
+        <el-button type="primary" @click="saveSettings">保存设置</el-button>
       </template>
     </GlassDialog>
   </div>
@@ -264,17 +130,11 @@ onMounted(async () => {
   margin: 0 auto;
 }
 
-/* Info面板和Operation已用Element的el-card和el-descriptions替代 */
-
-/* 文件上传和表格相关样式已移到各自组件中 */
-
-/* 保留必要的业务样式 - 文件名截断 */
-.filename-cell {
-  display: inline-block;
-  max-width: 300px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* 侧边栏样式 - 为基本信息和只读链接添加间距 */
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-large); /* 使用CSS变量定义的间距 */
 }
 
 /* 设置对话框样式 */
@@ -296,13 +156,6 @@ onMounted(async () => {
   color: var(--text-primary);
   font-size: var(--font-size-normal);
   font-weight: 500;
-}
-
-.setting-tip {
-  margin-top: 8px;
-  color: var(--text-secondary);
-  font-size: var(--font-size-small);
-  line-height: 1.4;
 }
 
 /* 美化组件样式 */

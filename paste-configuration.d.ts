@@ -42,6 +42,21 @@ declare global {
     view_count: number
   }
 
+  interface Token {
+    /** 令牌 */
+    token: string
+    /** 关键词 */
+    word: string
+    /** 浏览密码 */
+    view_word: string
+    /** 创建IP */
+    ip_address: string
+    /** 创建时间 */
+    create_time: number
+    /** 过期时间 */
+    expire_time: number
+  }
+
   type KeywordDB = Omit<Keyword, 'content'>
 
   /** 数据库查询操作符 */
@@ -58,8 +73,6 @@ declare global {
   }
 
   type IContext = {
-    /** 请求唯一标识 */
-    id: string
     /** 关键词 */
     word: string
     /** 发起时间 */
@@ -67,6 +80,8 @@ declare global {
   }
 
   type IRequest = {
+    /** 请求IP */
+    ip: string
     /** 函数路径 */
     functionPath: string
     /** 请求位置 */

@@ -38,4 +38,16 @@ export interface UploadState {
   status: 'uploading' | 'completed' | 'error'
   error: string | null
   cancel?: () => void
+
+  // 速度和时间统计字段 - 支持平滑计算
+  startTime?: number        // 开始时间(毫秒)
+  uploadedBytes?: number    // 已上传字节数
+  uploadSpeed?: number      // 平均上传速度(字节/秒)
+  remainingTime?: number    // 预估剩余时间(秒)
+
+  // 用于平滑计算的历史记录 (最近5次)
+  speedHistory?: Array<{
+    timestamp: number       // 时间戳(毫秒)
+    uploadedBytes: number   // 累计上传字节数
+  }>
 }

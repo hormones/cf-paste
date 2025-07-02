@@ -1,39 +1,45 @@
 <template>
   <el-card class="info-card" shadow="never">
     <template #header>
-      <el-text tag="b">基本信息</el-text>
+      <el-text tag="b" class="card-title">基本信息</el-text>
     </template>
 
-    <el-descriptions :column="1" border size="small">
-      <el-descriptions-item label="创建时间">
-        {{ formatDate(keyword.create_time) }}
-      </el-descriptions-item>
+    <div class="info-content">
+      <div class="info-item">
+        <span class="info-label">创建时间</span>
+        <span class="info-value">{{ formatDate(keyword.create_time) }}</span>
+      </div>
 
-      <el-descriptions-item label="更新时间">
-        {{ formatDate(keyword.update_time) }}
-      </el-descriptions-item>
+      <div class="info-item">
+        <span class="info-label">更新时间</span>
+        <span class="info-value">{{ formatDate(keyword.update_time) }}</span>
+      </div>
 
-      <el-descriptions-item label="上次查看">
-        {{ formatDate(keyword.last_view_time) }}
-      </el-descriptions-item>
+      <div class="info-item">
+        <span class="info-label">上次查看</span>
+        <span class="info-value">{{ formatDate(keyword.last_view_time) }}</span>
+      </div>
 
-      <el-descriptions-item label="过期时间">
-        {{ formatDate(keyword.expire_time) }}
-      </el-descriptions-item>
+      <div class="info-item">
+        <span class="info-label">过期时间</span>
+        <span class="info-value">{{ formatDate(keyword.expire_time) }}</span>
+      </div>
 
-      <el-descriptions-item label="查看次数">
-        {{ !keyword.id ? '-' : (keyword.view_count || 0) + '次' }}
-      </el-descriptions-item>
-    </el-descriptions>
+      <div class="info-item">
+        <span class="info-label">查看次数</span>
+        <span class="info-value">{{ !keyword.id ? '-' : (keyword.view_count || 0) + '次' }}</span>
+      </div>
+    </div>
   </el-card>
 </template>
 
 <script setup lang="ts">
 import type { Keyword } from '@/types'
+import { useAppStore } from '@/stores'
+import { computed } from 'vue'
 
-const props = defineProps<{
-  keyword: Keyword
-}>()
+const appStore = useAppStore()
+const keyword = computed(() => appStore.keyword)
 
 /**
  * 格式化时间戳为可读的日期时间字符串
@@ -52,12 +58,49 @@ const formatDate = (timestamp?: number): string => {
   border-radius: 8px;
 }
 
-:deep(.el-descriptions__label) {
-  font-weight: 500;
-  color: var(--el-text-color-regular);
+.card-title {
+  font-size: 14px;
 }
 
-:deep(.el-descriptions__content) {
+.info-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--el-border-color-extra-light);
+  transition: background-color 0.2s ease;
+}
+
+.info-item:hover {
+  background-color: var(--el-fill-color-lighter);
+  margin: 0 -12px;
+  padding: 14px 12px;
+  border-radius: 6px;
+  border-bottom: 1px solid transparent;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  font-weight: 400;
+  min-width: 80px;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 14px;
   color: var(--el-text-color-primary);
+  font-weight: 500;
+  text-align: right;
+  font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 </style>

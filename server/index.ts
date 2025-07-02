@@ -9,6 +9,7 @@ import { newResponse } from './utils/response'
 import data from './api/data'
 import file from './api/file'
 import config from './api/config'
+import { authRouter } from './api/auth'
 import { prepare, authenticate, handle } from './authentication'
 import schedule from './schedule'
 
@@ -21,6 +22,7 @@ const router = AutoRouter({
 router.all('/api/data/*', data.fetch) // 数据操作路由
 router.all('/api/file/*', file.fetch) // 文件操作路由 (包含分片上传)
 router.all('/api/config/*', config.fetch) // 配置信息路由
+router.all('/api/auth/*', authRouter.fetch) // 认证授权路由
 // 404处理
 router.all('/*', () => error(404, 'Resource Not Found'))
 
@@ -30,7 +32,7 @@ export default {
    */
   async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     console.log('req.url', req.url)
-    const url = new URL(req.url);
+    const url = new URL(req.url)
     if (!url.pathname.startsWith('/api')) {
       return new Response('Not Found', { status: 404 })
     }
@@ -44,7 +46,11 @@ export default {
   /**
    * 定时任务处理器
    */
-  async scheduled(controller: ScheduledController, env: Env, _ctx: ExecutionContext): Promise<void> {
-    return schedule(controller, env, _ctx)
+  async scheduled(
+    controller: ScheduledController,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<void> {
+    return schedule(controller, env, ctx)
   },
 }

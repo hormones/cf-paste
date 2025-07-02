@@ -1,154 +1,95 @@
 <template>
-  <template v-if="fileList.length > 0">
-    <!-- 文件操作栏 -->
-    <el-card v-if="!viewMode" class="layout-item file-actions-card" shadow="never">
-      <div class="file-actions">
-        <el-text type="info">
-          共 {{ fileList.length }} 个文件，{{ humanReadableSize(usedSpace) }}
-        </el-text>
-        <el-button
-          type="danger"
-          size="small"
-          :icon="Delete"
-          @click="handleDeleteAllFiles"
-          plain
-        >
-          全部删除
-        </el-button>
-      </div>
-    </el-card>
-
-    <!-- 文件表格 -->
-    <el-table :data="fileList" class="layout-item" stripe>
-      <el-table-column prop="name" label="文件名" min-width="140">
+  <div class="file-table-container">
+    <el-table :data="fileList" style="width: 100%" height="100%" empty-text="暂无文件">
+      <el-table-column prop="name" label="文件名" min-width="180">
         <template #default="{ row }">
-          <el-tooltip :content="row.name" placement="top">
-            <span class="filename-cell">{{ row.name }}</span>
-          </el-tooltip>
+          <div class="file-name-cell">
+            <span class="file-name-text">{{ row.name }}</span>
+          </div>
         </template>
       </el-table-column>
-
-      <el-table-column prop="size" label="大小" min-width="90">
+      <el-table-column prop="size" label="大小" width="120">
         <template #default="{ row }">
           {{ humanReadableSize(row.size) }}
         </template>
       </el-table-column>
-
-      <el-table-column prop="uploaded" label="上传时间" min-width="120">
+      <el-table-column prop="uploaded" label="创建时间" width="180">
         <template #default="{ row }">
           {{ new Date(row.uploaded).toLocaleString() }}
         </template>
       </el-table-column>
-
-      <el-table-column label="操作" fixed="right" align="center" width="120">
+      <el-table-column label="操作" align="center" width="100">
         <template #default="{ row }">
-          <el-button-group>
-            <el-button
-              type="primary"
-              :icon="Download"
-              @click="handleFileDownload(row.name)"
-              text
-            />
-            <el-button
-              v-if="!viewMode"
-              type="danger"
-              :icon="Delete"
-              @click="handleFileDelete(row.name)"
-              text
-            />
-          </el-button-group>
+          <el-button
+            class="action-btn"
+            type="primary"
+            :icon="Download"
+            @click="handleFileDownload(row)"
+            text
+          />
+          <el-button
+            class="action-btn"
+            v-if="!viewMode"
+            type="danger"
+            :icon="Delete"
+            @click="handleFileDelete(row)"
+            text
+          />
         </template>
       </el-table-column>
     </el-table>
-  </template>
-
-  <!-- 空状态 -->
-  <el-empty v-else description="暂无文件" class="layout-item" />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, defineEmits } from 'vue'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { Download, Delete } from '@element-plus/icons-vue'
-import { ElMessageBox } from 'element-plus'
-import { Utils } from '@/utils'
 import { useFileUpload } from '@/composables/useFileUpload'
 import type { FileInfo } from '@/types'
+import { downloadFile } from '@/api/file'
+import { useAppStore } from '@/stores'
+import { Utils } from '@/utils'
+import { useSession } from '@/composables/useSession'
 
-const props = defineProps<{
-  viewMode: boolean
-  fileList: FileInfo[]
-}>()
+const emit = defineEmits(['delete-success'])
 
-const emit = defineEmits<{
-  (e: 'delete-success'): void
-}>()
-
-// 只从 composable 中获取需要的方法，状态由 props 传入
-const { deleteFile, downloadFile } = useFileUpload()
+const { deleteFile } = useFileUpload()
+const { getToken } = useSession()
+const appStore = useAppStore()
+const fileList = computed(() => appStore.fileList)
+const viewMode = computed(() => appStore.viewMode)
 
 const usedSpace = computed(() => {
-  return props.fileList.reduce((total, file) => total + file.size, 0)
+  return appStore.fileList.reduce((total, file) => total + file.size, 0)
 })
 
-// 内部处理删除单个文件
-const handleFileDelete = async (fileName: string) => {
+const handleFileDownload = async (file: FileInfo) => {
+  if (!viewMode.value) {
+    // 分享者模式，直接下载
+    downloadFile(file.name)
+    return
+  }
+
+  // 浏览者模式，通过通用方法获取Token
   try {
-    // 显示确认对话框
-    await ElMessageBox.confirm(`确定要删除文件 "${fileName}" 吗？此操作不可恢复。`, '确认删除', {
-      confirmButtonText: '确定删除',
+    const token = await getToken()
+    downloadFile(file.name, token)
+  } catch (error) {
+    // getToken内部已经处理了错误提示，这里可以只在控制台记录
+  }
+}
+
+const handleFileDelete = async (file: FileInfo) => {
+  try {
+    await ElMessageBox.confirm(`确定要删除文件 ${file.name} 吗？`, '提示', {
+      confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
-
-    // 用户确认后执行删除
-    await deleteFile(fileName)
-    emit('delete-success') // 向上通知父组件
+    await deleteFile(file.name)
   } catch (error) {
-    // 用户取消删除或删除失败
-    if (error === 'cancel') {
-      return
-    }
-    console.error('删除文件失败:', error)
-  }
-}
-
-// 内部处理批量删除文件
-const handleDeleteAllFiles = async () => {
-  if (props.fileList.length === 0) return
-
-  try {
-    // 显示确认对话框
-    await ElMessageBox.confirm(
-      `确定要删除所有 ${props.fileList.length} 个文件吗？此操作不可恢复。`,
-      '确认删除',
-      {
-        confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-
-    // 批量删除所有文件
-    const deletePromises = props.fileList.map((file) => deleteFile(file.name))
-    await Promise.all(deletePromises)
-
-    // 刷新页面数据
-    emit('delete-success') // 向上通知父组件
-  } catch (error) {
-    // 用户取消删除或删除失败
-    if (error === 'cancel') {
-      return
-    }
-    console.error('批量删除文件失败:', error)
-  }
-}
-
-// 内部处理文件下载
-const handleFileDownload = async (fileName: string) => {
-  try {
-    await downloadFile(fileName)
-  } catch (error) {
-    console.error('下载文件失败:', error)
+    // ElMessageBox.confirm会处理取消操作的异常，这里无需额外处理
   }
 }
 
@@ -156,21 +97,7 @@ const humanReadableSize = Utils.humanReadableSize
 </script>
 
 <style scoped>
-.file-actions-card {
-  margin-bottom: 16px;
-}
-
-.file-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.filename-cell {
-  display: inline-block;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.el-button.action-btn {
+  padding: 4px;
 }
 </style>

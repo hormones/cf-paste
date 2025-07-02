@@ -23,3 +23,16 @@ FOR EACH ROW
 BEGIN
     UPDATE keyword SET update_time = CURRENT_TIMESTAMP WHERE id = OLD.id;
 END;
+
+
+DROP TABLE IF EXISTS tokens;
+
+-- 通用授权Token表
+CREATE TABLE tokens (
+    token TEXT PRIMARY KEY,
+    word TEXT NOT NULL,
+    view_word TEXT NOT NULL,
+    ip_address TEXT NOT NULL,
+    create_time INTEGER NOT NULL,
+    expire_time INTEGER NOT NULL
+);

@@ -38,7 +38,7 @@ export function useSettings() {
    * 保存设置
    */
   const saveSettings = async () => {
-    appStore.setSettingsLoading(true)
+    appStore.setLoading(true)
     try {
       const settings = {
         expire_value: appStore.expiry,
@@ -48,27 +48,24 @@ export function useSettings() {
       await dataApi.saveSettings(settings)
 
       // 更新本地状态
-      const updatedKeyword = {
-        ...appStore.keyword,
+      appStore.updateKeywordFields({
         expire_value: appStore.expiry,
         password: appStore.password || undefined,
         expire_time: Date.now() + appStore.expiry * 1000
-      }
-      appStore.setKeyword(updatedKeyword)
+      })
 
       appStore.setShowSettings(false)
       ElMessage.success(Constant.MESSAGES.SETTINGS_SAVED)
     } catch (error) {
-      ElMessage.error('保存设置失败')
+      ElMessage.error(Constant.MESSAGES.SETTINGS_FAILED)
       throw error
     } finally {
-      appStore.setSettingsLoading(false)
+      appStore.setLoading(false)
     }
   }
 
   return {
     // 状态 (来自 Store)
-    showSettings: computed(() => appStore.showSettings),
     password: computed({
       get: () => appStore.password,
       set: (value: string) => appStore.setSettingsData({
@@ -83,9 +80,7 @@ export function useSettings() {
         expiry: value
       })
     }),
-    loading: computed(() => appStore.settingsLoading),
 
-    // 业务方法
     openSettings,
     closeSettings,
     saveSettings,

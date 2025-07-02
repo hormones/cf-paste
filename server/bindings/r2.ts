@@ -4,10 +4,9 @@
  * @module bindings/r2
  */
 
+import { error } from 'itty-router'
 import { Utils } from '../utils'
-import { newErrorResponse, newResponse } from '../utils/response'
-
-
+import { newResponse } from '../utils/response'
 
 /**
  * R2对象存储操作封装
@@ -16,30 +15,62 @@ export const R2 = {
   /**
    * 下载文件
    * @param env 环境变量
+   * @param req 请求对象
    * @param prefix 文件路径前缀
    * @param name 文件名
    * @returns 文件内容流
    */
-  download: async (env: Env, context: IContext, { prefix, name }: { prefix: string; name: string }) => {
+  download: async (env: Env, req: IRequest, { prefix, name }: { prefix: string; name: string }) => {
     const path = `${prefix}/${name}`
-    // 返回流
-    return env.R2.get(path).then((object: any) => {
-      if (!object) {
+
+    const headers = new Headers()
+    headers.set('Content-Disposition', `attachment; filename="${encodeURIComponent(name)}"`)
+    headers.set('Accept-Ranges', 'bytes')
+
+    const range = req.headers.get('range')
+
+    if (range) {
+      const objectMeta = await env.R2.head(path)
+      if (objectMeta === null) {
         return newResponse({ msg: 'File not found', status: 404 })
       }
-      return new Response(object.body as unknown as BodyInit, {
-        headers: {
-          'Content-Type': 'application/octet-stream',
-          'Content-Disposition': `attachment; filename="${name}"`,
-          'Content-Length': object.size.toString(),
-          'Accept-Ranges': 'bytes',
-          etag: object.httpEtag,
-        },
+
+      const { start, end } = Utils.parseRange(range, objectMeta.size)
+
+      if (start >= objectMeta.size || end >= objectMeta.size) {
+        headers.set('Content-Range', `bytes */${objectMeta.size}`)
+        return new Response('Range Not Satisfiable', { status: 416, headers })
+      }
+
+      const object = await env.R2.get(path, {
+        range: { offset: start, length: end - start + 1 },
       })
-    })
+
+      if (object === null) {
+        return error(404, 'File not found')
+      }
+
+      headers.set('Content-Range', `bytes ${start}-${end}/${objectMeta.size}`)
+      headers.set('Content-Length', (end - start + 1).toString())
+      object.writeHttpMetadata(headers)
+      headers.set('etag', object.httpEtag)
+
+      return new Response(object.body, { status: 206, headers })
+    }
+
+    const object = await env.R2.get(path)
+    if (object === null) {
+      return error(404, 'File not found')
+    }
+
+    object.writeHttpMetadata(headers)
+    headers.set('etag', object.httpEtag)
+    headers.set('Content-Length', object.size.toString())
+
+    return new Response(object.body, { headers })
   },
 
-    /**
+  /**
    * 直接上传文件到 R2
    * 前端已处理分片逻辑，这里只负责直接上传
    * @param env 环境变量
@@ -51,7 +82,6 @@ export const R2 = {
    */
   upload: async (
     env: Env,
-    context: IContext,
     {
       prefix,
       name,
@@ -63,7 +93,7 @@ export const R2 = {
     console.log(`upload file: ${path}, size: ${Utils.humanReadableSize(length)}`)
 
     if (!stream || length <= 0) {
-      return newErrorResponse(context, { logMsg: 'stream或length为空', msg: 'file is required' })
+      return error(400, 'stream或length为空')
     }
 
     // 直接上传到 R2（前端已处理分片逻辑）
@@ -72,7 +102,10 @@ export const R2 = {
       customMetadata: { uploadedAt: new Date().toISOString() },
     })
       .then(() => newResponse({}))
-      .catch((error) => newErrorResponse(context, { error, logMsg: '上传文件失败' }))
+      .catch((err) => {
+        console.error('上传文件失败', err)
+        return error(500, '上传文件失败')
+      })
   },
 
   /**
@@ -82,16 +115,15 @@ export const R2 = {
    * @param name 文件名
    * @returns 删除结果
    */
-  delete: async (
-    env: Env,
-    context: IContext,
-    { prefix, name }: { prefix: string; name: string }
-  ) => {
+  delete: async (env: Env, { prefix, name }: { prefix: string; name: string }) => {
     const path = `${prefix}/${name}`
     console.log(`delete file: ${path}`)
     return env.R2.delete(path)
       .then(() => newResponse({}))
-      .catch((error: any) => newErrorResponse(context, { error, logMsg: '删除文件失败' }))
+      .catch((err) => {
+        console.error('删除文件失败', err)
+        return error(500, '删除文件失败')
+      })
   },
 
   /**
@@ -100,18 +132,19 @@ export const R2 = {
    * @param prefix 文件路径前缀
    * @returns 文件列表
    */
-  list: async (env: Env, context: IContext, { prefix }: { prefix: string }) => {
+  list: async (env: Env, { prefix }: { prefix: string }) => {
     try {
       const list = await env.R2.list({ prefix: prefix })
-      const data = list.objects.map((obj: any) => ({
+      const data = list.objects.map((obj: R2Object) => ({
         name: decodeURIComponent(obj.key.replace(prefix + '/', '')),
         size: obj.size,
         uploaded: obj.uploaded,
         etag: obj.etag,
       }))
       return newResponse({ data })
-    } catch (error) {
-      return newErrorResponse(context, { error, logMsg: 'LIST文件失败' })
+    } catch (err) {
+      console.error('LIST文件失败', err)
+      return error(500, 'LIST文件失败')
     }
   },
 
@@ -121,11 +154,7 @@ export const R2 = {
    * @param prefix 文件路径前缀
    * @returns 删除的文件数量
    */
-  deleteFolder: async (
-    env: Env,
-    context: IContext,
-    { prefix }: { prefix: string }
-  ): Promise<number> => {
+  deleteFolder: async (env: Env, { prefix }: { prefix: string }): Promise<number> => {
     let deletedCount = 0
     let cursor: string | undefined
 
@@ -149,7 +178,9 @@ export const R2 = {
         deletedCount += listResult.objects.length
 
         // 记录删除日志
-        console.log(`Deleted ${listResult.objects.length} files from ${prefix}, total: ${deletedCount}`)
+        console.log(
+          `Deleted ${listResult.objects.length} files from ${prefix}, total: ${deletedCount}`
+        )
 
         // 获取下一批的游标
         if (listResult.truncated && listResult.objects.length > 0) {
@@ -161,9 +192,9 @@ export const R2 = {
 
       console.log(`Folder deletion completed: ${prefix}, total deleted: ${deletedCount}`)
       return deletedCount
-    } catch (error) {
-      console.error(`Failed to delete folder ${prefix}`, error)
-      throw error
+    } catch (err) {
+      console.error(`Failed to delete folder ${prefix}`, err)
+      throw err
     }
   },
 
@@ -173,7 +204,7 @@ export const R2 = {
    * @param keys 要删除的文件路径数组
    * @returns 删除的文件数量
    */
-  batchDelete: async (env: Env, context: IContext, keys: string[]): Promise<number> => {
+  batchDelete: async (env: Env, keys: string[]): Promise<number> => {
     if (keys.length === 0) {
       return 0
     }
@@ -210,28 +241,23 @@ export const R2 = {
   /**
    * 初始化分片上传
    * @param env 环境变量
-   * @param context 上下文
    * @param prefix 文件路径前缀
    * @param name 文件名
    * @returns 分片上传对象
    */
-  createMultipartUpload: async (
-    env: Env,
-    context: IContext,
-    { prefix, name }: { prefix: string; name: string }
-  ) => {
+  createMultipartUpload: async (env: Env, { prefix, name }: { prefix: string; name: string }) => {
     const path = `${prefix}/${name}`
     console.log(`create multipart upload: ${path}`)
 
     try {
       const multipartUpload = await env.R2.createMultipartUpload(path, {
         httpMetadata: { contentType: 'application/octet-stream' },
-        customMetadata: { uploadedAt: new Date().toISOString() }
+        customMetadata: { uploadedAt: new Date().toISOString() },
       })
 
       return {
         uploadId: multipartUpload.uploadId,
-        key: path
+        key: path,
       }
     } catch (error) {
       console.error(`Failed to create multipart upload for ${path}`, error)
@@ -242,7 +268,6 @@ export const R2 = {
   /**
    * 上传分片
    * @param env 环境变量
-   * @param context 上下文
    * @param uploadId 上传ID
    * @param key 文件路径
    * @param partNumber 分片号（从1开始）
@@ -251,12 +276,11 @@ export const R2 = {
    */
   uploadPart: async (
     env: Env,
-    context: IContext,
     {
       uploadId,
       key,
       partNumber,
-      data
+      data,
     }: {
       uploadId: string
       key: string
@@ -264,7 +288,9 @@ export const R2 = {
       data: ArrayBuffer
     }
   ) => {
-    console.log(`upload part ${partNumber} for ${key}, size: ${Utils.humanReadableSize(data.byteLength)}`)
+    console.log(
+      `upload part ${partNumber} for ${key}, size: ${Utils.humanReadableSize(data.byteLength)}`
+    )
 
     try {
       const multipartUpload = await env.R2.resumeMultipartUpload(key, uploadId)
@@ -272,7 +298,7 @@ export const R2 = {
 
       return {
         partNumber,
-        etag: uploadedPart.etag
+        etag: uploadedPart.etag,
       }
     } catch (error) {
       console.error(`Failed to upload part ${partNumber} for ${key}`, error)
@@ -283,7 +309,6 @@ export const R2 = {
   /**
    * 完成分片上传
    * @param env 环境变量
-   * @param context 上下文
    * @param uploadId 上传ID
    * @param key 文件路径
    * @param parts 分片信息数组
@@ -291,11 +316,10 @@ export const R2 = {
    */
   completeMultipartUpload: async (
     env: Env,
-    context: IContext,
     {
       uploadId,
       key,
-      parts
+      parts,
     }: {
       uploadId: string
       key: string
@@ -310,7 +334,7 @@ export const R2 = {
 
       return {
         etag: result.etag,
-        size: result.size
+        size: result.size,
       }
     } catch (error) {
       console.error(`Failed to complete multipart upload for ${key}`, error)
@@ -321,17 +345,15 @@ export const R2 = {
   /**
    * 取消分片上传
    * @param env 环境变量
-   * @param context 上下文
    * @param uploadId 上传ID
    * @param key 文件路径
    * @returns 取消结果
    */
   abortMultipartUpload: async (
     env: Env,
-    context: IContext,
     {
       uploadId,
-      key
+      key,
     }: {
       uploadId: string
       key: string

@@ -27,12 +27,24 @@
             striped-flow
           />
           <div class="progress-details">
-            <el-tag :type="getTagType(state.status)" size="small" effect="light" round>
-              {{ getStatusText(state.status) }}
-            </el-tag>
-            <el-text v-if="state.status === 'error'" size="small" type="danger">
-              {{ state.error || '上传失败' }}
-            </el-text>
+            <div class="progress-left">
+              <el-tag :type="getTagType(state.status)" size="small" effect="light" round>
+                {{ getStatusText(state.status) }}
+              </el-tag>
+              <el-text v-if="state.status === 'error'" size="small" type="danger">
+                {{ state.error || '上传失败' }}
+              </el-text>
+            </div>
+
+            <!-- 上传速率和剩余时间显示 -->
+            <div v-if="state.status === 'uploading'" class="progress-stats">
+              <el-text size="small" type="info">
+                {{ formatUploadSpeed(state.uploadSpeed || 0) }}
+              </el-text>
+              <el-text size="small" type="info">
+                剩余: {{ formatRemainingTime(state.remainingTime || 0) }}
+              </el-text>
+            </div>
           </div>
         </div>
 
@@ -74,11 +86,9 @@
 <script setup lang="ts">
 import { Document } from '@element-plus/icons-vue'
 import type { UploadState } from '@/types'
-import { Utils } from '@/utils'
-
-interface Props {
-  uploadStates: Map<string, UploadState>
-}
+import { Utils, formatUploadSpeed, formatRemainingTime } from '@/utils'
+import { useAppStore } from '@/stores'
+import { computed } from 'vue'
 
 interface Emits {
   (e: 'retry', fileName: string): void
@@ -86,7 +96,9 @@ interface Emits {
   (e: 'dismiss', fileName: string): void
 }
 
-defineProps<Props>()
+const appStore = useAppStore()
+const uploadStates = computed(() => appStore.uploadStates)
+
 defineEmits<Emits>()
 
 const getProgressStatus = (status: string) => {
@@ -171,6 +183,19 @@ const getStatusText = (status: string) => {
   align-items: center;
   margin-top: 10px;
   padding: 0 2px;
+}
+
+.progress-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'JetBrains Mono', Monaco, 'Courier New', monospace;
 }
 
 .item-footer {

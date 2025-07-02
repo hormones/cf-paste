@@ -2,39 +2,35 @@
  * 剪贴板管理 Composable - 重构版
  * 使用统一的 Store 管理状态，Composable 只负责业务逻辑
  */
-import { computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { dataApi } from '@/api/data'
-import { useWordStore, useAppStore } from '@/stores'
+import { useAppStore } from '@/stores'
 import type { Keyword } from '@/types'
-import { Utils } from '@/utils'
 import { Constant } from '@/constant'
 
-export function useClipboard() {
-  const wordStore = useWordStore()
+export function useMain() {
   const appStore = useAppStore()
 
   /**
-   * 获取剪贴板内容
+   * 获取keyword
    */
-  const fetchContent = async () => {
-    appStore.setClipboardLoading(true)
+  const fetchKeyword = async () => {
+    appStore.setLoading(true)
     try {
       const data = await dataApi.getKeyword()
       if (data) {
         appStore.setKeyword(data)
-        appStore.setLastSavedContent(data.content || '')
-        // 注意：不要调用setViewWord，这会清除word状态并导致进入只读模式
-        // 只有在删除或真正的只读模式下才需要设置view_word
+        appStore.viewMode = !data.word
       } else {
-        appStore.setLastSavedContent(appStore.keyword.content || '')
+        appStore.viewMode = false
       }
+      appStore.setLastSavedContent(appStore.keyword.content || '')
       return data
     } catch (response: any) {
       handleFetchError(response)
       throw response
     } finally {
-      appStore.setClipboardLoading(false)
+      appStore.setLoading(false)
     }
   }
 
@@ -53,8 +49,8 @@ export function useClipboard() {
   /**
    * 保存剪贴板内容
    */
-  const saveContent = async (silent = false) => {
-    appStore.setClipboardLoading(true)
+  const saveKeyword = async (silent = false) => {
+    appStore.setLoading(true)
     try {
       const currentTime = Date.now()
 
@@ -96,38 +92,22 @@ export function useClipboard() {
       ElMessage.error(Constant.MESSAGES.SAVE_FAILED)
       throw error
     } finally {
-      appStore.setClipboardLoading(false)
+      appStore.setLoading(false)
     }
   }
 
   /**
-   * 删除剪贴板内容
+   * 删除keyword
    */
-  const deleteContent = async () => {
+  const deleteKeyword = async () => {
     try {
       await dataApi.deleteKeyword()
-      // 重新生成view_word
-      const newViewWord = Utils.getRandomWord(6)
-      wordStore.setViewWord(newViewWord)
-      // 清空cookie
-      Utils.clearLocalStorageAndCookies()
-      appStore.resetKeyword({
-        word: wordStore.word ?? undefined,
-        view_word: newViewWord,
-      })
+      appStore.resetKeyword()
       ElMessage.success(Constant.MESSAGES.DELETE_SUCCESS)
     } catch (error) {
       ElMessage.error(Constant.MESSAGES.DELETE_FAILED)
       throw error
     }
-  }
-
-  /**
-   * 密码验证完成回调
-   */
-  const handlePasswordVerified = () => {
-    appStore.setShowPasswordDialog(false)
-    fetchContent()
   }
 
   /**
@@ -151,21 +131,9 @@ export function useClipboard() {
   }
 
   return {
-    // 状态 (来自 Store)
-    loading: computed(() => appStore.clipboardLoading),
-    keyword: computed(() => appStore.keyword),
-    showPasswordDialog: computed(() => appStore.showPasswordDialog),
-
-    // 计算属性 (来自 Store)
-    hasUnsavedChanges: computed(() => appStore.hasUnsavedChanges),
-    readOnlyLink: computed(() => appStore.readOnlyLink),
-    readOnlyUrl: computed(() => appStore.readOnlyUrl),
-
-    // 业务方法
-    fetchContent,
-    saveContent,
-    deleteContent,
-    handlePasswordVerified,
+    fetchKeyword,
+    saveKeyword,
+    deleteKeyword,
     copyReadOnlyLink,
   }
 }

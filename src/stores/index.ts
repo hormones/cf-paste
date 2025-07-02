@@ -2,24 +2,7 @@ import { defineStore } from 'pinia'
 import type { Keyword, FileInfo, UploadState } from '@/types'
 import { Utils } from '@/utils'
 import { Constant } from '@/constant'
-
-// 路由状态管理
-export const useWordStore = defineStore('word', {
-  state: () => ({
-    word: null as string | null,
-    view_word: null as string | null,
-    authorization: '' as string,
-  }),
-  actions: {
-    setWord(word: string) {
-      this.word = word
-      this.view_word = null
-    },
-    setViewWord(word: string) {
-      this.view_word = word
-    },
-  },
-})
+import type { UploadConfig } from '@/api/config'
 
 // 主应用状态管理 - 只负责状态，不包含业务逻辑
 export const useAppStore = defineStore('app', {
@@ -30,25 +13,30 @@ export const useAppStore = defineStore('app', {
       view_word: Utils.getRandomWord(6),
       content: '',
       expire_time: Date.now() + Constant.EXPIRY_OPTIONS[2].value * 1000,
-      expire_value: Constant.EXPIRY_OPTIONS[2].value
+      expire_value: Constant.EXPIRY_OPTIONS[2].value,
     } as Keyword,
     lastSavedContent: '',
-    clipboardLoading: false,
+    loading: false,
     showPasswordDialog: false,
 
     // 文件状态
     fileList: [] as FileInfo[],
     uploadStates: new Map() as Map<string, UploadState>,
 
-    // 上传配置状态
-    maxFiles: 10,
-    maxTotalSize: 100 * 1024 * 1024, // 100MB
+    // 上传配置状态 - 集中管理
+    uploadConfig: null as UploadConfig | null,
 
     // 设置状态
     showSettings: false,
     password: '',
     expiry: Constant.EXPIRY_OPTIONS[2].value,
-    settingsLoading: false,
+
+    // UI状态
+    isDark: false,
+    viewMode: true,
+    // 下载会话Token（仅浏览者模式使用）
+    token: '',
+    tokenExpiresAt: 0,
   }),
 
   getters: {
@@ -76,8 +64,13 @@ export const useAppStore = defineStore('app', {
     },
 
     canUpload(): boolean {
-      return this.fileList.length < this.maxFiles &&
-             this.usedSpace < this.maxTotalSize
+      if (!this.uploadConfig) {
+        return false
+      }
+      return (
+        this.fileList.length < this.uploadConfig.maxFiles &&
+        this.usedSpace < this.uploadConfig.maxTotalSize
+      )
     },
 
     // 设置相关计算属性
@@ -100,24 +93,28 @@ export const useAppStore = defineStore('app', {
       this.lastSavedContent = content
     },
 
-    setClipboardLoading(loading: boolean) {
-      this.clipboardLoading = loading
+    setLoading(loading: boolean) {
+      this.loading = loading
     },
 
     setShowPasswordDialog(show: boolean) {
       this.showPasswordDialog = show
     },
 
-    resetKeyword(wordData?: { word?: string; view_word?: string }) {
-      this.keyword = {
-        id: null,
-        word: wordData?.word ?? undefined,
-        view_word: wordData?.view_word || Utils.getRandomWord(6),
-        content: '',
-        expire_time: Date.now() + Constant.EXPIRY_OPTIONS[2].value * 1000,
-        expire_value: Constant.EXPIRY_OPTIONS[2].value
-      }
+    resetKeyword() {
+      this.keyword.id = null
+      this.keyword.view_word = Utils.getRandomWord(6)
+      this.keyword.content = ''
+      this.keyword.expire_time = Date.now() + Constant.EXPIRY_OPTIONS[2].value * 1000
+      this.keyword.expire_value = Constant.EXPIRY_OPTIONS[2].value
       this.lastSavedContent = ''
+      this.fileList = []
+      this.uploadStates.clear()
+      this.token = ''
+      this.tokenExpiresAt = 0
+      this.password = ''
+      Utils.clearLocalStorageAndCookies()
+      this.uploadStates.clear()
     },
 
     // 文件状态更新
@@ -125,9 +122,8 @@ export const useAppStore = defineStore('app', {
       this.fileList = files
     },
 
-    setUploadConfig(config: { maxFiles: number; maxTotalSize: number }) {
-      this.maxFiles = config.maxFiles
-      this.maxTotalSize = config.maxTotalSize
+    setUploadConfig(config: UploadConfig) {
+      this.uploadConfig = config
     },
 
     addUploadState(fileName: string, state: UploadState) {
@@ -159,13 +155,26 @@ export const useAppStore = defineStore('app', {
       this.expiry = data.expiry
     },
 
-    setSettingsLoading(loading: boolean) {
-      this.settingsLoading = loading
-    },
-
     resetSettings() {
       this.password = ''
       this.expiry = Constant.EXPIRY_OPTIONS[2].value
     },
-  }
+  },
 })
+
+// export const useMainStore = defineStore('main', {
+//   state: () => ({
+//     // 是否暗黑模式
+//     isDark: false,
+//     // 是否为分享者模式
+//     isOwnerMode: true,
+//     // 下载会话Token（仅浏览者模式使用）
+//     sessionToken: '',
+//   }),
+//   getters: {
+//     // ...
+//   },
+//   actions: {
+//     // ...
+//   }
+// })

@@ -160,8 +160,11 @@ class Request {
     return this._instance.patch(url, data, config)
   }
 
-  public getFile<T = any>(url: string, config?: ExpandAxiosRequestConfig): Promise<T> {
-    config!.added!.skipResponseTransform = true
+  public getFile<T = any>(url: string, config: ExpandAxiosRequestConfig = {}): Promise<T> {
+    if (!config.added) {
+      config.added = {}
+    }
+    config.added.skipResponseTransform = true
     return this._instance.get(url, config)
   }
 

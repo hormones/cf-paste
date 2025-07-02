@@ -3,9 +3,9 @@
  * 利用现有 axios 架构，两个函数解决一切
  */
 import { request } from '@/api/request'
-import { configApi } from '@/api/config'
+import { useAppStore } from '@/stores'
 import { handleError } from './errorHandler'
-import type { UploadConfig } from '@/api/config'
+import type { UploadConfig } from '@/types'
 
 /**
  * 主上传函数 - 自动选择上传策略
@@ -19,32 +19,36 @@ export async function uploadFile(
   signal?: AbortSignal
 ): Promise<void> {
   try {
-    const config = await configApi.getUploadConfig()
+    const appStore = useAppStore()
+    const config = appStore.uploadConfig
+
+    if (!config) {
+      throw new Error('上传配置不可用。应用初始化可能失败。')
+    }
 
     // 根据文件大小自动选择上传策略
-    if (file.size > config.chunkThreshold) {
+    if (file.size > config.chunkThreshold && config.chunkSize > 0) {
       return await uploadChunked(file, config, onProgress, signal)
     } else {
       return await uploadDirect(file, onProgress, signal)
     }
   } catch (error) {
     // 如果是取消错误，直接抛出原始错误，不要包装
-    if (error instanceof Error && (
-      error.name === 'AbortError' ||
-      error.name === 'CanceledError' ||
-      error.message.includes('aborted') ||
-      error.message.includes('cancelled') ||
-      error.message.includes('canceled') ||
-      (error as any).code === 'ERR_CANCELED'
-    )) {
+    if (
+      error instanceof Error &&
+      (error.name === 'AbortError' ||
+        error.name === 'CanceledError' ||
+        error.message.includes('aborted') ||
+        error.message.includes('cancelled') ||
+        error.message.includes('canceled') ||
+        (error as any).code === 'ERR_CANCELED')
+    ) {
       throw error
     }
     // 其他错误才进行包装
     throw new Error(handleError(error))
   }
 }
-
-
 
 /**
  * 直传上传 - 利用专用的文件上传方法

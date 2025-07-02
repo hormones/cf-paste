@@ -75,14 +75,4 @@ export const dataApi = {
       password: settings.password || null,
     })
   },
-  /**
-   * 验证密码
-   * @param password 密码
-   */
-  verify(password: string) {
-    return request.post<void>('/data/verify', { password }).then((data) => {
-      Utils.cookies2Localstorage()
-      return data
-    })
-  },
 }

@@ -31,14 +31,15 @@ export const fileApi = {
       await uploadFile(file, onProgress, signal)
     } catch (error) {
       // 如果是取消错误，直接抛出原始错误，不要包装
-      if (error instanceof Error && (
-        error.name === 'AbortError' ||
-        error.name === 'CanceledError' ||
-        error.message.includes('aborted') ||
-        error.message.includes('cancelled') ||
-        error.message.includes('canceled') ||
-        (error as any).code === 'ERR_CANCELED'
-      )) {
+      if (
+        error instanceof Error &&
+        (error.name === 'AbortError' ||
+          error.name === 'CanceledError' ||
+          error.message.includes('aborted') ||
+          error.message.includes('cancelled') ||
+          error.message.includes('canceled') ||
+          (error as any).code === 'ERR_CANCELED')
+      ) {
         throw error
       }
       // 其他错误才进行包装
@@ -56,7 +57,7 @@ export const fileApi = {
   /**
    * 删除所有文件
    */
-  async deleteAll(): Promise<{deletedCount: number, message: string}> {
+  async deleteAll(): Promise<{ deletedCount: number; message: string }> {
     return request.delete('/file/all')
   },
 
@@ -65,10 +66,38 @@ export const fileApi = {
    */
   download(fileName: string): void {
     const link = document.createElement('a')
-    link.href = `/api/file/download?name=${encodeURIComponent(fileName)}`
+    link.href = `/file/download/${encodeURIComponent(fileName)}`
     link.download = fileName
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+  },
+}
+
+/**
+ * 下载文件 - 浏览器原生下载
+ * @param fileName 文件名
+ * @param token 可选的下载会话Token（仅浏览者模式需要）
+ */
+export function downloadFile(fileName: string, token?: string) {
+  // 1. 构造下载URL
+  // API的基础路径已经在axios实例中设置，这里我们直接用相对路径
+  let url = '/api/file/download/'
+  if (token) {
+    url += `pass/${token}/${encodeURIComponent(fileName)}`
+  } else {
+    url += encodeURIComponent(fileName)
   }
+
+  // 2. 创建一个隐藏的 a 标签
+  const link = document.createElement('a')
+  link.href = url
+
+  // 3. 设置 download 属性，这会告诉浏览器下载文件而不是导航
+  link.download = fileName
+
+  // 4. 将 a 标签添加到文档中，模拟点击，然后移除
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
