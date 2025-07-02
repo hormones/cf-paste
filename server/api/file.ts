@@ -23,27 +23,46 @@ router.get('/list', async (req: IRequest, env) => {
 })
 
 /**
- * 下载指定文件
- * @route GET /api/file/:fileName
- * @param {string} fileName - 文件名
+ * (分享者)下载指定文件
+ * @route GET /api/file/word/download?name=fileName
+ * @query {string} name - 文件名
  * @returns {Promise<Response>} 文件内容
  */
-router.get('/download/:fileName', async (req: IRequest, env: Env) => {
+router.get('/word/download', async (req: IRequest, env: Env) => {
   // 此端点应由上游中间件(authenticate)保护
   // 仅限分享者(owner)本人使用
   if (!req.edit) {
     return error(403, 'Forbidden')
   }
 
-  const { fileName } = req.params!
+  const url = new URL(req.url)
+  const fileName = url.searchParams.get('name')
+  if (!fileName) {
+    return error(400, 'file name is required')
+  }
+
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
 
   // 调用支持断点续传的 R2.download
   return R2.download(env, req, { prefix, name: fileName })
 })
 
-router.get('/download/pass/:token/:fileName', async (req: IRequest, env: Env) => {
-  const { token, fileName } = req.params!
+/**
+ * (浏览者)下载指定文件
+ * @route GET /api/file/view/download/:token?name=fileName
+ * @param {string} token - 下载令牌
+ * @query {string} name - 文件名
+ * @returns {Promise<Response>} 文件内容
+ */
+router.get('/view/download/:token', async (req: IRequest, env: Env) => {
+  const { token } = req.params!
+  const url = new URL(req.url)
+  const fileName = url.searchParams.get('name')
+
+  if (!fileName) {
+    return error(400, 'file name is required')
+  }
+
   const now = Date.now()
 
   // 1. 验证Token
@@ -68,9 +87,7 @@ router.get('/download/pass/:token/:fileName', async (req: IRequest, env: Env) =>
   const THIRTY_MINUTES = 30 * 60 * 1000
   if (tokenInfo.expire_time - now < THIRTY_MINUTES) {
     const newExpireTime = now + 60 * 60 * 1000 // 延长1小时
-    await D1.update(env, 'tokens', { expire_time: newExpireTime }, [
-      { key: 'token', value: token },
-    ])
+    await D1.update(env, 'tokens', { expire_time: newExpireTime }, [{ key: 'token', value: token }])
   }
 
   // 5. 下载
@@ -88,11 +105,14 @@ router.get('/download/pass/:token/:fileName', async (req: IRequest, env: Env) =>
  */
 router.post('/:name', async (req: IRequest, env) => {
   const { name } = req.params
+  // 从URL路径参数获取的文件名是编码过的，需要手动解码
+  const decodedName = decodeURIComponent(name)
   const length = req.headers.get('content-length')
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
+  console.log('upload file: ', decodedName, prefix)
   return R2.upload(env, {
     prefix,
-    name,
+    name: decodedName,
     length: Number(length),
     stream: req.body as unknown as ReadableStream<Uint8Array>,
   })
@@ -130,8 +150,11 @@ router.delete('/all', async (req: IRequest, env) => {
  */
 router.delete('/:name', async (req: IRequest, env) => {
   const { name } = req.params
+  // 从URL路径参数获取的文件名是编码过的，需要手动解码
+  const decodedName = decodeURIComponent(name)
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
-  return R2.delete(env, { prefix, name })
+  console.log('delete file: ', decodedName, prefix)
+  return R2.delete(env, { prefix, name: decodedName })
 })
 
 // === 分片上传相关接口 ===
@@ -236,11 +259,12 @@ router.post('/multipart/chunk/:uploadId/:chunkIndex', async (req: IRequest, env:
       return error(400, '无效的上传参数')
     }
 
-    // 从请求头获取fileKey
-    const fileKey = req.headers.get('X-File-Key')
-    if (!fileKey) {
+    // 从请求头获取fileKey并解码
+    const encodedFileKey = req.headers.get('X-File-Key')
+    if (!encodedFileKey) {
       return error(400, '缺少fileKey参数')
     }
+    const fileKey = decodeURIComponent(encodedFileKey)
 
     // 获取分片数据
     const chunkData = await req.arrayBuffer()
@@ -331,4 +355,4 @@ router.post('/multipart/complete/:uploadId', async (req: IRequest, env: Env) => 
   }
 })
 
-export default { ...router }
+export default router

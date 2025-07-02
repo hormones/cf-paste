@@ -31,26 +31,22 @@ export default {
    * HTTP请求处理器
    */
   async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    console.log('req.url', req.url)
+    console.log(`fetch [${req.method}]${req.url}`)
     const url = new URL(req.url)
-    if (!url.pathname.startsWith('/api')) {
-      return new Response('Not Found', { status: 404 })
+    if (url.pathname.startsWith('/api')) {
+      return router.fetch(req, env, ctx).catch((error) => {
+        console.log('api execute error', error)
+        return newResponse({ code: 500, msg: 'api execute error' })
+      })
     }
 
-    return router.fetch(req, env, ctx).catch((error) => {
-      console.log('api execute error', error)
-      return newResponse({ code: 500, msg: 'api execute error' })
-    })
+    return env.ASSETS.fetch(req)
   },
 
   /**
    * 定时任务处理器
    */
-  async scheduled(
-    controller: ScheduledController,
-    env: Env,
-    ctx: ExecutionContext
-  ): Promise<void> {
+  async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     return schedule(controller, env, ctx)
   },
 }

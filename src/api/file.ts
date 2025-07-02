@@ -65,8 +65,10 @@ export const fileApi = {
    * 下载文件
    */
   download(fileName: string): void {
+    // 修正 URL，必须包含 /api/ 前缀以匹配worker路由
+    const url = `/api/file/word/download?name=${encodeURIComponent(fileName)}`
     const link = document.createElement('a')
-    link.href = `/file/download/${encodeURIComponent(fileName)}`
+    link.href = url
     link.download = fileName
     document.body.appendChild(link)
     link.click()
@@ -80,13 +82,14 @@ export const fileApi = {
  * @param token 可选的下载会话Token（仅浏览者模式需要）
  */
 export function downloadFile(fileName: string, token?: string) {
-  // 1. 构造下载URL
-  // API的基础路径已经在axios实例中设置，这里我们直接用相对路径
-  let url = '/api/file/download/'
+  // 1. 构造下载URL，必须包含 /api/ 前缀以匹配worker路由
+  let url: string
   if (token) {
-    url += `pass/${token}/${encodeURIComponent(fileName)}`
+    // 浏览者下载链接
+    url = `/api/file/view/download/${token}?name=${encodeURIComponent(fileName)}`
   } else {
-    url += encodeURIComponent(fileName)
+    // 分享者（自己）下载链接
+    url = `/api/file/word/download?name=${encodeURIComponent(fileName)}`
   }
 
   // 2. 创建一个隐藏的 a 标签

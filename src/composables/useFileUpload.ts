@@ -66,7 +66,7 @@ export function useFileUpload() {
       uploadedBytes: 0,
       uploadSpeed: 0,
       remainingTime: 0,
-      speedHistory: [{ timestamp: startTime, uploadedBytes: 0 }]
+      speedHistory: [{ timestamp: startTime, uploadedBytes: 0 }],
     }
     appStore.addUploadState(file.name, uploadState)
 
@@ -84,7 +84,7 @@ export function useFileUpload() {
           // 更新基本进度（每次都更新）
           appStore.updateUploadState(file.name, {
             progress,
-            uploadedBytes
+            uploadedBytes,
           })
 
           // 更新速度统计（节流更新）
@@ -108,7 +108,7 @@ export function useFileUpload() {
               appStore.updateUploadState(file.name, {
                 speedHistory: newSpeedHistory,
                 uploadSpeed: stats.uploadSpeed,
-                remainingTime: stats.remainingTime
+                remainingTime: stats.remainingTime,
               })
             }
           }
@@ -122,7 +122,7 @@ export function useFileUpload() {
         progress: 100,
         uploadedBytes: file.size,
         uploadSpeed: 0,
-        remainingTime: 0
+        remainingTime: 0,
       })
 
       ElMessage.success(Constant.MESSAGES.UPLOAD_SUCCESS)
@@ -154,7 +154,7 @@ export function useFileUpload() {
         status: 'error',
         error: errorMessage,
         uploadSpeed: 0,
-        remainingTime: 0
+        remainingTime: 0,
       })
       ElMessage.error(Constant.MESSAGES.UPLOAD_FAILED)
     }
@@ -192,18 +192,6 @@ export function useFileUpload() {
     }
   }
 
-  /**
-   * 下载文件
-   */
-  const downloadFile = (fileName: string) => {
-    try {
-      fileApi.download(fileName)
-    } catch (error) {
-      ElMessage.error(Constant.MESSAGES.DOWNLOAD_FAILED)
-      throw error
-    }
-  }
-
   return {
     // 业务方法
     fetchConfig,
@@ -211,6 +199,5 @@ export function useFileUpload() {
     uploadFile,
     deleteFile,
     deleteAllFiles,
-    downloadFile
   }
 }

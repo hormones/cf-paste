@@ -24,7 +24,7 @@ export const R2 = {
     const path = `${prefix}/${name}`
 
     const headers = new Headers()
-    headers.set('Content-Disposition', `attachment; filename="${encodeURIComponent(name)}"`)
+    headers.set('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(name)}`)
     headers.set('Accept-Ranges', 'bytes')
 
     const range = req.headers.get('range')
@@ -58,6 +58,7 @@ export const R2 = {
       return new Response(object.body, { status: 206, headers })
     }
 
+    console.log('download file: ', path)
     const object = await env.R2.get(path)
     if (object === null) {
       return error(404, 'File not found')

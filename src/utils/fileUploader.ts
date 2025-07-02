@@ -78,15 +78,19 @@ async function uploadChunked(
 
   try {
     // 1. 初始化分片上传
-    const init = await request.post('/file/multipart/init', {
-      filename: file.name,
-      fileSize: file.size,
-      chunkSize: config.chunkSize
-    }, { signal })
+    const init = await request.post(
+      '/file/multipart/init',
+      {
+        filename: file.name,
+        fileSize: file.size,
+        chunkSize: config.chunkSize,
+      },
+      { signal }
+    )
 
     const { uploadId: id, totalChunks, fileKey: key } = init
     uploadId = id
-    fileKey = key  // 使用服务端返回的完整fileKey路径
+    fileKey = key // 使用服务端返回的完整fileKey路径
     const parts: Array<{ partNumber: number; etag: string }> = []
 
     // 2. 顺序上传分片（利用 axios 进度监控）
@@ -101,43 +105,52 @@ async function uploadChunked(
       const chunk = file.slice(start, end)
 
       // 上传单个分片，利用专用的文件上传方法
-      const chunkResult = await request.uploadFile(`/file/multipart/chunk/${uploadId}/${i}`, chunk, {
-        headers: {
-          'X-File-Key': fileKey  // 使用完整的fileKey路径，而不是file.name
-        },
-        signal,
-        onProgress: onProgress ? (chunkProgress) => {
-          // 计算总体进度：已完成分片 + 当前分片进度
-          const completedProgress = (i / totalChunks) * 100
-          const currentChunkProgress = (chunkProgress / 100) * (100 / totalChunks)
-          const totalProgress = Math.round(completedProgress + currentChunkProgress)
-          onProgress(Math.min(totalProgress, 100))
-        } : undefined,
-      })
+      const chunkResult = await request.uploadFile(
+        `/file/multipart/chunk/${uploadId}/${i}`,
+        chunk,
+        {
+          headers: {
+            'X-File-Key': encodeURIComponent(fileKey),
+          },
+          signal,
+          onProgress: onProgress
+            ? (chunkProgress) => {
+                // 计算总体进度：已完成分片 + 当前分片进度
+                const completedProgress = (i / totalChunks) * 100
+                const currentChunkProgress = (chunkProgress / 100) * (100 / totalChunks)
+                const totalProgress = Math.round(completedProgress + currentChunkProgress)
+                onProgress(Math.min(totalProgress, 100))
+              }
+            : undefined,
+        }
+      )
 
       parts.push({
         partNumber: i + 1,
-        etag: chunkResult.etag
+        etag: chunkResult.etag,
       })
     }
 
     // 3. 完成分片上传
-    await request.post(`/file/multipart/complete/${uploadId}`, {
-      fileKey: fileKey,  // 使用完整的fileKey路径，而不是file.name
-      parts
-    }, { signal })
+    await request.post(
+      `/file/multipart/complete/${uploadId}`,
+      {
+        fileKey: fileKey, // 使用完整的fileKey路径，而不是file.name
+        parts,
+      },
+      { signal }
+    )
 
     // 确保进度达到100%
     if (onProgress) {
       onProgress(100)
     }
-
   } catch (error) {
     // 清理失败的上传
     if (uploadId && fileKey) {
       try {
         await request.delete(`/file/multipart/cancel/${uploadId}`, {
-          data: { fileKey: fileKey }  // 使用完整的fileKey路径，而不是file.name
+          data: { fileKey: fileKey }, // 使用完整的fileKey路径，而不是file.name
         })
       } catch (cleanupError) {
         // 清理失败也不影响错误抛出
@@ -147,5 +160,3 @@ async function uploadChunked(
     throw error // 直接抛出原始错误，让上层统一处理
   }
 }
-
-

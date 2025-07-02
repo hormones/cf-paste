@@ -1,5 +1,4 @@
 import { RequestHandler, ResponseHandler, error } from 'itty-router'
-import { D1 } from './bindings/d1'
 import { Auth } from './utils/auth'
 import { deleteKeyword, getKeyword } from './api/data'
 
@@ -20,6 +19,12 @@ export const authenticate: RequestHandler<IRequest> = async (
   env: Env,
   _ctx: ExecutionContext
 ) => {
+  // 如果请求地址带pass标识，则放行此接口
+  if (req.url.includes('/pass/')) {
+    console.log('pass request')
+    return
+  }
+
   // authorization规则：Basic crypt(word:timestamp)
   const now = Date.now()
   const c_word = Auth.getCookie(req, 'word')
@@ -51,11 +56,6 @@ export const authenticate: RequestHandler<IRequest> = async (
     keyword = null
     c_authorization = null
     return error(410, '访问出错了，数据已被删除')
-  }
-
-  // 如果请求地址带pass标识，则放行此接口
-  if (req.url.includes('/pass/')) {
-    return
   }
 
   // 不存在authorization时，如果word无密码，则需要生成authorization

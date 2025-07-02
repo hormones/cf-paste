@@ -13,7 +13,7 @@ const cookieOptions: CookieOptions = {
   path: '/',
   httpOnly: true,
   secure: true, // 仅在 HTTPS 下发送
-  sameSite: 'Strict',
+  sameSite: 'Lax', // 改为Lax，允许下载链接等GET请求携带cookie
   // maxAge: 7 * 24 * 60 * 60, // 7天过期
 }
 
@@ -42,7 +42,7 @@ export const Auth = {
     names.forEach((name) => {
       response.headers.append(
         'Set-Cookie',
-        `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Strict`,
+        `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax`
       )
     })
   },

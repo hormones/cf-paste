@@ -12,6 +12,9 @@ declare namespace Cloudflare {
 		MAX_CONCURRENT: "3";
 		R2: R2Bucket;
 		DB: D1Database;
+		ASSETS: {
+			fetch: typeof fetch;
+		};
 	}
 }
 interface Env extends Cloudflare.Env {}

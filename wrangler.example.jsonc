@@ -9,7 +9,10 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "server/index.ts",
   "assets": {
-    "not_found_handling": "single-page-application"
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
   },
   "observability": {
     "enabled": true
@@ -48,14 +51,14 @@
   "vars": {
     // 随机的字符串，用于加密cookie，可包含大小写字母、数字，长度建议在16位左右，请一定要修改！！！
     "AUTH_KEY": "xxxxxxxxxxxxxxx",
-    
+
     // 文件上传配置
-    "MAX_FILE_SIZE": "300",        // 单文件最大大小(MB) - 300MB
-    "MAX_TOTAL_SIZE": "300",       // 总文件大小限制(MB) - 300MB
-    "MAX_FILES": "10",             // 最大文件数量
-    "CHUNK_SIZE": "50",            // 分片大小(MB) - 50MB，远小于Worker请求体限制
-    "CHUNK_THRESHOLD": "100",      // 分片上传阈值(MB) - 100MB以上使用分片
-    "MAX_CONCURRENT": "3"          // 最大并发分片数 - 保持在Workers 6个连接限制内
+    "MAX_FILE_SIZE": "300", // 单文件最大大小(MB) - 300MB
+    "MAX_TOTAL_SIZE": "300", // 总文件大小限制(MB) - 300MB
+    "MAX_FILES": "10", // 最大文件数量
+    "CHUNK_SIZE": "50", // 分片大小(MB) - 50MB，远小于Worker请求体限制
+    "CHUNK_THRESHOLD": "100", // 分片上传阈值(MB) - 100MB以上使用分片
+    "MAX_CONCURRENT": "3" // 最大并发分片数 - 保持在Workers 6个连接限制内
   },
 
   /**
