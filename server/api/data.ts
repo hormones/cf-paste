@@ -4,6 +4,7 @@ import { R2 } from '../bindings/r2'
 import { newResponse } from '../utils/response'
 import { Auth } from '../utils/auth'
 import { Constant } from '../constant'
+import { Utils } from '../utils'
 
 const keyword = 'keyword'
 const key = 'word'
@@ -50,6 +51,12 @@ router.post('', async (req: IRequest, env: Env) => {
   const data: Keyword = (await req.json()) as Keyword
   const { content, ...keywordDB } = data
   keywordDB.word = req.word // 防止用户传入word
+
+  // 如果设置了密码，则进行哈希处理
+  if (keywordDB.password) {
+    keywordDB.password = await Auth.hashPassword(keywordDB.password, req.word!, env)
+  }
+
   // 将content上传到R2
   await uploadContent(env, req, content)
   // word信息插入数据库
@@ -94,6 +101,11 @@ router.delete('', async (req: IRequest, env: Env) => {
  * @returns {Promise<Response>} 更新结果，包含更新的记录数
  */
 router.patch('/settings', async (req: IRequest, env: Env) => {
+  const currentKeyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
+  if (!currentKeyword) {
+    return error(404, '关键词不存在')
+  }
+
   const settings = (await req.json()) as { expire_value: number; password?: string | null }
 
   // 1. 验证expire_value是否在允许范围内
@@ -102,25 +114,45 @@ router.patch('/settings', async (req: IRequest, env: Env) => {
   }
 
   // 2. 构建更新数据
-  const updateData: Record<string, string | number> = {
+  const updateData: Record<string, any> = {
     expire_value: settings.expire_value,
     expire_time: Date.now() + settings.expire_value * 1000,
   }
 
-  // 3. 处理密码设置
-  if (settings.password) {
-    // 如果是PASSWORD_DISPLAY，则不更新密码字段
-    if (settings.password !== Constant.PASSWORD_DISPLAY) {
-      updateData.password = settings.password
+  // 3. 处理密码设置和view_word更新
+  let passwordChanged = false
+  const newPassword = settings.password
+
+  if (!newPassword) {
+    // 意图：移除密码
+    if (currentKeyword.password) {
+      passwordChanged = true
+      updateData.password = ''
     }
-  } else {
-    updateData.password = ''
+  } else if (newPassword !== Constant.PASSWORD_DISPLAY) {
+    // 意图：设置或修改密码
+    const hashPassword = await Auth.hashPassword(newPassword, req.word!, env)
+    if (hashPassword !== currentKeyword.password) {
+      passwordChanged = true
+      updateData.password = hashPassword
+    }
+  }
+  // 如果 newPassword === '******', 则不处理密码字段
+
+  if (passwordChanged) {
+    updateData.view_word = Utils.getRandomWord(6)
   }
 
   // 4. 更新数据库
   try {
-    const result = await D1.update(env, keyword, updateData, [{ key, value: req.word }])
-    return newResponse({ data: result })
+    await D1.update(env, 'keyword', updateData, [{ key: 'word', value: req.word }])
+
+    const responseData: { message: string; view_word?: string } = { message: '设置已保存' }
+    if (passwordChanged && updateData.view_word) {
+      responseData.view_word = updateData.view_word
+    }
+
+    return newResponse({ data: responseData })
   } catch (err) {
     console.error('Settings update failed:', err)
     return error(500, '保存设置失败')
@@ -177,9 +209,7 @@ export const getKeyword = async (
   if (c_word) {
     keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: c_word }])
   } else if (c_view_word) {
-    keyword = await D1.first<Keyword>(env, 'keyword', [
-      { key: 'view_word', value: c_view_word },
-    ])
+    keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'view_word', value: c_view_word }])
   }
   return keyword
 }

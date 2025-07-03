@@ -25,12 +25,15 @@ router.post('/pass/verify', async (req: IRequest, env: Env) => {
   }
 
   // 密码存在，且密码验证失败，返回403
-  if (keyword?.password && keyword?.password !== password) {
-    return error(403, '密码错误')
+  if (keyword?.password) {
+    const isValid = await Auth.verifyPassword(password, keyword.password, keyword.word!, env)
+    if (!isValid) {
+      return error(403, '密码错误')
+    }
   }
 
   // 密码不存在或验证成功，设置cookie，返回200
-  req.authorization = await Auth.encrypt(env, `${keyword!.word!}:${Date.now}`)
+  req.authorization = await Auth.encrypt(env, `${keyword!.word!}:${Date.now()}`)
   return newResponse({})
 })
 

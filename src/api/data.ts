@@ -70,7 +70,7 @@ export const dataApi = {
    * 保存设置（过期时间和密码）
    */
   saveSettings(settings: { expire_value: number; password?: string }) {
-    return request.patch<number>('/data/settings', {
+    return request.patch<{ message: string; view_word?: string }>('/data/settings', {
       expire_value: settings.expire_value,
       password: settings.password || null,
     })

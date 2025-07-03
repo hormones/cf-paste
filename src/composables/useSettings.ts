@@ -7,6 +7,7 @@ import { ElMessage } from 'element-plus'
 import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
 import { Constant } from '@/constant'
+import type { Keyword } from '@/types'
 
 export function useSettings() {
   const appStore = useAppStore()
@@ -42,17 +43,23 @@ export function useSettings() {
     try {
       const settings = {
         expire_value: appStore.expiry,
-        password: appStore.password || undefined
+        password: appStore.password || undefined,
       }
 
-      await dataApi.saveSettings(settings)
+      const response = await dataApi.saveSettings(settings)
 
       // 更新本地状态
-      appStore.updateKeywordFields({
+      const updatedFields: Partial<Keyword> = {
         expire_value: appStore.expiry,
         password: appStore.password || undefined,
-        expire_time: Date.now() + appStore.expiry * 1000
-      })
+        expire_time: Date.now() + appStore.expiry * 1000,
+      }
+
+      if (response.view_word) {
+        updatedFields.view_word = response.view_word
+      }
+
+      appStore.updateKeywordFields(updatedFields)
 
       appStore.setShowSettings(false)
       ElMessage.success(Constant.MESSAGES.SETTINGS_SAVED)
