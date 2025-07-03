@@ -1,7 +1,12 @@
 <template>
   <el-card v-if="appStore.keyword.id" class="qrcode-card" shadow="never">
     <template #header>
-      <el-text tag="b" class="card-title">只读链接</el-text>
+      <div class="card-header">
+        <el-text tag="b" class="card-title">只读链接</el-text>
+        <el-icon class="refresh-btn" @click="resetViewWord">
+          <Refresh />
+        </el-icon>
+      </div>
     </template>
 
     <div class="qrcode-container">
@@ -27,8 +32,9 @@
 import QRCode from './QRCode.vue'
 import { useMain } from '@/composables/useMain'
 import { useAppStore } from '@/stores'
+import { Refresh } from '@element-plus/icons-vue'
 
-const { copyReadOnlyLink } = useMain()
+const { copyReadOnlyLink, resetViewWord } = useMain()
 const appStore = useAppStore()
 </script>
 
@@ -36,6 +42,23 @@ const appStore = useAppStore()
 .qrcode-card {
   border: 1px solid var(--el-border-color-light);
   border-radius: 8px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.refresh-btn {
+  font-size: 18px;
+  color: var(--el-color-primary);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.refresh-btn:hover {
+  color: var(--el-color-primary-light-3);
 }
 
 .card-title {

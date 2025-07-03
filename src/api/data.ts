@@ -75,4 +75,11 @@ export const dataApi = {
       password: settings.password || null,
     })
   },
+
+  /**
+   * 重置只读链接
+   */
+  resetViewWord() {
+    return request.patch<{ view_word: string }>('/data/view-word')
+  },
 }

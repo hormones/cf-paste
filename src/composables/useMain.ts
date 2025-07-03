@@ -130,10 +130,30 @@ export function useMain() {
     }
   }
 
+  /**
+   * 重置只读链接
+   */
+  const resetViewWord = async () => {
+    appStore.setLoading(true)
+    try {
+      const response = await dataApi.resetViewWord()
+      if (response.view_word) {
+        appStore.updateKeywordFields({ view_word: response.view_word })
+        ElMessage.success('只读链接已更新')
+      }
+    } catch (error) {
+      ElMessage.error('重置失败，请稍后重试')
+      throw error
+    } finally {
+      appStore.setLoading(false)
+    }
+  }
+
   return {
     fetchKeyword,
     saveKeyword,
     deleteKeyword,
     copyReadOnlyLink,
+    resetViewWord,
   }
 }

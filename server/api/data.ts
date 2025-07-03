@@ -160,6 +160,28 @@ router.patch('/settings', async (req: IRequest, env: Env) => {
 })
 
 /**
+ * 重置只读链接的 view_word
+ * @route PATCH /api/data/view-word
+ * @returns {Promise<Response>} 更新结果，包含新的 view_word
+ */
+router.patch('/view-word', async (req: IRequest, env: Env) => {
+  const currentKeyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
+  if (!currentKeyword) {
+    return error(404, '关键词不存在')
+  }
+
+  const newViewWord = Utils.getRandomWord(6)
+
+  try {
+    await D1.update(env, 'keyword', { view_word: newViewWord }, [{ key: 'word', value: req.word }])
+    return newResponse({ data: { view_word: newViewWord } })
+  } catch (err) {
+    console.error('View word reset failed:', err)
+    return error(500, '重置只读链接失败')
+  }
+})
+
+/**
  * 上传剪贴板内容到R2
  * @param env 环境变量
  * @param word 关键词

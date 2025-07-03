@@ -149,7 +149,8 @@ async function uploadChunked(
     // 清理失败的上传
     if (uploadId && fileKey) {
       try {
-        await request.delete(`/file/multipart/cancel/${uploadId}`, {
+        // 不再等待清理请求，直接"发后不理"，让它在后台执行
+        request.delete(`/file/multipart/cancel/${uploadId}`, {
           data: { fileKey: fileKey }, // 使用完整的fileKey路径，而不是file.name
         })
       } catch (cleanupError) {
