@@ -10,25 +10,28 @@ import { error } from 'itty-router'
  * 文件相关API
  * 存储在R2中，每个word下都有一个files文件夹
  */
-const router = AutoRouter({ base: '/api/file' })
+const word_router = AutoRouter({ base: '/:word/api/file' })
+const view_router = AutoRouter({ base: '/v/:view_word/api/file' })
 
 /**
  * 列出指定前缀下的所有文件
  * @route GET /api/file/list
  * @returns {Promise<Response>} 文件列表
  */
-router.get('/list', async (req: IRequest, env) => {
+word_router.get('/list', async (req: IRequest, env) => request4List(env, req))
+view_router.get('/list', async (req: IRequest, env) => request4List(env, req))
+const request4List = async (env: Env, req: IRequest) => {
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
   return R2.list(env, { prefix })
-})
+}
 
 /**
  * (分享者)下载指定文件
- * @route GET /api/file/word/download?name=fileName
  * @query {string} name - 文件名
  * @returns {Promise<Response>} 文件内容
  */
-router.get('/word/download', async (req: IRequest, env: Env) => {
+word_router.get('/download', async (req: IRequest, env: Env) => request4Download(env, req))
+const request4Download = async (env: Env, req: IRequest) => {
   // 此端点应由上游中间件(authenticate)保护
   // 仅限分享者(owner)本人使用
   if (!req.edit) {
@@ -45,16 +48,15 @@ router.get('/word/download', async (req: IRequest, env: Env) => {
 
   // 调用支持断点续传的 R2.download
   return R2.download(env, req, { prefix, name: fileName })
-})
+}
 
 /**
  * (浏览者)下载指定文件
- * @route GET /api/file/view/download/:token?name=fileName
  * @param {string} token - 下载令牌
- * @query {string} name - 文件名
  * @returns {Promise<Response>} 文件内容
  */
-router.get('/view/download/:token', async (req: IRequest, env: Env) => {
+view_router.get('/download/:token', async (req: IRequest, env: Env) => request4ViewDownload(env, req))
+const request4ViewDownload = async (env: Env, req: IRequest) => {
   const { token } = req.params!
   const url = new URL(req.url)
   const fileName = url.searchParams.get('name')
@@ -93,7 +95,7 @@ router.get('/view/download/:token', async (req: IRequest, env: Env) => {
   // 5. 下载
   const prefix = `${tokenInfo.word}/${Constant.FILE_FOLDER}`
   return R2.download(env, req, { prefix, name: fileName })
-})
+}
 
 /**
  * 上传文件
@@ -103,7 +105,8 @@ router.get('/view/download/:token', async (req: IRequest, env: Env) => {
  * @param {ReadableStream} body - 文件内容
  * @returns {Promise<Response>} 上传结果
  */
-router.post('/:name', async (req: IRequest, env) => {
+word_router.post('/:name', async (req: IRequest, env) => request4Upload(env, req))
+const request4Upload = async (env: Env, req: IRequest) => {
   const { name } = req.params
   // 从URL路径参数获取的文件名是编码过的，需要手动解码
   const decodedName = decodeURIComponent(name)
@@ -116,14 +119,15 @@ router.post('/:name', async (req: IRequest, env) => {
     length: Number(length),
     stream: req.body as unknown as ReadableStream<Uint8Array>,
   })
-})
+}
 
 /**
  * 删除所有文件（一键删除）
  * @route DELETE /api/file/batch/all
  * @returns {Promise<Response>} 删除结果
  */
-router.delete('/all', async (req: IRequest, env) => {
+word_router.delete('/all', async (req: IRequest, env) => request4DeleteAll(env, req))
+const request4DeleteAll = async (env: Env, req: IRequest) => {
   try {
     const prefix = `${req.word}/${Constant.FILE_FOLDER}`
 
@@ -140,7 +144,7 @@ router.delete('/all', async (req: IRequest, env) => {
     console.error('批量删除文件失败', err)
     return error(500, '批量删除文件失败')
   }
-})
+}
 
 /**
  * 删除指定文件
@@ -148,14 +152,15 @@ router.delete('/all', async (req: IRequest, env) => {
  * @param {string} name - 文件名
  * @returns {Promise<Response>} 删除结果
  */
-router.delete('/:name', async (req: IRequest, env) => {
+word_router.delete('/:name', async (req: IRequest, env) => request4Delete(env, req))
+const request4Delete = async (env: Env, req: IRequest) => {
   const { name } = req.params
   // 从URL路径参数获取的文件名是编码过的，需要手动解码
   const decodedName = decodeURIComponent(name)
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
   console.log('delete file: ', decodedName, prefix)
   return R2.delete(env, { prefix, name: decodedName })
-})
+}
 
 // === 分片上传相关接口 ===
 
@@ -165,7 +170,8 @@ router.delete('/:name', async (req: IRequest, env) => {
  * @body {filename: string, fileSize: number, chunkSize: number}
  * @returns {Promise<Response>} 上传会话信息
  */
-router.post('/multipart/init', async (req: IRequest, env: Env) => {
+word_router.post('/multipart/init', async (req: IRequest, env: Env) => request4MultipartInit(env, req))
+const request4MultipartInit = async (env: Env, req: IRequest) => {
   try {
     const { filename, fileSize, chunkSize } = (await req.json()) as {
       filename: string
@@ -211,7 +217,7 @@ router.post('/multipart/init', async (req: IRequest, env: Env) => {
     console.error('初始化分片上传失败', err)
     return error(500, '初始化分片上传失败')
   }
-})
+}
 
 /**
  * 取消分片上传
@@ -220,7 +226,8 @@ router.post('/multipart/init', async (req: IRequest, env: Env) => {
  * @body {{ fileKey: string }}
  * @returns {Promise<Response>}
  */
-router.delete('/multipart/cancel/:uploadId', async (req: IRequest, env: Env) => {
+word_router.delete('/multipart/cancel/:uploadId', async (req: IRequest, env: Env) => request4MultipartCancel(env, req))
+const request4MultipartCancel = async (env: Env, req: IRequest) => {
   try {
     const { uploadId } = req.params
     const { fileKey } = await req.json<{ fileKey: string }>()
@@ -239,7 +246,7 @@ router.delete('/multipart/cancel/:uploadId', async (req: IRequest, env: Env) => 
     console.error('取消分片上传失败', err)
     return error(500, '取消分片上传失败')
   }
-})
+}
 
 /**
  * 上传单个分片
@@ -250,7 +257,8 @@ router.delete('/multipart/cancel/:uploadId', async (req: IRequest, env: Env) => 
  * @body 分片数据
  * @returns {Promise<Response>} 分片上传结果
  */
-router.post('/multipart/chunk/:uploadId/:chunkIndex', async (req: IRequest, env: Env) => {
+word_router.post('/multipart/chunk/:uploadId/:chunkIndex', async (req: IRequest, env: Env) => request4MultipartChunk(env, req))
+const request4MultipartChunk = async (env: Env, req: IRequest) => {
   try {
     const { uploadId, chunkIndex } = req.params
     const partNumber = parseInt(chunkIndex) + 1 // R2 partNumber从1开始
@@ -291,7 +299,7 @@ router.post('/multipart/chunk/:uploadId/:chunkIndex', async (req: IRequest, env:
     console.error('上传分片失败', err)
     return error(500, '上传分片失败')
   }
-})
+}
 
 /**
  * 完成分片上传
@@ -301,7 +309,8 @@ router.post('/multipart/chunk/:uploadId/:chunkIndex', async (req: IRequest, env:
  * @body {parts: Array<{partNumber: number, etag: string}>}
  * @returns {Promise<Response>} 完成结果
  */
-router.post('/multipart/complete/:uploadId', async (req: IRequest, env: Env) => {
+word_router.post('/multipart/complete/:uploadId', async (req: IRequest, env: Env) => request4MultipartComplete(env, req))
+const request4MultipartComplete = async (env: Env, req: IRequest) => {
   try {
     const { uploadId } = req.params
     const { fileKey, parts } = (await req.json()) as {
@@ -353,6 +362,6 @@ router.post('/multipart/complete/:uploadId', async (req: IRequest, env: Env) => 
     console.error('完成分片上传失败', err)
     return error(500, '完成分片上传失败')
   }
-})
+}
 
-export default router
+export { word_router, view_router }

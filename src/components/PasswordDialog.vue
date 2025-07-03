@@ -39,7 +39,7 @@ const submitForm = async () => {
 <template>
   <GlassDialog
     v-model:visible="store.showPasswordDialog"
-    title="请输入只读密码"
+    title="请输入密码"
     size="small"
     :close-on-click-outside="false"
     :show-close="false"

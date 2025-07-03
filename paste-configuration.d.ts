@@ -75,6 +75,8 @@ declare global {
   type IContext = {
     /** 关键词 */
     word: string
+    /** 浏览关键词 */
+    view_word: string
     /** 发起时间 */
     startTime: number
   }

@@ -2,7 +2,6 @@
  * 认证授权相关API
  */
 import { request } from './request'
-import { Utils } from '@/utils'
 
 export const authApi = {
   /**
@@ -12,7 +11,6 @@ export const authApi = {
   async verifyPassword(password: string): Promise<any> {
     const response = await request.post('/auth/pass/verify', { password })
     // 成功后，后端会设置cookie，前端需要将cookie同步到localstorage
-    Utils.cookies2Localstorage()
     return response
   },
 

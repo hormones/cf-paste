@@ -13,9 +13,9 @@ interface CookieOptions {
 const cookieOptions: CookieOptions = {
   path: '/',
   httpOnly: true,
-  secure: true, // 仅在 HTTPS 下发送
+  secure: false,
   sameSite: 'Lax', // 改为Lax，允许下载链接等GET请求携带cookie
-  // maxAge: 7 * 24 * 60 * 60, // 7天过期
+  'max-age': 7 * 24 * 60 * 60, // 7天过期
 }
 
 export const Auth = {
@@ -26,15 +26,13 @@ export const Auth = {
     const cookie = cookies.split(';').find((c) => c.trim().startsWith(`${name}=`))
     return cookie ? cookie.split('=')[1] : null
   },
-  setCookie(response: Response, name: string, value: string, maxAge?: number) {
+  setCookie(response: Response, name: string, value: string, options?: Partial<CookieOptions>) {
     let cookie = `${name}=${value}`
-    const finalOptions: CookieOptions = { ...cookieOptions }
-    if (maxAge) {
-      finalOptions['max-age'] = maxAge
-    }
-
-    for (const [key, val] of Object.entries(finalOptions)) {
-      cookie += `; ${key}=${val}`
+    const finalOptions = { ...cookieOptions, ...options }
+    if (finalOptions) {
+      for (const [key, val] of Object.entries(finalOptions)) {
+        cookie += `; ${key}=${val}`
+      }
     }
 
     response.headers.append('Set-Cookie', cookie)
@@ -85,7 +83,12 @@ export const Auth = {
    * @param env 环境变量
    * @returns 验证结果
    */
-  verifyPassword: async (password: string, hashedPassword: string, word: string, env: Env): Promise<boolean> => {
+  verifyPassword: async (
+    password: string,
+    hashedPassword: string,
+    word: string,
+    env: Env
+  ): Promise<boolean> => {
     try {
       // 重新计算哈希
       const computedHash = await Auth.hashPassword(password, word, env)

@@ -7,7 +7,7 @@ export const Utils = {
   getRandomWord: (length = 6): string => {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
     return Array.from({ length }, () =>
-      chars.charAt(Math.floor(Math.random() * chars.length)),
+      chars.charAt(Math.floor(Math.random() * chars.length))
     ).join('')
   },
   // 验证word格式
@@ -25,46 +25,22 @@ export const Utils = {
     return `${size.toFixed(2)} ${units[unitIndex]}`
   },
   /**
-   * 将 Cookie 中的数据同步到 LocalStorage
+   * 清理Cookie
    */
-  cookies2Localstorage() {
-    const store = useAppStore()
-    const authorization = Cookies.get('authorization')
-    const key = store.keyword.word || store.keyword.view_word
-    if (key) {
-      LocalStorage.set(key, { timestamp: Date.now(), authorization })
-    }
+  clearCookies() {
+    document.cookie.split(';').forEach((c) => {
+      document.cookie = c.replace(/^ +/, '').replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`)
+    })
   },
   /**
-   * 将 LocalStorage 中的数据同步到 Cookie
+   * 从路径中获取 word
+   * @returns {string | null}
    */
-  localstorage2Cookies() {
-    const store = useAppStore()
-    // 同步word和view_word
-    void (store.keyword.word ? Cookies.set('word', store.keyword.word) : Cookies.remove('word'))
-    void (store.keyword.view_word ? Cookies.set('view_word', store.keyword.view_word) : Cookies.remove('view_word'))
-
-    // 同步authorization
-    const key = store.keyword.word || store.keyword.view_word
-    if (key) {
-      const data: any = LocalStorage.get(key) || {}
-      void (data.authorization
-        ? Cookies.set('authorization', data.authorization)
-        : Cookies.remove('authorization'))
-    }
-  },
-  /**
-   * 清理本地存储和 Cookie
-   */
-  clearLocalStorageAndCookies() {
-    const store = useAppStore()
-    const key = store.keyword.word || store.keyword.view_word
-    if (key) {
-      LocalStorage.remove(key)
-    }
-    Cookies.remove('word')
-    Cookies.remove('view_word')
-    Cookies.remove('authorization')
+  getWordFromPath() {
+    const path = window.location.pathname
+    // 匹配 /:word/ 或 /v/:view_word/
+    const match = path.match(/^\/([a-zA-Z0-9_]+)/) || path.match(/^\/(v\/[a-zA-Z0-9_]+)/)
+    return match ? match[1] : null
   },
 }
 
@@ -87,7 +63,7 @@ export function calculateUploadStats(
   if (speedHistory.length < 2) {
     return {
       uploadSpeed: 0,
-      remainingTime: 0
+      remainingTime: 0,
     }
   }
 
@@ -106,9 +82,8 @@ export function calculateUploadStats(
   }
 
   // 计算平均速率
-  const avgSpeed = speeds.length > 0
-    ? speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length
-    : 0
+  const avgSpeed =
+    speeds.length > 0 ? speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length : 0
 
   // 计算剩余时间
   const remainingBytes = fileSize - uploadedBytes
@@ -116,7 +91,7 @@ export function calculateUploadStats(
 
   return {
     uploadSpeed: Math.max(0, avgSpeed),
-    remainingTime: Math.max(0, remainingTime)
+    remainingTime: Math.max(0, remainingTime),
   }
 }
 

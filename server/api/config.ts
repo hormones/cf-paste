@@ -1,13 +1,16 @@
 import { AutoRouter } from 'itty-router'
 import { newResponse } from '../utils/response'
 
-const router = AutoRouter({ base: '/api/config' })
+const word_router = AutoRouter({ base: '/:word/api/config' })
+const view_router = AutoRouter({ base: '/v/:view_word/api/config' })
 
 /**
- * 获取上传配置
- * @route GET /api/config/upload
+ * 获取PASTE配置
+ * @route GET /api/config/pass/paste
  */
-router.get('/upload', async (req: IRequest, env: Env) => {
+word_router.get('/pass/paste', async (req: IRequest, env: Env) => request4Paste(env, req))
+view_router.get('/pass/paste', async (req: IRequest, env: Env) => request4Paste(env, req))
+const request4Paste = async (env: Env, req: IRequest) => {
   const config = {
     maxFileSize: parseInt(env.MAX_FILE_SIZE || '300') * 1024 * 1024, // 300MB
     maxTotalSize: parseInt(env.MAX_TOTAL_SIZE || '300') * 1024 * 1024, // 300MB
@@ -17,6 +20,6 @@ router.get('/upload', async (req: IRequest, env: Env) => {
     maxConcurrent: parseInt(env.MAX_CONCURRENT || '3'), // 3个并发
   }
   return newResponse({ data: config })
-})
+}
 
-export default router
+export { word_router, view_router }

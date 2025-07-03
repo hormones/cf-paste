@@ -85,6 +85,33 @@ export const useAppStore = defineStore('app', {
       this.keyword = keyword
     },
 
+    /**
+     * 检查是否可以上传文件
+     * @param file 上传的文件，允许覆盖
+     * @returns 是否可以上传
+     */
+    uploadFileCheck(file: File | null): boolean {
+      if (!this.uploadConfig) {
+        return false
+      }
+      let fileList = this.fileList
+      let usedSpace = this.usedSpace
+      if (file) {
+        if (file.size > this.uploadConfig.maxFileSize) {
+          return false
+        }
+        fileList = this.fileList.filter((f) => f.name !== file.name)
+        usedSpace = fileList.reduce((total, file) => total + file.size, 0)
+      }
+      if (usedSpace + (file?.size || 0) >= this.uploadConfig.maxTotalSize) {
+        return false
+      }
+      if (fileList.length >= this.uploadConfig.maxFiles) {
+        return false
+      }
+      return true
+    },
+
     updateKeywordFields(updates: Partial<Keyword>) {
       Object.assign(this.keyword, updates)
     },
@@ -109,11 +136,10 @@ export const useAppStore = defineStore('app', {
       this.keyword.expire_value = Constant.EXPIRY_OPTIONS[2].value
       this.lastSavedContent = ''
       this.fileList = []
-      this.uploadStates.clear()
       this.token = ''
       this.tokenExpiresAt = 0
       this.password = ''
-      Utils.clearLocalStorageAndCookies()
+      Utils.clearCookies()
       this.uploadStates.clear()
     },
 

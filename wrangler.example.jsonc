@@ -2,7 +2,7 @@
  * For more details on how to configure Wrangler, refer to:
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */
-{
+ {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "cf-paste",
   "compatibility_date": "2025-06-12",
@@ -17,6 +17,13 @@
   "observability": {
     "enabled": true
   },
+  // 自定义域名，如果需要自定义域名，请放开注释，并修改域名
+  // "routes": [
+  //   {
+  //     "pattern": "paste.xxx.xyz",
+  //     "custom_domain": true
+  //   }
+  // ],
   /**
    * Smart Placement
    * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
@@ -33,7 +40,6 @@
     {
       "binding": "DB",
       "database_name": "cf-paste",
-      // 从npx wrangler d1 create cf-paste命令中获取到的数据库ID，填在这里
       "database_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     }
   ],
@@ -49,16 +55,14 @@
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
    */
   "vars": {
-    // 随机的字符串，用于加密cookie，可包含大小写字母、数字，长度建议在16位左右，请一定要修改！！！
-    "AUTH_KEY": "xxxxxxxxxxxxxxx",
-
-    // 文件上传配置
-    "MAX_FILE_SIZE": "300", // 单文件最大大小(MB) - 300MB
-    "MAX_TOTAL_SIZE": "300", // 总文件大小限制(MB) - 300MB
-    "MAX_FILES": "10", // 最大文件数量
-    "CHUNK_SIZE": "50", // 分片大小(MB) - 50MB，远小于Worker请求体限制
-    "CHUNK_THRESHOLD": "100", // 分片上传阈值(MB) - 100MB以上使用分片
-    "MAX_CONCURRENT": "3" // 最大并发分片数 - 保持在Workers 6个连接限制内
+    // 随机的字符串，可包含大小写字母、数字，长度建议在16位左右，请一定要修改！！！
+    "AUTH_KEY": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "MAX_FILE_SIZE": "300",        // 单文件最大大小(MB) - 300MB
+    "MAX_TOTAL_SIZE": "300",       // 总文件大小限制(MB) - 300MB
+    "MAX_FILES": "10",             // 最大文件数量
+    "CHUNK_SIZE": "50",            // 分片大小(MB) - 50MB，Worker请求体限制为100MB
+    "CHUNK_THRESHOLD": "100",      // 分片上传阈值(MB) - 100MB以上使用分片，Worker请求体限制为100MB
+    "MAX_CONCURRENT": "3"          // 最大并发分片数 - 保持在Workers 6个连接限制内
   },
 
   /**

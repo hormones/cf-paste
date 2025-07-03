@@ -11,9 +11,7 @@ export const dataApi = {
    */
   async getKeyword(): Promise<Keyword | null> {
     try {
-      Utils.localstorage2Cookies()
       const response = await request.get('/data')
-      Utils.cookies2Localstorage()
       return response
     } catch (error) {
       console.error('获取关键词失败:', error)
@@ -26,9 +24,7 @@ export const dataApi = {
    */
   async createKeyword(data: Keyword): Promise<number> {
     try {
-      Utils.localstorage2Cookies()
       const response = await request.post('/data', data)
-      Utils.cookies2Localstorage()
       return response
     } catch (error) {
       console.error('创建关键词失败:', error)
@@ -41,9 +37,7 @@ export const dataApi = {
    */
   async updateKeyword(data: Partial<Keyword>): Promise<void> {
     try {
-      Utils.localstorage2Cookies()
       const response = await request.put('/data', data)
-      Utils.cookies2Localstorage()
       return response
     } catch (error) {
       console.error('更新关键词失败:', error)
@@ -56,9 +50,7 @@ export const dataApi = {
    */
   async deleteKeyword(): Promise<void> {
     try {
-      Utils.localstorage2Cookies()
       const response = await request.delete('/data')
-      Utils.cookies2Localstorage()
       return response
     } catch (error) {
       console.error('删除关键词失败:', error)

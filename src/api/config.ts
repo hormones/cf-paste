@@ -25,6 +25,6 @@ export const configApi = {
    * @returns {Promise<UploadConfig>} 上传配置信息
    */
   getUploadConfig(): Promise<UploadConfig> {
-    return request.get<UploadConfig>('/config/upload')
+    return request.get<UploadConfig>('/config/pass/paste')
   },
 }

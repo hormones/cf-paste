@@ -1,120 +1,89 @@
-# cf-paste
+# CF-PASTE
 
-Cloudflare全家桶打造的在线匿名剪贴板，无需注册登录，即开即用
+**一个基于 Cloudflare 全家桶构建的在线匿名剪贴板，无需注册，即开即用。**
 
-项目架构概览：
+<p align="center">
+  <img src="https://img.shields.io/badge/Vue.js-3.x-green" alt="Vue.js 3.x">
+  <img src="https://img.shields.io/badge/Cloudflare-Workers-orange" alt="Cloudflare Workers">
+  <img src="https://img.shields.io/badge/storage-R2-blue" alt="Cloudflare R2">
+  <img src="https://img.shields.io/badge/database-D1-blue" alt="Cloudflare D1">
+  <img src="https://img.shields.io/github/license/hormones/cf-paste" alt="License">
+</p>
 
-前端: Vue 3 + TypeScript + Element Plus + Vite
+## ✨ 功能特性
+- [x] **大文件上传**：突破 Cloudflare Workers 的 100MB 上传限制。
+- [x] **多格式支持**：支持分享文本和文件。
+- [x] **批量上传**：支持最多10个文件，总大小不超过300MB（可通过修改配置调整）。
+- [x] **匿名分享**：无需注册登录，保护隐私。
+- [x] **密码保护**：为分享内容设置访问密码。
+- [x] **自定义有效期**：过期后自动删除，可选1小时到2年等多个时间段。
+- [ ] **Markdown 支持**：计划中。
+- [ ] **文件预览**：计划中。
 
-后端: Cloudflare Workers
+## 🚀 在线演示
 
-数据库: Cloudflare D1
+[https://cf-paste.a-e8c.workers.dev](https://cf-paste.a-e8c.workers.dev)
 
-存储: Cloudflare R2
+## 🛠️ 使用方式
 
-路由: itty-router
+1.  **随机模式**
+    访问网站主页 `https://www.example.com`，系统会自动跳转至一个随机生成的唯一地址，如 `https://www.example.com/xxxx`。
 
-## 功能
+2.  **自定义模式**
+    直接在浏览器地址栏输入 `https://www.example.com/your_word`，`your_word` 即为您的自定义关键字。
+    
+    > **自定义关键字规则**：长度为4-20个字符，且只能包含字母、数字和下划线。
 
-- 支持文本
-- 支持上传文件，支持任意格式，最多上传10个文件，总大小300MB内
-- 支持密码保护
-- 自定义有效时间，过期后自动删除，可选：1小时、1天、1周、1个月、3个月、半年、1年、2年
+## ⚙️ 部署指南
 
-## TODO
+    环境要求：Node.js >= 20.x
 
-- [ ] 支持Markdown
-- [ ] 支持文件预览
+1.  **克隆仓库**
 
-## DEMO
+    ```bash
+    git clone git@github.com:hormones/cf-paste.git
+    cd cf-paste && npm install
+    ```
 
-https://cf-paste.a-e8c.workers.dev
+2.  **登录 Cloudflare**
 
-## 使用方式
+    ```bash
+    npx wrangler login
+    ```
 
-1. 使用随机word
+3.  **初始化 Cloudflare D1 和 R2**
 
-   输入网址`https://www.example.com`，会自动调转到随机关键字：`https://www.example.com/xxxx`，这个xxxx是生成的唯一随机word。
+    ```bash
+    # 创建 D1 数据库 (记下 database_id)
+    npx wrangler d1 create cf-paste
 
-2. 使用自定义word
+    # 创建 R2 存储桶
+    npx wrangler r2 bucket create cf-paste
+    ```
 
-   输入网址`https://www.example.com/yyyy`，这个`yyyy`则是自定义的关键字，区分大小写，自定义关键字规则要求：大于等于4个字符，小于等于20个字符，只能包含字母、数字、下划线
+4.  **配置 `wrangler.jsonc`**
 
-## 生产部署
+    复制 `wrangler.example.jsonc` 并重命名为 `wrangler.jsonc`。根据文件内的注释提示，填写必要的配置项，特别是 `database_id` 和 `AUTH_KEY`。
 
-Node版本要求20+
+5.  **部署**
 
-1. 克隆仓库
+    - **生产环境**
+      ```bash
+      # 将 schema.sql 应用到远程数据库
+      npx wrangler d1 execute cf-paste --remote --file=./schema.sql
+      # 部署到 Cloudflare
+      npm run deploy
+      ```
 
-```bash
-git clone git@github.com:hormones/cf-paste.git
-cd cf-paste && npm install
-```
+    - **本地开发**
+      ```bash
+      # 将 schema.sql 应用到本地数据库
+      npx wrangler d1 execute cf-paste --local --file=./schema.sql
+      # 启动本地开发服务器
+      npm run preview
+      ```
 
-2. 登录 Cloudflare
-
-```bash
-npx wrangler login
-```
-
-3. 初始化D1和R2存储
-
-```bash
-# 初始化 D1 数据库，记下输出的数据库ID
-npx wrangler d1 create cf-paste
-npx wrangler d1 execute cf-paste --remote --file=./schema.sql
-# 初始化R2 储存
-npx wrangler r2 bucket create cf-paste
-```
-
-4. 新建`wrangler.jsonc`
-
-复制`wrangler.example.jsonc`文件为`wrangler.jsonc`，按提示填写配置，一般来说只需要修改database_id和AUTH_KEY，其它参数不要动
-
-5. 部署
-
-```bash
-npm run deploy
-```
-
-## 本地开发部署
-
-Node版本要求20+
-
-1. 克隆仓库
-
-```bash
-git clone git@github.com:hormones/cf-paste.git
-cd cf-paste && npm install
-```
-
-2. 登录 Cloudflare
-
-```bash
-npx wrangler login
-```
-
-3. 初始化D1和R2存储
-
-```bash
-# 初始化 D1 数据库，记下输出的数据库ID
-npx wrangler d1 create cf-paste
-npx wrangler d1 execute cf-paste --local --file=./schema.sql
-# 初始化R2 储存
-npx wrangler r2 bucket create cf-paste
-```
-
-4. 新建`wrangler.jsonc`
-
-复制`wrangler.example.jsonc`文件为`wrangler.jsonc`，按提示填写配置，一般来说只需要修改database_id和AUTH_KEY，其它参数不要动
-
-5. 部署
-
-```bash
-npm run preview
-```
-
-## 参考资料
+## 🙏 参考文档
 
 - [Cloudflare Workers 文档](https://developers.cloudflare.com/workers/)
 - [Vue 3 文档](https://vuejs.org/)

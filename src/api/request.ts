@@ -46,7 +46,11 @@ export interface InterceptorHooks {
 // 请求拦截器
 const transform: InterceptorHooks = {
   requestInterceptor(config) {
-    Utils.localstorage2Cookies()
+    // 动态拼接 URL
+    const word = Utils.getWordFromPath()
+    if (word && config.url) {
+      config.url = `/${word}/api${config.url}`
+    }
     return config
   },
   requestInterceptorCatch(err) {
@@ -54,7 +58,6 @@ const transform: InterceptorHooks = {
     return Promise.reject(err)
   },
   responseInterceptor(response: ExpandAxiosResponse) {
-    // 因为 axios 返回不支持扩展自定义配置，需要自己断言一下
     if (response.status !== 200) return Promise.reject(response)
     // 如果跳过响应转换，则直接返回响应
     if (response.config.added?.skipResponseTransform) {
@@ -105,7 +108,7 @@ class Request {
   private _instance: AxiosInstance
   // 默认配置
   private _defaultConfig: ExpandAxiosRequestConfig = {
-    baseURL: '/api',
+    baseURL: '',
     timeout: 5000,
     added: {
       logError: true,
@@ -125,18 +128,16 @@ class Request {
   private setupInterceptors() {
     this._instance.interceptors.request.use(
       this._interceptorHooks?.requestInterceptor,
-      this._interceptorHooks?.requestInterceptorCatch,
+      this._interceptorHooks?.requestInterceptorCatch
     )
     this._instance.interceptors.response.use(
       this._interceptorHooks?.responseInterceptor,
-      this._interceptorHooks?.responseInterceptorCatch,
+      this._interceptorHooks?.responseInterceptorCatch
     )
   }
 
   // 定义核心请求
   public request(config: ExpandAxiosRequestConfig): Promise<AxiosResponse> {
-    // ！！！⚠️ 注意：axios 已经将请求使用 promise 封装过了
-    // 这里直接返回，不需要我们再使用 promise 封装一层
     return this._instance.request(config)
   }
 
@@ -187,27 +188,27 @@ class Request {
     const config: ExpandAxiosRequestConfig = {
       headers: {
         'Content-Type': 'application/octet-stream',
-        ...options?.headers
+        ...options?.headers,
       },
       timeout: options?.timeout || 10 * 60 * 1000, // 默认10分钟超时
       signal: options?.signal,
-      onUploadProgress: options?.onProgress ? (progressEvent) => {
-        if (progressEvent.total) {
-          const percentage = Math.round((progressEvent.loaded / progressEvent.total) * 100)
-          options.onProgress!(percentage)
-        }
-      } : undefined,
+      onUploadProgress: options?.onProgress
+        ? (progressEvent) => {
+            if (progressEvent.total) {
+              const percentage = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+              options.onProgress!(percentage)
+            }
+          }
+        : undefined,
     }
 
     return this._instance.post(url, file, config)
   }
-
-
 }
 
 // 具体使用时先实例一个请求对象
 export const request = new Request({
-  baseURL: '/api',
+  baseURL: '',
   timeout: 5000,
   interceptorHooks: transform,
 })

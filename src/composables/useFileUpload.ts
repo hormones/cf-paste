@@ -45,7 +45,7 @@ export function useFileUpload() {
    */
   const uploadFile = async (file: File) => {
     // 检查上传条件
-    if (!appStore.canUpload) {
+    if (!appStore.uploadFileCheck(file)) {
       ElMessage.error('无法上传：已达到文件数量或大小限制')
       return
     }

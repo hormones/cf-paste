@@ -9,14 +9,16 @@ import { Utils } from '../utils'
 const keyword = 'keyword'
 const key = 'word'
 
-const router = AutoRouter({ base: '/api/data' })
+const word_router = AutoRouter({ base: '/:word/api/data' })
+const view_router = AutoRouter({ base: '/v/:view_word/api/data' })
 
 /**
  * 获取关键词元数据详情
- * @route GET /api/data
  * @returns {Promise<Response>} 关键词信息
  */
-router.get('', async (req: IRequest, env: Env) => {
+word_router.get('', async (req: IRequest, env: Env) => request4GetData(env, req))
+view_router.get('', async (req: IRequest, env: Env) => request4GetData(env, req))
+const request4GetData = async (env: Env, req: IRequest) => {
   console.log('data get', req.word)
   // 1. 先获取数据库中的关键词信息
   const data = await D1.first<Keyword>(env, keyword, [{ key, value: req.word }])
@@ -38,15 +40,16 @@ router.get('', async (req: IRequest, env: Env) => {
   }
 
   return newResponse({ data: data })
-})
+}
 
 /**
  * 创建新的关键词
- * @route POST /api/data
  * @body {Object} data - 关键词数据
  * @returns {Promise<Response>} 创建结果，包含新记录ID
  */
-router.post('', async (req: IRequest, env: Env) => {
+word_router.post('', async (req: IRequest, env: Env) => request4PostData(env, req))
+view_router.post('', async (req: IRequest, env: Env) => request4PostData(env, req))
+const request4PostData = async (env: Env, req: IRequest) => {
   console.log('data post', req.word)
   const data: Keyword = (await req.json()) as Keyword
   const { content, ...keywordDB } = data
@@ -61,15 +64,16 @@ router.post('', async (req: IRequest, env: Env) => {
   await uploadContent(env, req, content)
   // word信息插入数据库
   return D1.insert(env, keyword, keywordDB).then((data) => newResponse({ data }))
-})
+}
 
 /**
  * 更新关键词信息（仅内容相关字段）
- * @route PUT /api/data
  * @body {Object} data - 要更新的数据
  * @returns {Promise<Response>} 更新结果，包含更新的记录数
  */
-router.put('', async (req: IRequest, env: Env) => {
+word_router.put('', async (req: IRequest, env: Env) => request4PutData(env, req))
+view_router.put('', async (req: IRequest, env: Env) => request4PutData(env, req))
+const request4PutData = async (env: Env, req: IRequest) => {
   console.log('data put', req.word)
   const data: Keyword = (await req.json()) as Keyword
 
@@ -79,20 +83,22 @@ router.put('', async (req: IRequest, env: Env) => {
   return D1.update(env, keyword, { word: req.word }, [{ key, value: req.word }]).then((data) =>
     newResponse({ data })
   )
-})
+}
 
 /**
  * 删除关键词
  * @route DELETE /api/data
  * @returns {Promise<Response>} 删除结果，包含删除的记录数
  */
-router.delete('', async (req: IRequest, env: Env) => {
+word_router.delete('', async (req: IRequest, env: Env) => request4DeleteData(env, req))
+view_router.delete('', async (req: IRequest, env: Env) => request4DeleteData(env, req))
+const request4DeleteData = async (env: Env, req: IRequest) => {
   await deleteKeyword(env, req.word)
   // 清除cookie
   const response = newResponse({ data: null })
-  Auth.clearCookie(response, 'authorization')
+  req.clearAuthCookie = true
   return response
-})
+}
 
 /**
  * 保存设置（过期时间和密码）
@@ -100,7 +106,9 @@ router.delete('', async (req: IRequest, env: Env) => {
  * @body {Object} settings - 设置数据 {expire_value: number, password?: string}
  * @returns {Promise<Response>} 更新结果，包含更新的记录数
  */
-router.patch('/settings', async (req: IRequest, env: Env) => {
+word_router.patch('/settings', async (req: IRequest, env: Env) => request4PatchSettings(env, req))
+view_router.patch('/settings', async (req: IRequest, env: Env) => request4PatchSettings(env, req))
+const request4PatchSettings = async (env: Env, req: IRequest) => {
   const currentKeyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
   if (!currentKeyword) {
     return error(404, '关键词不存在')
@@ -157,14 +165,16 @@ router.patch('/settings', async (req: IRequest, env: Env) => {
     console.error('Settings update failed:', err)
     return error(500, '保存设置失败')
   }
-})
+}
 
 /**
  * 重置只读链接的 view_word
  * @route PATCH /api/data/view-word
  * @returns {Promise<Response>} 更新结果，包含新的 view_word
  */
-router.patch('/view-word', async (req: IRequest, env: Env) => {
+word_router.patch('/view-word', async (req: IRequest, env: Env) => request4PatchViewWord(env, req))
+view_router.patch('/view-word', async (req: IRequest, env: Env) => request4PatchViewWord(env, req))
+const request4PatchViewWord = async (env: Env, req: IRequest) => {
   const currentKeyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
   if (!currentKeyword) {
     return error(404, '关键词不存在')
@@ -179,7 +189,7 @@ router.patch('/view-word', async (req: IRequest, env: Env) => {
     console.error('View word reset failed:', err)
     return error(500, '重置只读链接失败')
   }
-})
+}
 
 /**
  * 上传剪贴板内容到R2
@@ -236,4 +246,4 @@ export const getKeyword = async (
   return keyword
 }
 
-export default { ...router }
+export { word_router, view_router }
