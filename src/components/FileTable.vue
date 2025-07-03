@@ -1,6 +1,6 @@
 <template>
   <div class="file-table-container">
-    <el-table :data="fileList" style="width: 100%" height="100%" empty-text="暂无文件">
+    <el-table :data="appStore.fileList" style="width: 100%" height="100%" empty-text="暂无文件">
       <el-table-column prop="name" label="文件名" min-width="180">
         <template #default="{ row }">
           <div class="file-name-cell">
@@ -29,7 +29,7 @@
           />
           <el-button
             class="action-btn"
-            v-if="!viewMode"
+            v-if="!appStore.viewMode"
             type="danger"
             :icon="Delete"
             @click="handleFileDelete(row)"
@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineEmits } from 'vue'
+import { defineEmits } from 'vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { Download, Delete } from '@element-plus/icons-vue'
 import { useFileUpload } from '@/composables/useFileUpload'
@@ -57,15 +57,9 @@ const emit = defineEmits(['delete-success'])
 const { deleteFile } = useFileUpload()
 const { getToken } = useSession()
 const appStore = useAppStore()
-const fileList = computed(() => appStore.fileList)
-const viewMode = computed(() => appStore.viewMode)
-
-const usedSpace = computed(() => {
-  return appStore.fileList.reduce((total, file) => total + file.size, 0)
-})
 
 const handleFileDownload = async (file: FileInfo) => {
-  if (!viewMode.value) {
+  if (!appStore.viewMode) {
     // 分享者模式，直接下载
     downloadFile(file.name)
     return

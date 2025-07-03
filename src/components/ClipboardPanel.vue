@@ -4,19 +4,17 @@
     type="textarea"
     :rows="12"
     placeholder="在此处粘贴任何内容"
-    :disabled="viewMode"
+    :disabled="appStore.viewMode"
     @blur="handleBlur"
   />
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useAppStore } from '@/stores'
 
 const modelValue = defineModel<string>()
 
 const appStore = useAppStore()
-const viewMode = computed(() => appStore.viewMode)
 
 const emit = defineEmits(['auto-save'])
 

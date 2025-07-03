@@ -7,27 +7,27 @@
     <div class="info-content">
       <div class="info-item">
         <span class="info-label">创建时间</span>
-        <span class="info-value">{{ formatDate(keyword.create_time) }}</span>
+        <span class="info-value">{{ formatDate(appStore.keyword.create_time) }}</span>
       </div>
 
       <div class="info-item">
         <span class="info-label">更新时间</span>
-        <span class="info-value">{{ formatDate(keyword.update_time) }}</span>
+        <span class="info-value">{{ formatDate(appStore.keyword.update_time) }}</span>
       </div>
 
       <div class="info-item">
         <span class="info-label">上次查看</span>
-        <span class="info-value">{{ formatDate(keyword.last_view_time) }}</span>
+        <span class="info-value">{{ formatDate(appStore.keyword.last_view_time) }}</span>
       </div>
 
       <div class="info-item">
         <span class="info-label">过期时间</span>
-        <span class="info-value">{{ formatDate(keyword.expire_time) }}</span>
+        <span class="info-value">{{ formatDate(appStore.keyword.expire_time) }}</span>
       </div>
 
       <div class="info-item">
         <span class="info-label">查看次数</span>
-        <span class="info-value">{{ !keyword.id ? '-' : (keyword.view_count || 0) + '次' }}</span>
+        <span class="info-value">{{ !appStore.keyword.id ? '-' : (appStore.keyword.view_count || 0) + '次' }}</span>
       </div>
     </div>
   </el-card>
@@ -36,10 +36,8 @@
 <script setup lang="ts">
 import type { Keyword } from '@/types'
 import { useAppStore } from '@/stores'
-import { computed } from 'vue'
 
 const appStore = useAppStore()
-const keyword = computed(() => appStore.keyword)
 
 /**
  * 格式化时间戳为可读的日期时间字符串

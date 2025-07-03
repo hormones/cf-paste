@@ -21,8 +21,8 @@
       <div v-show="activeTab === 'clipboard'" class="tab-pane">
         <ClipboardPanel v-model="appStore.keyword.content" @auto-save="saveKeyword" />
       </div>
-      <div v-if="activeTab === 'files'" class="layout-flex">
-        <FileUploadPanel />
+      <div v-show="activeTab === 'files'" class="layout-flex">
+        <FileUploadPanel v-if="!appStore.viewMode" />
         <FileTable />
       </div>
     </div>

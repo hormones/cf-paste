@@ -1,16 +1,16 @@
 <template>
-  <el-card v-if="keyword.id" class="qrcode-card" shadow="never">
+  <el-card v-if="appStore.keyword.id" class="qrcode-card" shadow="never">
     <template #header>
       <el-text tag="b" class="card-title">只读链接</el-text>
     </template>
 
     <div class="qrcode-container">
       <div class="qrcode-wrapper" @click="copyReadOnlyLink">
-        <QRCode :data="readOnlyLink" :size="150" />
+        <QRCode :data="appStore.readOnlyLink" :size="150" />
       </div>
 
       <el-input
-        :model-value="readOnlyLink"
+        :model-value="appStore.readOnlyLink"
         readonly
         class="link-input"
         @click="copyReadOnlyLink"
@@ -27,13 +27,9 @@
 import QRCode from './QRCode.vue'
 import { useMain } from '@/composables/useMain'
 import { useAppStore } from '@/stores'
-import { computed } from 'vue'
 
 const { copyReadOnlyLink } = useMain()
 const appStore = useAppStore()
-
-const readOnlyLink = computed(() => appStore.readOnlyLink)
-const keyword = computed(() => appStore.keyword)
 </script>
 
 <style scoped>

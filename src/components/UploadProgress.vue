@@ -3,7 +3,7 @@
   <el-card class="upload-progress-card" shadow="never">
     <div class="upload-progress-container">
       <div
-        v-for="[fileName, state] in uploadStates"
+        v-for="[fileName, state] in appStore.uploadStates"
         :key="fileName"
         class="upload-item"
       >
@@ -88,7 +88,6 @@ import { Document } from '@element-plus/icons-vue'
 import type { UploadState } from '@/types'
 import { Utils, formatUploadSpeed, formatRemainingTime } from '@/utils'
 import { useAppStore } from '@/stores'
-import { computed } from 'vue'
 
 interface Emits {
   (e: 'retry', fileName: string): void
@@ -97,7 +96,6 @@ interface Emits {
 }
 
 const appStore = useAppStore()
-const uploadStates = computed(() => appStore.uploadStates)
 
 defineEmits<Emits>()
 

@@ -5,7 +5,7 @@
     <el-card class="layout-item upload-card" shadow="never">
       <el-upload
         :http-request="handleUpload"
-        :disabled="!canUpload"
+        :disabled="!appStore.canUpload"
         :show-file-list="false"
         drag
         class="upload-dragger"
@@ -17,7 +17,7 @@
 
     <!-- 上传进度：当有上传任务时，通过绝对定位覆盖在上方 -->
     <UploadProgress
-      v-if="uploadStates.size > 0"
+      v-if="appStore.uploadStates.size > 0"
       class="upload-progress-overlay"
       @retry="handleRetry"
       @cancel="handleCancelUpload"
@@ -31,7 +31,6 @@ import { UploadFilled } from '@element-plus/icons-vue'
 import UploadProgress from './UploadProgress.vue'
 import { useFileUpload } from '@/composables/useFileUpload'
 import { useAppStore } from '@/stores'
-import { computed } from 'vue'
 
 const emit = defineEmits<{
   (e: 'upload-success'): void
@@ -39,9 +38,6 @@ const emit = defineEmits<{
 
 const appStore = useAppStore()
 const { uploadFile } = useFileUpload()
-
-const canUpload = computed(() => appStore.canUpload)
-const uploadStates = computed(() => appStore.uploadStates)
 
 // 内部处理上传逻辑
 const handleUpload = async (options: any) => {
@@ -54,7 +50,7 @@ const handleUpload = async (options: any) => {
 }
 
 const handleRetry = async (fileName: string) => {
-  const state = uploadStates.value.get(fileName)
+  const state = appStore.uploadStates.get(fileName)
   if (state?.currentFile) {
     await handleUpload({ file: state.currentFile })
   }
@@ -64,7 +60,7 @@ const handleRetry = async (fileName: string) => {
  * 取消上传
  */
 const handleCancelUpload = (fileName: string) => {
-  const state = uploadStates.value.get(fileName)
+  const state = appStore.uploadStates.get(fileName)
   if (state?.cancel) {
     state.cancel()
   } else {
