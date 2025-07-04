@@ -33,21 +33,39 @@ export default {
    */
   async fetch(req: IRequest, env: Env, ctx: ExecutionContext): Promise<Response> {
     console.log(`fetch [${req.method}]${req.url}`)
-    // 从url中获取word和view_word
     const url = new URL(req.url)
-    // 使用一个正则表达式同时匹配 /:word/api/ 和 /v/:view_word/api/
-    const match = url.pathname.match(/^(?:\/([a-zA-Z0-9_]+)|\/v\/([a-zA-Z0-9_]+))\/api\//)
-    if (!match) {
-      return env.ASSETS.fetch(req)
+    const path = url.pathname
+
+    const executeRouter = () =>
+      router.fetch(req, env, ctx).catch((err: any) => {
+        console.log('api execute error', err)
+        return newResponse({ code: 500, msg: 'api execute error' })
+      })
+
+    // 匹配 /:word/api/ 请求
+    const wordMatch = path.match(/^\/([a-zA-Z0-9_]+)\/api\//)
+    if (wordMatch) {
+      // /v/开头的路径应被后续的viewMatch捕获，如果在这里匹配到 /v/api/ 则说明路径非法
+      if (wordMatch[1] === 'v') {
+        return env.ASSETS.fetch(req)
+      }
+      req.word = wordMatch[1] || ''
+      req.view_word = ''
+      req.edit = 1
+      return executeRouter()
     }
-    // match[1] 是 word, match[2] 是 view_word
-    req.word = match[1] || ''
-    req.view_word = match[2] || ''
-    req.edit = req.word ? 1 : 0
-    return router.fetch(req, env, ctx).catch((err: any) => {
-      console.log('api execute error', err)
-      return newResponse({ code: 500, msg: 'api execute error' })
-    })
+
+    // 匹配 /v/:view_word/api/ 请求
+    const viewMatch = path.match(/^\/v\/([a-zA-Z0-9_]+)\/api\//)
+    if (viewMatch) {
+      req.word = ''
+      req.view_word = viewMatch[1] || ''
+      req.edit = 0
+      return executeRouter()
+    }
+
+    // 如果没有API路径匹配，则提供静态资源
+    return env.ASSETS.fetch(req)
   },
 
   /**

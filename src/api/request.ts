@@ -48,7 +48,7 @@ export interface InterceptorHooks {
 const transform: InterceptorHooks = {
   requestInterceptor(config) {
     // 动态拼接 URL
-    config.url = `/${api.urlPrefix}${config.url}`
+    config.url = `${api.urlPrefix}${config.url}`
     return config
   },
   requestInterceptorCatch(err) {

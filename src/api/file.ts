@@ -66,8 +66,7 @@ export const fileApi = {
    * 下载文件
    */
   download(fileName: string): void {
-    // 修正 URL，必须包含 /api/ 前缀以匹配worker路由
-    const url = `/api/file/word/download?name=${encodeURIComponent(fileName)}`
+    const url = `${api.urlPrefix}/file/download?name=${encodeURIComponent(fileName)}`
     const link = document.createElement('a')
     link.href = url
     link.download = fileName
@@ -75,25 +74,4 @@ export const fileApi = {
     link.click()
     document.body.removeChild(link)
   },
-}
-
-/**
- * 下载文件 - 浏览器原生下载
- * @param fileName 文件名
- */
-export function downloadFile(fileName: string) {
-  // 构造下载URL
-  const url = `/${api.urlPrefix}/file/download?name=${encodeURIComponent(fileName)}`
-
-  // 创建一个隐藏的 a 标签
-  const link = document.createElement('a')
-  link.href = url
-
-  // 4. 设置 download 属性，这会告诉浏览器下载文件而不是导航
-  link.download = fileName
-
-  // 5. 将 a 标签添加到文档中，模拟点击，然后移除
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
 }

@@ -47,7 +47,7 @@ import { ElMessageBox } from 'element-plus'
 import { Download, Delete } from '@element-plus/icons-vue'
 import { useFileUpload } from '@/composables/useFileUpload'
 import type { FileInfo } from '@/types'
-import { downloadFile } from '@/api/file'
+import { fileApi } from '@/api/file'
 import { useAppStore } from '@/stores'
 import { Utils } from '@/utils'
 
@@ -57,7 +57,7 @@ const { deleteFile } = useFileUpload()
 const appStore = useAppStore()
 
 const handleFileDownload = async (file: FileInfo) => {
-  downloadFile(file.name)
+  fileApi.download(file.name)
 }
 
 const handleFileDelete = async (file: FileInfo) => {
