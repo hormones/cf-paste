@@ -59,6 +59,7 @@ export const Auth = {
    * @returns Base64编码的哈希值
    */
   hashPassword: async (password: string, word: string, env: Env): Promise<string> => {
+    const startTime = Date.now()
     // 构建salt：AUTH_KEY + word，确保唯一性和安全性
     const saltInput = `${env.AUTH_KEY}:${word}`
     const salt = new TextEncoder().encode(saltInput)
@@ -66,14 +67,16 @@ export const Auth = {
     // 使用Argon2id进行哈希
     const passwordBytes = new TextEncoder().encode(password)
     const hashBytes = argon2id(passwordBytes, salt, {
-      t: 3,
-      m: 65536,
-      p: 4,
+      t: 1,
+      m: 6144,
+      p: 1,
       dkLen: 32,
     })
 
     // 将Uint8Array转换为Base64字符串以便存储
-    return btoa(String.fromCharCode.apply(null, Array.from(hashBytes)))
+    const hashBase64 = btoa(String.fromCharCode.apply(null, Array.from(hashBytes)))
+    console.log(`hash password for word [${word}]: ${Date.now() - startTime}ms`)
+    return hashBase64
   },
   /**
    * 验证密码
