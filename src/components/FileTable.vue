@@ -10,7 +10,7 @@
       </el-table-column>
       <el-table-column prop="size" label="大小" width="120">
         <template #default="{ row }">
-          {{ humanReadableSize(row.size) }}
+          {{ Utils.humanReadableSize(row.size) }}
         </template>
       </el-table-column>
       <el-table-column prop="uploaded" label="创建时间" width="180">
@@ -43,35 +43,21 @@
 
 <script setup lang="ts">
 import { defineEmits } from 'vue'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { Download, Delete } from '@element-plus/icons-vue'
 import { useFileUpload } from '@/composables/useFileUpload'
 import type { FileInfo } from '@/types'
 import { downloadFile } from '@/api/file'
 import { useAppStore } from '@/stores'
 import { Utils } from '@/utils'
-import { useSession } from '@/composables/useSession'
 
 const emit = defineEmits(['delete-success'])
 
 const { deleteFile } = useFileUpload()
-const { getToken } = useSession()
 const appStore = useAppStore()
 
 const handleFileDownload = async (file: FileInfo) => {
-  if (!appStore.viewMode) {
-    // 分享者模式，直接下载
-    downloadFile(file.name)
-    return
-  }
-
-  // 浏览者模式，通过通用方法获取Token
-  try {
-    const token = await getToken()
-    downloadFile(file.name, token)
-  } catch (error) {
-    // getToken内部已经处理了错误提示，这里可以只在控制台记录
-  }
+  downloadFile(file.name)
 }
 
 const handleFileDelete = async (file: FileInfo) => {
@@ -86,8 +72,6 @@ const handleFileDelete = async (file: FileInfo) => {
     // ElMessageBox.confirm会处理取消操作的异常，这里无需额外处理
   }
 }
-
-const humanReadableSize = Utils.humanReadableSize
 </script>
 
 <style scoped>

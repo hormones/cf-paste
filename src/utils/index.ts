@@ -1,7 +1,3 @@
-import { useAppStore } from '@/stores'
-import Cookies from 'js-cookie'
-import { LocalStorage } from './storage'
-
 export const Utils = {
   // 生成随机word
   getRandomWord: (length = 6): string => {
@@ -31,16 +27,6 @@ export const Utils = {
     document.cookie.split(';').forEach((c) => {
       document.cookie = c.replace(/^ +/, '').replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`)
     })
-  },
-  /**
-   * 从路径中获取 word
-   * @returns {string | null}
-   */
-  getWordFromPath() {
-    const path = window.location.pathname
-    // 匹配 /:word/ 或 /v/:view_word/
-    const match = path.match(/^\/([a-zA-Z0-9_]+)/) || path.match(/^\/(v\/[a-zA-Z0-9_]+)/)
-    return match ? match[1] : null
   },
 }
 

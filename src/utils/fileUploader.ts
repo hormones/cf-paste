@@ -5,7 +5,7 @@
 import { request } from '@/api/request'
 import { useAppStore } from '@/stores'
 import { handleError } from './errorHandler'
-import type { UploadConfig } from '@/types'
+import type { PasteConfig } from '@/types'
 
 /**
  * 主上传函数 - 自动选择上传策略
@@ -20,7 +20,7 @@ export async function uploadFile(
 ): Promise<void> {
   try {
     const appStore = useAppStore()
-    const config = appStore.uploadConfig
+    const config = appStore.pasteConfig
 
     if (!config) {
       throw new Error('上传配置不可用。应用初始化可能失败。')
@@ -58,7 +58,7 @@ async function uploadDirect(
   onProgress?: (percentage: number) => void,
   signal?: AbortSignal
 ): Promise<void> {
-  await request.uploadFile(`/file/${file.name}`, file, {
+  await request.uploadFile(`/file?name=${encodeURIComponent(file.name)}`, file, {
     onProgress,
     signal,
   })
@@ -69,7 +69,7 @@ async function uploadDirect(
  */
 async function uploadChunked(
   file: File,
-  config: UploadConfig,
+  config: PasteConfig,
   onProgress?: (percentage: number) => void,
   signal?: AbortSignal
 ): Promise<void> {

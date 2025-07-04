@@ -2,12 +2,11 @@
 import { ref } from 'vue'
 import { useAppStore } from '@/stores'
 import GlassDialog from './GlassDialog.vue'
-import { authApi } from '@/api/auth'
+import { passApi } from '@/api/pass'
 import { useMain } from '@/composables/useMain'
 import { useFileUpload } from '@/composables/useFileUpload'
 
 const store = useAppStore()
-const dialogVisible = ref(false)
 
 const { fetchKeyword } = useMain()
 const { fetchFileList } = useFileUpload()
@@ -21,7 +20,7 @@ const submitForm = async () => {
   }
   loading.value = true
   try {
-    await authApi.verifyPassword(password.value)
+    await passApi.verifyPassword(password.value)
     store.showPasswordDialog = false
     // 验证成功后，直接加载数据
     const keywordData = await fetchKeyword()

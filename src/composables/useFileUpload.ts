@@ -2,10 +2,9 @@
  * 文件上传管理 Composable - 重构版
  * 使用统一的 Store 管理状态，Composable 只负责业务逻辑
  */
-import { computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { fileApi } from '@/api/file'
-import { configApi } from '@/api/config'
+import { passApi } from '@/api/pass'
 import { useAppStore } from '@/stores'
 import type { UploadState } from '@/types'
 import { handleError } from '@/utils/errorHandler'
@@ -20,8 +19,8 @@ export function useFileUpload() {
    */
   const fetchConfig = async () => {
     try {
-      const config = await configApi.getUploadConfig()
-      appStore.setUploadConfig(config)
+      const config = await passApi.getPasteConfig()
+      appStore.setPasteConfig(config)
     } catch (error) {
       console.error('获取配置失败:', error)
     }

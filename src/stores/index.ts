@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia'
-import type { Keyword, FileInfo, UploadState } from '@/types'
+import type { Keyword, FileInfo, UploadState, PasteConfig } from '@/types'
 import { Utils } from '@/utils'
 import { Constant } from '@/constant'
-import type { UploadConfig } from '@/api/config'
 
 // 主应用状态管理 - 只负责状态，不包含业务逻辑
 export const useAppStore = defineStore('app', {
@@ -24,7 +23,7 @@ export const useAppStore = defineStore('app', {
     uploadStates: new Map() as Map<string, UploadState>,
 
     // 上传配置状态 - 集中管理
-    uploadConfig: null as UploadConfig | null,
+    pasteConfig: null as PasteConfig | null,
 
     // 设置状态
     showSettings: false,
@@ -34,9 +33,6 @@ export const useAppStore = defineStore('app', {
     // UI状态
     isDark: false,
     viewMode: true,
-    // 下载会话Token（仅浏览者模式使用）
-    token: '',
-    tokenExpiresAt: 0,
   }),
 
   getters: {
@@ -64,12 +60,12 @@ export const useAppStore = defineStore('app', {
     },
 
     canUpload(): boolean {
-      if (!this.uploadConfig) {
+      if (!this.pasteConfig) {
         return false
       }
       return (
-        this.fileList.length < this.uploadConfig.maxFiles &&
-        this.usedSpace < this.uploadConfig.maxTotalSize
+        this.fileList.length < this.pasteConfig.maxFiles &&
+        this.usedSpace < this.pasteConfig.maxTotalSize
       )
     },
 
@@ -91,22 +87,22 @@ export const useAppStore = defineStore('app', {
      * @returns 是否可以上传
      */
     uploadFileCheck(file: File | null): boolean {
-      if (!this.uploadConfig) {
+      if (!this.pasteConfig) {
         return false
       }
       let fileList = this.fileList
       let usedSpace = this.usedSpace
       if (file) {
-        if (file.size > this.uploadConfig.maxFileSize) {
+        if (file.size > this.pasteConfig.maxFileSize) {
           return false
         }
         fileList = this.fileList.filter((f) => f.name !== file.name)
         usedSpace = fileList.reduce((total, file) => total + file.size, 0)
       }
-      if (usedSpace + (file?.size || 0) >= this.uploadConfig.maxTotalSize) {
+      if (usedSpace + (file?.size || 0) >= this.pasteConfig.maxTotalSize) {
         return false
       }
-      if (fileList.length >= this.uploadConfig.maxFiles) {
+      if (fileList.length >= this.pasteConfig.maxFiles) {
         return false
       }
       return true
@@ -136,8 +132,6 @@ export const useAppStore = defineStore('app', {
       this.keyword.expire_value = Constant.EXPIRY_OPTIONS[2].value
       this.lastSavedContent = ''
       this.fileList = []
-      this.token = ''
-      this.tokenExpiresAt = 0
       this.password = ''
       Utils.clearCookies()
       this.uploadStates.clear()
@@ -148,8 +142,8 @@ export const useAppStore = defineStore('app', {
       this.fileList = files
     },
 
-    setUploadConfig(config: UploadConfig) {
-      this.uploadConfig = config
+    setPasteConfig(config: PasteConfig) {
+      this.pasteConfig = config
     },
 
     addUploadState(fileName: string, state: UploadState) {

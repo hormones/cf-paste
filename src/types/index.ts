@@ -21,6 +21,20 @@ export interface Keyword {
   view_count?: number
 }
 
+/** 粘贴配置接口 */
+export interface PasteConfig {
+  /** 单文件最大大小(字节) */
+  maxFileSize: number
+  /** 总文件大小限制(字节) */
+  maxTotalSize: number
+  /** 最大文件数量 */
+  maxFiles: number
+  /** 分片大小(字节) */
+  chunkSize: number
+  /** 分片上传阈值(字节) - 超过此大小使用分片上传 */
+  chunkThreshold: number
+}
+
 /** 文件信息结构 */
 export interface FileInfo {
   name: string
@@ -28,9 +42,6 @@ export interface FileInfo {
   uploaded: string
   etag: string
 }
-
-/** 重新导出上传配置类型 */
-export type { UploadConfig } from '@/api/config'
 
 export interface UploadState {
   currentFile: File
@@ -40,14 +51,14 @@ export interface UploadState {
   cancel?: () => void
 
   // 速度和时间统计字段 - 支持平滑计算
-  startTime?: number        // 开始时间(毫秒)
-  uploadedBytes?: number    // 已上传字节数
-  uploadSpeed?: number      // 平均上传速度(字节/秒)
-  remainingTime?: number    // 预估剩余时间(秒)
+  startTime?: number // 开始时间(毫秒)
+  uploadedBytes?: number // 已上传字节数
+  uploadSpeed?: number // 平均上传速度(字节/秒)
+  remainingTime?: number // 预估剩余时间(秒)
 
   // 用于平滑计算的历史记录 (最近5次)
   speedHistory?: Array<{
-    timestamp: number       // 时间戳(毫秒)
-    uploadedBytes: number   // 累计上传字节数
+    timestamp: number // 时间戳(毫秒)
+    uploadedBytes: number // 累计上传字节数
   }>
 }

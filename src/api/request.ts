@@ -7,6 +7,7 @@ import type {
 } from 'axios'
 import type { ApiResponse } from '@/types'
 import { Utils } from '@/utils'
+import api from './index'
 
 // 与后端约定的请求成功码
 const SUCCESS_CODE = 0
@@ -47,10 +48,7 @@ export interface InterceptorHooks {
 const transform: InterceptorHooks = {
   requestInterceptor(config) {
     // 动态拼接 URL
-    const word = Utils.getWordFromPath()
-    if (word && config.url) {
-      config.url = `/${word}/api${config.url}`
-    }
+    config.url = `/${api.urlPrefix}${config.url}`
     return config
   },
   requestInterceptorCatch(err) {

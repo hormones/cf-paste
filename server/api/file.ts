@@ -1,9 +1,7 @@
 import { AutoRouter } from 'itty-router'
 import { R2 } from '../bindings/r2'
-import { D1 } from '../bindings/d1'
 import { Constant } from '../constant'
 import { newResponse } from '../utils/response'
-import { getKeyword } from './data'
 import { error } from 'itty-router'
 
 /**
@@ -26,18 +24,13 @@ const request4List = async (env: Env, req: IRequest) => {
 }
 
 /**
- * (分享者)下载指定文件
+ * 下载指定文件
  * @query {string} name - 文件名
  * @returns {Promise<Response>} 文件内容
  */
 word_router.get('/download', async (req: IRequest, env: Env) => request4Download(env, req))
+view_router.get('/download', async (req: IRequest, env: Env) => request4Download(env, req))
 const request4Download = async (env: Env, req: IRequest) => {
-  // 此端点应由上游中间件(authenticate)保护
-  // 仅限分享者(owner)本人使用
-  if (!req.edit) {
-    return error(403, 'Forbidden')
-  }
-
   const url = new URL(req.url)
   const fileName = url.searchParams.get('name')
   if (!fileName) {
@@ -51,53 +44,6 @@ const request4Download = async (env: Env, req: IRequest) => {
 }
 
 /**
- * (浏览者)下载指定文件
- * @param {string} token - 下载令牌
- * @returns {Promise<Response>} 文件内容
- */
-view_router.get('/download/:token', async (req: IRequest, env: Env) => request4ViewDownload(env, req))
-const request4ViewDownload = async (env: Env, req: IRequest) => {
-  const { token } = req.params!
-  const url = new URL(req.url)
-  const fileName = url.searchParams.get('name')
-
-  if (!fileName) {
-    return error(400, 'file name is required')
-  }
-
-  const now = Date.now()
-
-  // 1. 验证Token
-  const tokenInfo = await D1.first<Token>(env, 'tokens', [{ key: 'token', value: token }])
-
-  if (!tokenInfo || tokenInfo.expire_time <= now) {
-    return error(404, 'Token is invalid or has expired')
-  }
-
-  // 2. 验证IP
-  if (tokenInfo.ip_address !== 'unknown' && tokenInfo.ip_address !== req.ip) {
-    return error(403, 'IP address mismatch')
-  }
-
-  // 3. 实时校验view_word
-  const keyword = await getKeyword(env, req, null, tokenInfo.view_word)
-  if (!keyword || keyword.view_word !== tokenInfo.view_word) {
-    return error(403, 'The share link has been changed, please re-authenticate')
-  }
-
-  // 4. 条件滑动过期
-  const THIRTY_MINUTES = 30 * 60 * 1000
-  if (tokenInfo.expire_time - now < THIRTY_MINUTES) {
-    const newExpireTime = now + 60 * 60 * 1000 // 延长1小时
-    await D1.update(env, 'tokens', { expire_time: newExpireTime }, [{ key: 'token', value: token }])
-  }
-
-  // 5. 下载
-  const prefix = `${tokenInfo.word}/${Constant.FILE_FOLDER}`
-  return R2.download(env, req, { prefix, name: fileName })
-}
-
-/**
  * 上传文件
  * @route POST /api/file/:name
  * @param {string} name - 文件名
@@ -105,9 +51,13 @@ const request4ViewDownload = async (env: Env, req: IRequest) => {
  * @param {ReadableStream} body - 文件内容
  * @returns {Promise<Response>} 上传结果
  */
-word_router.post('/:name', async (req: IRequest, env) => request4Upload(env, req))
+word_router.post('', async (req: IRequest, env) => request4Upload(env, req))
 const request4Upload = async (env: Env, req: IRequest) => {
-  const { name } = req.params
+  const url = new URL(req.url)
+  const name = url.searchParams.get('name')
+  if (!name) {
+    return error(400, 'file name is required')
+  }
   // 从URL路径参数获取的文件名是编码过的，需要手动解码
   const decodedName = decodeURIComponent(name)
   const length = req.headers.get('content-length')
@@ -152,9 +102,13 @@ const request4DeleteAll = async (env: Env, req: IRequest) => {
  * @param {string} name - 文件名
  * @returns {Promise<Response>} 删除结果
  */
-word_router.delete('/:name', async (req: IRequest, env) => request4Delete(env, req))
+word_router.delete('', async (req: IRequest, env) => request4Delete(env, req))
 const request4Delete = async (env: Env, req: IRequest) => {
-  const { name } = req.params
+  const url = new URL(req.url)
+  const name = url.searchParams.get('name')
+  if (!name) {
+    return error(400, 'file name is required')
+  }
   // 从URL路径参数获取的文件名是编码过的，需要手动解码
   const decodedName = decodeURIComponent(name)
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
@@ -170,7 +124,9 @@ const request4Delete = async (env: Env, req: IRequest) => {
  * @body {filename: string, fileSize: number, chunkSize: number}
  * @returns {Promise<Response>} 上传会话信息
  */
-word_router.post('/multipart/init', async (req: IRequest, env: Env) => request4MultipartInit(env, req))
+word_router.post('/multipart/init', async (req: IRequest, env: Env) =>
+  request4MultipartInit(env, req)
+)
 const request4MultipartInit = async (env: Env, req: IRequest) => {
   try {
     const { filename, fileSize, chunkSize } = (await req.json()) as {
@@ -226,7 +182,9 @@ const request4MultipartInit = async (env: Env, req: IRequest) => {
  * @body {{ fileKey: string }}
  * @returns {Promise<Response>}
  */
-word_router.delete('/multipart/cancel/:uploadId', async (req: IRequest, env: Env) => request4MultipartCancel(env, req))
+word_router.delete('/multipart/cancel/:uploadId', async (req: IRequest, env: Env) =>
+  request4MultipartCancel(env, req)
+)
 const request4MultipartCancel = async (env: Env, req: IRequest) => {
   try {
     const { uploadId } = req.params
@@ -257,7 +215,9 @@ const request4MultipartCancel = async (env: Env, req: IRequest) => {
  * @body 分片数据
  * @returns {Promise<Response>} 分片上传结果
  */
-word_router.post('/multipart/chunk/:uploadId/:chunkIndex', async (req: IRequest, env: Env) => request4MultipartChunk(env, req))
+word_router.post('/multipart/chunk/:uploadId/:chunkIndex', async (req: IRequest, env: Env) =>
+  request4MultipartChunk(env, req)
+)
 const request4MultipartChunk = async (env: Env, req: IRequest) => {
   try {
     const { uploadId, chunkIndex } = req.params
@@ -309,7 +269,9 @@ const request4MultipartChunk = async (env: Env, req: IRequest) => {
  * @body {parts: Array<{partNumber: number, etag: string}>}
  * @returns {Promise<Response>} 完成结果
  */
-word_router.post('/multipart/complete/:uploadId', async (req: IRequest, env: Env) => request4MultipartComplete(env, req))
+word_router.post('/multipart/complete/:uploadId', async (req: IRequest, env: Env) =>
+  request4MultipartComplete(env, req)
+)
 const request4MultipartComplete = async (env: Env, req: IRequest) => {
   try {
     const { uploadId } = req.params

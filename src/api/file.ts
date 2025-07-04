@@ -6,6 +6,7 @@ import { request } from './request'
 import type { FileInfo } from '@/types'
 import { uploadFile } from '@/utils/fileUploader'
 import { handleError } from '@/utils/errorHandler'
+import api from './index'
 
 export const fileApi = {
   /**
@@ -51,7 +52,7 @@ export const fileApi = {
    * 删除文件
    */
   async delete(fileName: string): Promise<void> {
-    return request.delete(`/file/${fileName}`)
+    return request.delete('/file', { params: { name: fileName } })
   },
 
   /**
@@ -79,27 +80,19 @@ export const fileApi = {
 /**
  * 下载文件 - 浏览器原生下载
  * @param fileName 文件名
- * @param token 可选的下载会话Token（仅浏览者模式需要）
  */
-export function downloadFile(fileName: string, token?: string) {
-  // 1. 构造下载URL，必须包含 /api/ 前缀以匹配worker路由
-  let url: string
-  if (token) {
-    // 浏览者下载链接
-    url = `/api/file/view/download/${token}?name=${encodeURIComponent(fileName)}`
-  } else {
-    // 分享者（自己）下载链接
-    url = `/api/file/word/download?name=${encodeURIComponent(fileName)}`
-  }
+export function downloadFile(fileName: string) {
+  // 构造下载URL
+  const url = `/${api.urlPrefix}/file/download?name=${encodeURIComponent(fileName)}`
 
-  // 2. 创建一个隐藏的 a 标签
+  // 创建一个隐藏的 a 标签
   const link = document.createElement('a')
   link.href = url
 
-  // 3. 设置 download 属性，这会告诉浏览器下载文件而不是导航
+  // 4. 设置 download 属性，这会告诉浏览器下载文件而不是导航
   link.download = fileName
 
-  // 4. 将 a 标签添加到文档中，模拟点击，然后移除
+  // 5. 将 a 标签添加到文档中，模拟点击，然后移除
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)

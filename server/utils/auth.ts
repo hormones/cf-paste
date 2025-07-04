@@ -15,7 +15,7 @@ const cookieOptions: CookieOptions = {
   httpOnly: true,
   secure: false,
   sameSite: 'Lax', // 改为Lax，允许下载链接等GET请求携带cookie
-  'max-age': 7 * 24 * 60 * 60, // 7天过期
+  'max-age': 1 * 24 * 60 * 60, // 1天过期
 }
 
 export const Auth = {

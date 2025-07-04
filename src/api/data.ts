@@ -3,7 +3,6 @@
  */
 import { request } from './request'
 import type { Keyword } from '@/types'
-import { Utils } from '@/utils'
 
 export const dataApi = {
   /**

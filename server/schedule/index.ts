@@ -34,16 +34,7 @@ async function cleanupExpiredData(env: Env) {
 
   console.log(`🔍 Starting cleanup process, current timestamp: ${currentTimestamp}`)
 
-  // 1. 清理过期的tokens
-  const expiredTokens = await D1.delete(env, 'tokens', [
-    { key: 'expire_time', value: currentTimestamp, operator: '<=' },
-  ])
-  const deletedTokens = expiredTokens.meta.changes || 0
-  if (deletedTokens > 0) {
-    console.log(`🔑 Cleaned up ${deletedTokens} expired tokens`)
-  }
-
-  // 2. 清理过期的tokens
+  // 清理过期的keywords
   const expiredKeywords = await D1.page<KeywordDB>(
     env,
     'keyword',

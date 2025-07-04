@@ -62,7 +62,6 @@
     "MAX_FILES": "10",             // 最大文件数量
     "CHUNK_SIZE": "50",            // 分片大小(MB) - 50MB，Worker请求体限制为100MB
     "CHUNK_THRESHOLD": "100",      // 分片上传阈值(MB) - 100MB以上使用分片，Worker请求体限制为100MB
-    "MAX_CONCURRENT": "3"          // 最大并发分片数 - 保持在Workers 6个连接限制内
   },
 
   /**

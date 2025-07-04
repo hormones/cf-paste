@@ -34,7 +34,6 @@
 </template>
 
 <script setup lang="ts">
-import type { Keyword } from '@/types'
 import { useAppStore } from '@/stores'
 
 const appStore = useAppStore()

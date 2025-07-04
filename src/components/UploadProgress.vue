@@ -85,7 +85,6 @@
 
 <script setup lang="ts">
 import { Document } from '@element-plus/icons-vue'
-import type { UploadState } from '@/types'
 import { Utils, formatUploadSpeed, formatRemainingTime } from '@/utils'
 import { useAppStore } from '@/stores'
 
