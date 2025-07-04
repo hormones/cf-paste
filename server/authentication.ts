@@ -20,20 +20,20 @@ export const authenticate: RequestHandler<IRequest> = async (
   _ctx: ExecutionContext
 ) => {
   try {
-    // 如果浏览模式，不允许访问PUT/POST/DELETE请求
-    if (!req.edit) {
-      if (req.method === 'PUT' || req.method === 'POST' || req.method === 'DELETE') {
-        console.error('浏览模式非法调用')
-        return error(403, '拒绝访问')
-      }
-    }
-
     // 如果请求地址带pass标识，则放行此接口
     const url = new URL(req.url)
     const urlPrefix = req.edit ? req.word : 'v/' + req.view_word
     if (url.pathname.startsWith(`/${urlPrefix}/api/pass/`)) {
       console.log('pass request', url.pathname)
       return
+    }
+
+    // 如果浏览模式，不允许访问PUT/POST/DELETE请求
+    if (!req.edit) {
+      if (req.method === 'PUT' || req.method === 'POST' || req.method === 'DELETE') {
+        console.error('浏览模式非法调用')
+        return error(403, '拒绝访问')
+      }
     }
 
     // authorization规则：Basic crypt(word:timestamp)

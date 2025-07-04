@@ -6,8 +6,8 @@ import type {
   InternalAxiosRequestConfig,
 } from 'axios'
 import type { ApiResponse } from '@/types'
-import { Utils } from '@/utils'
 import api from './index'
+import { ElMessage } from 'element-plus'
 
 // 与后端约定的请求成功码
 const SUCCESS_CODE = 0
@@ -91,11 +91,14 @@ const transform: InterceptorHooks = {
     // 网络错误或服务器未返回响应
     if (!err.response) {
       console.error('网络错误，请检查您的网络连接')
+      ElMessage.error('网络错误，请检查您的网络连接')
       return Promise.reject(err)
     }
-    const message = mapErrorStatus.get(err.response.status) || '请求出错，请稍后再试'
+    const message =
+      err.response.data?.error || mapErrorStatus.get(err.response.status) || '请求出错，请稍后再试'
     // 此处全局报错
-    console.error(message)
+    ElMessage.error(message)
+    console.error('请求异常', err)
     return Promise.reject(err)
   },
 }
