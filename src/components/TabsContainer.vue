@@ -8,7 +8,7 @@
       </el-tabs>
 
       <!-- 操作按钮区域 -->
-      <div class="tab-actions" v-if="!appStore.viewMode">
+      <!-- <div class="tab-actions" v-if="!appStore.viewMode">
         <el-button-group>
           <el-button type="danger" @click="handleDelete" :icon="Delete" text />
           <el-button type="primary" @click="openSettings" :icon="Setting" text />
@@ -21,7 +21,7 @@
             class="mobile-info-btn"
           />
         </el-button-group>
-      </div>
+      </div> -->
     </div>
 
     <!-- 内容区域 -->
@@ -38,36 +38,19 @@
 </template>
 
 <script setup lang="ts">
-import { Delete, Setting, InfoFilled } from '@element-plus/icons-vue'
 import { ref } from 'vue'
 import { useAppStore } from '@/stores'
 import { useMain } from '@/composables/useMain'
-import { useSettings } from '@/composables/useSettings'
-import { ElMessageBox } from 'element-plus'
 
 const activeTab = ref('clipboard')
 const appStore = useAppStore()
-const { saveKeyword, deleteKeyword } = useMain()
-const { openSettings } = useSettings()
+const { saveKeyword } = useMain()
 
 const handleAutoSave = () => {
   if (!appStore.keyword.id && !appStore.keyword.content) {
     return
   }
   saveKeyword()
-}
-
-const handleDelete = async () => {
-  try {
-    await ElMessageBox.confirm('确定要删除所有内容吗？此操作将删除剪贴板内容和所有文件。', '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    })
-    await deleteKeyword()
-  } catch (error) {
-    // 用户取消操作时，ElMessageBox会抛出 'cancel'，这里无需处理
-  }
 }
 </script>
 

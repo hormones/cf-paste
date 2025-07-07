@@ -12,10 +12,10 @@
         <span class="info-value">{{ formatDate(appStore.keyword.update_time) }}</span>
       </div>
 
-      <div class="info-item">
+      <!-- <div class="info-item">
         <span class="info-label">上次查看</span>
         <span class="info-value">{{ formatDate(appStore.keyword.last_view_time) }}</span>
-      </div>
+      </div> -->
 
       <div class="info-item">
         <span class="info-label">过期时间</span>

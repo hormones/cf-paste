@@ -1,6 +1,12 @@
 <template>
   <div class="file-table-container">
-    <el-table :data="appStore.fileList" style="width: 100%" height="100%" empty-text="暂无文件">
+    <el-table
+      size="large"
+      :data="appStore.fileList"
+      style="width: 100%"
+      height="100%"
+      empty-text="暂无文件"
+    >
       <el-table-column prop="name" label="文件名" min-width="180">
         <template #default="{ row }">
           <div class="file-name-cell">

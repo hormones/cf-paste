@@ -3,10 +3,12 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '@/stores'
-import { ElButton, ElIcon } from 'element-plus'
-import { Setting, Moon, Sunny, Plus } from '@element-plus/icons-vue'
+import { ElButton, ElMessageBox } from 'element-plus'
+import { Setting, Moon, Sunny, InfoFilled, Delete } from '@element-plus/icons-vue'
+import { useMain } from '@/composables/useMain'
 
 const appStore = useAppStore()
+const { deleteKeyword } = useMain()
 const { theme: currentTheme } = storeToRefs(appStore)
 const { toggleTheme } = appStore // 直接解构新的 action
 
@@ -32,6 +34,19 @@ const themeIcon = computed(() => {
 const themeTitle = computed(() => {
   return currentTheme.value === 'light' ? '切换到深色模式' : '切换到亮色模式'
 })
+
+const handleDelete = async () => {
+  try {
+    await ElMessageBox.confirm('确定要删除所有内容吗？此操作将删除剪贴板内容和所有文件。', '警告', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    })
+    await deleteKeyword()
+  } catch (error) {
+    // 用户取消操作时，ElMessageBox会抛出 'cancel'，这里无需处理
+  }
+}
 </script>
 
 <template>
@@ -40,8 +55,17 @@ const themeTitle = computed(() => {
       <span>剪切板</span>
     </div>
     <div class="header-actions">
-      <el-button :icon="themeIcon" text circle :title="themeTitle" @click="toggleTheme" />
+      <el-button type="danger" @click="handleDelete" :icon="Delete" text />
+      <el-button
+        type="primary"
+        @click="appStore.setShowQRCodeDialog(true)"
+        :icon="InfoFilled"
+        text
+        v-show="!appStore.viewMode && appStore.keyword.id"
+        class="mobile-info-btn"
+      />
       <el-button :icon="Setting" text circle title="设置" @click="openSettings" />
+      <el-button :icon="themeIcon" text circle :title="themeTitle" @click="toggleTheme" />
     </div>
   </header>
 </template>
@@ -66,5 +90,15 @@ const themeTitle = computed(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem; /* 8px */
+}
+
+.mobile-info-btn {
+  display: none;
+}
+
+@media (max-width: 992px) {
+  .mobile-info-btn {
+    display: inline-flex;
+  }
 }
 </style>
