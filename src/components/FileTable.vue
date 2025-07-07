@@ -42,7 +42,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineEmits } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import { Download, Delete } from '@element-plus/icons-vue'
 import { useFileUpload } from '@/composables/useFileUpload'

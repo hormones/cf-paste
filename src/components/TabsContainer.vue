@@ -26,8 +26,8 @@
 
     <!-- 内容区域 -->
     <div class="tab-content">
-      <div v-show="activeTab === 'clipboard'" class="tab-pane">
-        <ClipboardPanel v-model="appStore.keyword.content" @auto-save="saveKeyword" />
+      <div v-show="activeTab === 'clipboard'" class="tab-pane clipboard-panel-wrapper">
+        <ClipboardPanel v-model="appStore.keyword.content" @auto-save="handleAutoSave" />
       </div>
       <div v-show="activeTab === 'files'" class="layout-flex">
         <FileUploadPanel v-if="!appStore.viewMode" />
@@ -50,13 +50,19 @@ const appStore = useAppStore()
 const { saveKeyword, deleteKeyword } = useMain()
 const { openSettings } = useSettings()
 
+const handleAutoSave = () => {
+  if (!appStore.keyword.id && !appStore.keyword.content) {
+    return
+  }
+  saveKeyword()
+}
 
 const handleDelete = async () => {
   try {
     await ElMessageBox.confirm('确定要删除所有内容吗？此操作将删除剪贴板内容和所有文件。', '警告', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
-      type: 'warning'
+      type: 'warning',
     })
     await deleteKeyword()
   } catch (error) {
@@ -75,6 +81,7 @@ const handleDelete = async () => {
   flex-direction: column;
   gap: 1rem;
   transition: border-color 0.5s, background-color 0.5s;
+  overflow: hidden; /* 防止子元素溢出圆角 */
 }
 
 .tabs-header {
@@ -82,6 +89,8 @@ const handleDelete = async () => {
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  flex-grow: 1;
+  min-height: 0; /*  新增：允许 flex 子元素收缩 */
 }
 
 .tabs-clean {
@@ -97,7 +106,6 @@ const handleDelete = async () => {
 }
 :deep(.el-tabs__item) {
   padding: 0 16px; /* 减小内边距 */
-  color: var(--color-text); /* 提高未激活状态的对比度 */
 }
 :deep(.el-tabs__item.is-active) {
   color: var(--el-color-primary); /* 保持激活状态的品牌色 */
@@ -109,17 +117,19 @@ const handleDelete = async () => {
   flex-shrink: 0; /* 防止按钮组被压缩 */
 }
 
-/* 新增：为操作按钮添加悬浮背景效果 */
-.tab-actions :deep(.el-button:hover) {
-  background-color: var(--color-surface-hover);
-}
-
 .tab-content {
   flex-grow: 1;
 }
 
 .tab-pane {
   height: 100%;
+}
+
+.clipboard-panel-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
 }
 
 /* 移动端样式 */
@@ -149,12 +159,5 @@ const handleDelete = async () => {
 
 .paste-tabs {
   --el-tabs-header-height: 48px;
-}
-
-.icon-button {
-  color: var(--el-text-color-secondary);
-}
-.icon-button:hover {
-  color: var(--el-text-color-primary);
 }
 </style>

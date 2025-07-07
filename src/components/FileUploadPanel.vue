@@ -119,7 +119,7 @@ const handleCancelUpload = (fileName: string) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: #ffffff; /* 使用浅色背景覆盖 */
+  background-color: var(--color-surface); /* 使用主题表面颜色覆盖 */
   z-index: 10;
   border-radius: 8px;
   overflow-y: auto; /* 如果内容过多则滚动 */

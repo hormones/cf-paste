@@ -7,12 +7,12 @@ import PasswordDialog from '@/components/PasswordDialog.vue'
 import TabsContainer from '@/components/TabsContainer.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
 import QRCodePanel from '@/components/QRCodePanel.vue'
+import SettingsDialog from '@/components/SettingsDialog.vue'
 
 // Store 和 Composable 导入
 import { useAppStore } from '@/stores'
 import { useMain } from '@/composables/useMain'
 import { useFileUpload } from '@/composables/useFileUpload'
-import { useSettings } from '@/composables/useSettings'
 
 // ===================
 // Store 和 Composables
@@ -23,8 +23,6 @@ const appStore = useAppStore()
 const { fetchKeyword } = useMain()
 
 const { fetchConfig, fetchFileList } = useFileUpload()
-
-const { closeSettings, saveSettings } = useSettings()
 
 // ===================
 // 事件处理函数
@@ -70,44 +68,7 @@ onMounted(async () => {
 
     <PasswordDialog v-model:visible="appStore.showPasswordDialog" />
 
-    <!-- 设置对话框: 使用 ElDialog 和 ElForm 重构 -->
-    <el-dialog
-      v-model="appStore.showSettings"
-      title="设置"
-      width="420px"
-      :append-to-body="true"
-      :close-on-click-modal="false"
-      @close="closeSettings"
-    >
-      <el-form label-position="top" @submit.prevent>
-        <el-form-item label="过期时间">
-          <el-select v-model="appStore.expiry" placeholder="选择有效期" style="width: 100%">
-            <el-option
-              v-for="option in appStore.getExpiryOptions()"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="访问密码">
-          <el-input
-            v-model="appStore.password"
-            placeholder="输入新密码或留空表示无密码"
-            show-password
-            clearable
-          />
-        </el-form-item>
-      </el-form>
-
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="closeSettings">取消</el-button>
-          <el-button type="primary" @click="saveSettings">保存设置</el-button>
-        </span>
-      </template>
-    </el-dialog>
+    <SettingsDialog />
 
     <!-- 用于显示二维码的对话框，同样使用 ElDialog -->
     <el-dialog
@@ -115,6 +76,7 @@ onMounted(async () => {
       width="360px"
       :show-header="false"
       :append-to-body="true"
+      :show-close="false"
       custom-class="qr-code-dialog"
     >
       <QRCodePanel />
@@ -144,7 +106,28 @@ onMounted(async () => {
   gap: 20px;
 }
 
-/* 设置对话框样式 - ElDialog 和 ElForm 自带样式，无需自定义 */
+.setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.setting-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.setting-label span {
+  font-size: 15px;
+  color: var(--el-text-color-primary);
+}
+
+.setting-label small {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
 </style>
 
 <style>

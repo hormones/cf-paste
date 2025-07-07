@@ -43,35 +43,63 @@ const submitForm = async () => {
   <el-dialog
     :model-value="store.showPasswordDialog"
     title="请输入密码"
-    width="420px"
+    width="380px"
     :append-to-body="true"
     :close-on-click-modal="false"
     :show-close="false"
     :destroy-on-close="true"
+    custom-class="modern-dialog"
     @close="handleClose"
+    @submit.prevent="submitForm"
   >
-    <el-form label-position="top" @submit.prevent="submitForm">
-      <el-form-item label="访问密码">
-        <el-input
-          v-model="password"
-          type="password"
-          placeholder="此内容受密码保护"
-          show-password
-          clearable
-          autofocus
-        />
-      </el-form-item>
-    </el-form>
+    <el-input
+      v-model="password"
+      type="password"
+      placeholder="请输入访问密码"
+      show-password
+      clearable
+      autofocus
+      size="large"
+    />
     <template #footer>
-      <span class="dialog-footer">
-        <el-button type="primary" :loading="loading" @click="submitForm" style="width: 100%">
-          确 认
-        </el-button>
-      </span>
+      <el-button
+        type="primary"
+        :loading="loading"
+        @click="submitForm"
+        style="width: 100%"
+        size="large"
+      >
+        确认
+      </el-button>
     </template>
   </el-dialog>
 </template>
 
 <style scoped>
-/* 使用 ElForm 后，大部分自定义样式可以移除，保持与设置对话框一致 */
+/* 现代化的对话框样式 */
+:deep(.modern-dialog) {
+  border-radius: 12px; /* 更大的圆角 */
+}
+
+:deep(.modern-dialog .el-dialog__header) {
+  text-align: center;
+  padding-bottom: 12px;
+  /* 移除 header 和 body 之间的分隔线 */
+  border-bottom: none;
+  margin-right: 0;
+}
+
+:deep(.modern-dialog .el-dialog__title) {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+:deep(.modern-dialog .el-dialog__body) {
+  padding: 10px 25px;
+}
+
+:deep(.modern-dialog .el-dialog__footer) {
+  padding: 12px 25px 25px;
+}
 </style>

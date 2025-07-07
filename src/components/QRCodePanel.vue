@@ -1,23 +1,5 @@
-<script setup lang="ts">
-import { useClipboard } from '@vueuse/core'
-import { ElMessage } from 'element-plus'
-import QRCode from '@/components/QRCode.vue'
-import { useAppStore } from '@/stores'
-import { useMain } from '@/composables/useMain'
-import { DocumentCopy, Refresh } from '@element-plus/icons-vue'
-
-const appStore = useAppStore()
-const { copy } = useClipboard()
-const { resetViewWord } = useMain()
-
-const handleCopy = (text: string) => {
-  copy(text)
-  ElMessage.success('已复制到剪贴板')
-}
-</script>
-
 <template>
-  <div class="qrcode-panel card-style" v-if="appStore.keyword.id">
+  <div class="qrcode-panel card-style" v-if="appStore.keyword.id && appStore.readOnlyLink">
     <div class="panel-header">
       <span>只读链接</span>
       <el-icon class="refresh-btn" title="刷新链接" @click="resetViewWord">
@@ -25,23 +7,58 @@ const handleCopy = (text: string) => {
       </el-icon>
     </div>
 
-    <div
-      class="qrcode-wrapper"
-      title="点击复制链接"
-      @click="handleCopy(appStore.readOnlyLink)"
-    >
-      <QRCode :data="appStore.readOnlyLink" :size="150" />
+    <div class="qrcode-wrapper" title="点击复制链接" @click="handleCopy(appStore.readOnlyLink)">
+      <img v-if="qrCodeUrl" :src="qrCodeUrl" alt="QR Code" />
     </div>
 
-    <p
-      class="link-text"
-      :title="appStore.readOnlyLink"
-      @click="handleCopy(appStore.readOnlyLink)"
-    >
+    <p class="link-text" title="点击复制链接" @click="handleCopy(appStore.readOnlyLink)">
       {{ appStore.readOnlyLink }}
     </p>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useClipboard } from '@vueuse/core'
+import { ElMessage } from 'element-plus'
+import { useAppStore } from '@/stores'
+import { useMain } from '@/composables/useMain'
+import { Refresh } from '@element-plus/icons-vue'
+import { ref, watch } from 'vue'
+import QRCodeGenerator from 'qrcode'
+
+const appStore = useAppStore()
+const { copy } = useClipboard()
+const { resetViewWord } = useMain()
+
+const qrCodeUrl = ref('')
+
+const generateQRCode = async () => {
+  if (appStore.readOnlyLink) {
+    try {
+      qrCodeUrl.value = await QRCodeGenerator.toDataURL(appStore.readOnlyLink, {
+        width: 150,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF',
+        },
+      })
+    } catch (err) {
+      console.error(err)
+      ElMessage.error('二维码生成失败')
+    }
+  } else {
+    qrCodeUrl.value = ''
+  }
+}
+
+watch(() => appStore.readOnlyLink, generateQRCode, { immediate: true })
+
+const handleCopy = (text: string) => {
+  copy(text)
+  ElMessage.success('已复制到剪贴板')
+}
+</script>
 
 <style scoped>
 .card-style {
@@ -71,7 +88,7 @@ const handleCopy = (text: string) => {
 
 .refresh-btn {
   cursor: pointer;
-  color: var(--el-text-color-secondary);
+  color: var(--color-text-secondary);
   transition: color 0.2s, transform 0.3s ease-out;
 }
 .refresh-btn:hover {
@@ -91,16 +108,21 @@ const handleCopy = (text: string) => {
   transform: scale(1.05);
 }
 
+.qrcode-wrapper img {
+  display: block;
+}
+
 .link-text {
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: var(--font-family-mono);
   font-size: 0.875rem;
-  color: var(--el-text-color-secondary);
-  background-color: var(--color-background); /* 使用主背景以形成对比 */
+  color: var(--color-text-secondary);
+  background-color: var(--color-background-soft);
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   width: 100%;
   text-align: center;
   cursor: pointer;
+  box-sizing: border-box;
 
   /* 超长链接截断 */
   white-space: nowrap;

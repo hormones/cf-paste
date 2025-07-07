@@ -13,13 +13,6 @@ const { toggleTheme } = appStore // 直接解构新的 action
 const router = useRouter()
 
 /**
- * 导航到根路径以创建新的剪贴板
- */
-const handleNewPaste = () => {
-  router.push('/')
-}
-
-/**
  * 打开设置对话框
  */
 const openSettings = () => {
@@ -47,7 +40,6 @@ const themeTitle = computed(() => {
       <span>剪切板</span>
     </div>
     <div class="header-actions">
-      <el-button :icon="Plus" text @click="handleNewPaste">新建</el-button>
       <el-button :icon="themeIcon" text circle :title="themeTitle" @click="toggleTheme" />
       <el-button :icon="Setting" text circle title="设置" @click="openSettings" />
     </div>
@@ -74,15 +66,5 @@ const themeTitle = computed(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem; /* 8px */
-}
-
-/* 覆盖 Element Plus 文本按钮的默认颜色，使其在深色模式下更亮 */
-.header-actions :deep(.el-button) {
-  color: var(--color-text);
-}
-
-.header-actions :deep(.el-button:hover) {
-  color: var(--color-heading);
-  background-color: var(--color-surface-hover);
 }
 </style>

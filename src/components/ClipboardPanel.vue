@@ -2,7 +2,7 @@
   <el-input
     v-model="modelValue"
     type="textarea"
-    :rows="12"
+    :autosize="{ minRows: 12, maxRows: 20 }"
     placeholder="在此处粘贴任何内容"
     :disabled="appStore.viewMode"
     @blur="handleBlur"
