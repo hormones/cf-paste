@@ -2,26 +2,10 @@
   <div class="tabs-container">
     <!-- 顶部操作栏 -->
     <div class="tabs-header">
-      <el-tabs v-model="activeTab" class="layout-container tabs-clean">
+      <el-tabs v-model="activeTab">
         <el-tab-pane label="剪贴板" name="clipboard" />
         <el-tab-pane :label="appStore.fileTabLabel" name="files" />
       </el-tabs>
-
-      <!-- 操作按钮区域 -->
-      <!-- <div class="tab-actions" v-if="!appStore.viewMode">
-        <el-button-group>
-          <el-button type="danger" @click="handleDelete" :icon="Delete" text />
-          <el-button type="primary" @click="openSettings" :icon="Setting" text />
-          <el-button
-            type="primary"
-            @click="appStore.setShowQRCodeDialog(true)"
-            :icon="InfoFilled"
-            text
-            v-show="!appStore.viewMode && appStore.keyword.id"
-            class="mobile-info-btn"
-          />
-        </el-button-group>
-      </div> -->
     </div>
 
     <!-- 内容区域 -->
@@ -65,19 +49,6 @@ const handleAutoSave = () => {
   gap: 1rem;
   transition: border-color 0.5s, background-color 0.5s;
   overflow: hidden; /* 防止子元素溢出圆角 */
-}
-
-.tabs-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
-  flex-grow: 1;
-  min-height: 0; /*  新增：允许 flex 子元素收缩 */
-}
-
-.tabs-clean {
-  --el-tabs-header-height: 40px;
 }
 
 /* 覆盖 Element Plus 的样式 */

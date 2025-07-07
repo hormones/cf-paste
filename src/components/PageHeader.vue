@@ -11,9 +11,6 @@ const appStore = useAppStore()
 const { deleteKeyword } = useMain()
 const { theme: currentTheme } = storeToRefs(appStore)
 const { toggleTheme } = appStore // 直接解构新的 action
-
-const router = useRouter()
-
 /**
  * 打开设置对话框
  */
@@ -37,9 +34,10 @@ const themeTitle = computed(() => {
 
 const handleDelete = async () => {
   try {
-    await ElMessageBox.confirm('确定要删除所有内容吗？此操作将删除剪贴板内容和所有文件。', '警告', {
+    await ElMessageBox.confirm('确定要删除剪贴板内容和所有文件吗？', '警告', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
+      buttonSize: 'default',
       type: 'warning',
     })
     await deleteKeyword()
@@ -55,7 +53,13 @@ const handleDelete = async () => {
       <span>剪切板</span>
     </div>
     <div class="header-actions">
-      <el-button type="danger" @click="handleDelete" :icon="Delete" text />
+      <el-button
+        type="danger"
+        v-if="!appStore.viewMode"
+        @click="handleDelete"
+        :icon="Delete"
+        text
+      />
       <el-button
         type="primary"
         @click="appStore.setShowQRCodeDialog(true)"
@@ -64,8 +68,14 @@ const handleDelete = async () => {
         v-show="!appStore.viewMode && appStore.keyword.id"
         class="mobile-info-btn"
       />
-      <el-button :icon="Setting" text circle title="设置" @click="openSettings" />
-      <el-button :icon="themeIcon" text circle :title="themeTitle" @click="toggleTheme" />
+      <el-button
+        :icon="Setting"
+        v-if="!appStore.viewMode"
+        text
+        title="设置"
+        @click="openSettings"
+      />
+      <el-button :icon="themeIcon" text :title="themeTitle" @click="toggleTheme" />
     </div>
   </header>
 </template>
