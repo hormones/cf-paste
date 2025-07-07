@@ -4,7 +4,7 @@
     <div class="tabs-header">
       <el-tabs v-model="activeTab" class="layout-container tabs-clean">
         <el-tab-pane label="剪贴板" name="clipboard" />
-        <el-tab-pane label="文件" name="files" />
+        <el-tab-pane :label="appStore.fileTabLabel" name="files" />
       </el-tabs>
 
       <!-- 操作按钮区域 -->
@@ -12,6 +12,14 @@
         <el-button-group>
           <el-button type="danger" @click="handleDelete" :icon="Delete" text />
           <el-button type="primary" @click="openSettings" :icon="Setting" text />
+          <el-button
+            type="primary"
+            @click="appStore.setShowQRCodeDialog(true)"
+            :icon="InfoFilled"
+            text
+            v-show="!appStore.viewMode && appStore.keyword.id"
+            class="mobile-info-btn"
+          />
         </el-button-group>
       </div>
     </div>
@@ -30,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { Delete, Setting } from '@element-plus/icons-vue'
+import { Delete, Setting, InfoFilled } from '@element-plus/icons-vue'
 import { ref } from 'vue'
 import { useAppStore } from '@/stores'
 import { useMain } from '@/composables/useMain'
@@ -59,67 +67,94 @@ const handleDelete = async () => {
 
 <style scoped>
 .tabs-container {
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 8px;
-  overflow: hidden;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: border-color 0.5s, background-color 0.5s;
 }
 
 .tabs-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color-light);
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .tabs-clean {
-  flex: 1;
-  border: none;
+  --el-tabs-header-height: 40px;
 }
 
+/* 覆盖 Element Plus 的样式 */
 :deep(.el-tabs__header) {
-  padding: 0 20px;
   margin-bottom: 0;
-  border-bottom: none;
 }
-
 :deep(.el-tabs__nav-wrap::after) {
-  display: none;
+  display: none; /* 移除底部分割线 */
 }
-
-/* 优化标签样式 - 保持简洁但更大气 */
 :deep(.el-tabs__item) {
-  padding: 18px 28px !important;
-  font-size: 17px !important;
-  height: auto !important;
-  line-height: 1.5 !important;
+  padding: 0 16px; /* 减小内边距 */
+  color: var(--color-text); /* 提高未激活状态的对比度 */
 }
-
-:deep(.el-tabs__item:hover) {
-  color: var(--el-color-primary) !important;
-}
-
 :deep(.el-tabs__item.is-active) {
-  color: var(--el-color-primary) !important;
-  font-weight: 600 !important;
+  color: var(--el-color-primary); /* 保持激活状态的品牌色 */
 }
 
 .tab-actions {
-  flex-shrink: 0;
-  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0; /* 防止按钮组被压缩 */
+}
+
+/* 新增：为操作按钮添加悬浮背景效果 */
+.tab-actions :deep(.el-button:hover) {
+  background-color: var(--color-surface-hover);
 }
 
 .tab-content {
-  padding: 20px;
+  flex-grow: 1;
 }
 
 .tab-pane {
-  min-height: 400px;
+  height: 100%;
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .tabs-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+}
+
+.mobile-info-btn {
+  display: none;
 }
 
 .layout-flex {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+@media (max-width: 992px) {
+  .mobile-info-btn {
+    display: inline-flex;
+  }
+}
+
+.paste-tabs {
+  --el-tabs-header-height: 48px;
+}
+
+.icon-button {
+  color: var(--el-text-color-secondary);
+}
+.icon-button:hover {
+  color: var(--el-text-color-primary);
 }
 </style>

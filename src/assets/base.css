@@ -23,31 +23,37 @@
 
 /* semantic color variables for this project */
 :root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
+  /* Base & Text */
+  --color-text: var(--vt-c-text-light-1);
+  --color-heading: var(--vt-c-text-light-1);
+
+  /* Backgrounds */
+  --color-background: var(--vt-c-white-soft); /* 主背景用柔和白 */
   --color-background-mute: var(--vt-c-white-mute);
 
+  /* UI Elements */
+  --color-surface: var(--vt-c-white); /* 卡片、表单等表面用纯白 */
+  --color-surface-hover: var(--vt-c-white-soft); /* 新增：悬浮背景色 */
   --color-border: var(--vt-c-divider-light-2);
   --color-border-hover: var(--vt-c-divider-light-1);
-
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
 
   --section-gap: 160px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: var(--vt-c-black);
-    --color-background-soft: var(--vt-c-black-soft);
-    --color-background-mute: var(--vt-c-black-mute);
+html.dark {
+  /* Base & Text */
+  --color-text: var(--vt-c-text-dark-2);
+  --color-heading: var(--vt-c-text-dark-1);
 
-    --color-border: var(--vt-c-divider-dark-2);
-    --color-border-hover: var(--vt-c-divider-dark-1);
+  /* Backgrounds */
+  --color-background: var(--vt-c-black); /* 深色主背景 */
+  --color-background-mute: var(--vt-c-black-mute);
 
-    --color-heading: var(--vt-c-text-dark-1);
-    --color-text: var(--vt-c-text-dark-2);
-  }
+  /* UI Elements */
+  --color-surface: var(--vt-c-black-soft); /* 深色卡片 */
+  --color-surface-hover: var(--vt-c-black-mute); /* 新增：深色悬浮背景 */
+  --color-border: var(--vt-c-divider-dark-2);
+  --color-border-hover: var(--vt-c-divider-dark-1);
 }
 
 *,
@@ -83,4 +89,28 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+/* --- 为 Element Plus 对话框添加平滑的毛玻璃过渡效果 --- */
+
+/* 1. 让遮罩层同时过渡 opacity 和 backdrop-filter */
+.el-overlay {
+  transition:
+    opacity var(--el-transition-duration),
+    backdrop-filter var(--el-transition-duration);
+  -webkit-transition:
+    opacity var(--el-transition-duration),
+    -webkit-backdrop-filter var(--el-transition-duration);
+  /* 默认结束状态，应用模糊效果 */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* 2. 在动画的起始/结束帧，将模糊效果重置为0 */
+.el-fade-in-linear-enter-from,
+.el-fade-in-linear-leave-to {
+  opacity: 0;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
 }

@@ -2,8 +2,8 @@
 import { onMounted } from 'vue'
 
 // 组件导入
+import PageHeader from '@/components/PageHeader.vue'
 import PasswordDialog from '@/components/PasswordDialog.vue'
-import GlassDialog from '@/components/GlassDialog.vue'
 import TabsContainer from '@/components/TabsContainer.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
 import QRCodePanel from '@/components/QRCodePanel.vue'
@@ -48,6 +48,8 @@ onMounted(async () => {
 
 <template>
   <div class="paste-container">
+    <PageHeader />
+
     <!-- 使用 el-row/el-col 替代自定义布局 -->
     <el-row :gutter="20" class="main-layout">
       <el-col
@@ -68,11 +70,17 @@ onMounted(async () => {
 
     <PasswordDialog v-model:visible="appStore.showPasswordDialog" />
 
-    <!-- 设置对话框 -->
-    <GlassDialog v-model:visible="appStore.showSettings" title="设置" size="small" width="420px">
-      <div class="settings-content">
-        <div class="setting-group">
-          <label class="setting-label">过期时间</label>
+    <!-- 设置对话框: 使用 ElDialog 和 ElForm 重构 -->
+    <el-dialog
+      v-model="appStore.showSettings"
+      title="设置"
+      width="420px"
+      :append-to-body="true"
+      :close-on-click-modal="false"
+      @close="closeSettings"
+    >
+      <el-form label-position="top" @submit.prevent>
+        <el-form-item label="过期时间">
           <el-select v-model="appStore.expiry" placeholder="选择有效期" style="width: 100%">
             <el-option
               v-for="option in appStore.getExpiryOptions()"
@@ -81,47 +89,46 @@ onMounted(async () => {
               :value="option.value"
             />
           </el-select>
-        </div>
+        </el-form-item>
 
-        <div class="setting-group">
-          <label class="setting-label">访问密码</label>
+        <el-form-item label="访问密码">
           <el-input
             v-model="appStore.password"
             placeholder="输入新密码或留空表示无密码"
             show-password
             clearable
           />
-        </div>
-      </div>
+        </el-form-item>
+      </el-form>
 
       <template #footer>
-        <el-button @click="closeSettings">取消</el-button>
-        <el-button type="primary" @click="saveSettings">保存设置</el-button>
+        <span class="dialog-footer">
+          <el-button @click="closeSettings">取消</el-button>
+          <el-button type="primary" @click="saveSettings">保存设置</el-button>
+        </span>
       </template>
-    </GlassDialog>
+    </el-dialog>
+
+    <!-- 用于显示二维码的对话框，同样使用 ElDialog -->
+    <el-dialog
+      v-model="appStore.showQRCodeDialog"
+      width="360px"
+      :show-header="false"
+      :append-to-body="true"
+      custom-class="qr-code-dialog"
+    >
+      <QRCodePanel />
+    </el-dialog>
   </div>
 </template>
 
 <style scoped>
 .paste-container {
-  /* CSS 变量定义 */
-  --border-color: #e4e7ed;
-  --bg-color: #f8f9fa;
-  --text-primary: #606266;
-  --text-secondary: #909399;
-  --border-radius: 8px;
-  --spacing-small: 10px;
-  --spacing-medium: 15px;
-  --spacing-large: 20px;
-  --font-size-small: 12px;
-  --font-size-normal: 14px;
-
   /* 容器样式 */
-  padding: var(--spacing-large);
+  padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  min-height: 100vh;
-  background: #fff;
+  /* 使用 body 的背景色，这里不需要额外设置 */
 }
 
 /* 主要布局使用Element Plus的el-row/el-col，无需自定义样式 */
@@ -134,62 +141,19 @@ onMounted(async () => {
 .side-panel {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-large); /* 使用CSS变量定义的间距 */
+  gap: 20px;
 }
 
-/* 设置对话框样式 */
-.settings-content {
-  padding: var(--spacing-small) 0;
+/* 设置对话框样式 - ElDialog 和 ElForm 自带样式，无需自定义 */
+</style>
+
+<style>
+/* 针对二维码弹窗的全局样式，移除默认内边距并使其背景透明 */
+.qr-code-dialog .el-dialog__body {
+  padding: 0;
 }
-
-.setting-group {
-  margin-bottom: 24px;
-}
-
-.setting-group:last-child {
-  margin-bottom: 0;
-}
-
-.setting-label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--text-primary);
-  font-size: var(--font-size-normal);
-  font-weight: 500;
-}
-
-/* 美化组件样式 */
-:deep(.el-textarea__inner) {
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  padding: var(--spacing-medium);
-  background: #fff;
-}
-
-:deep(.el-table) {
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  --el-table-border-color: var(--border-color);
-}
-
-:deep(.el-input__wrapper),
-:deep(.el-select__wrapper) {
-  box-shadow: 0 0 0 1px var(--border-color) inset;
-  border-radius: 4px;
-}
-
-/* Element组件样式微调 */
-:deep(.el-button) {
-  height: 40px;
-  padding: 0 var(--spacing-large);
-}
-
-/* 文件标签页的布局样式 - 现在由全局CSS处理，这里可以移除 */
-
-/* 移动端样式 - Element的el-row/el-col自动处理响应式 */
-@media (max-width: 768px) {
-  .paste-container {
-    padding: var(--spacing-small);
-  }
+.qr-code-dialog {
+  background: transparent;
+  box-shadow: none;
 }
 </style>

@@ -18,7 +18,7 @@
           {{ new Date(row.uploaded).toLocaleString() }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="100">
+      <el-table-column label="操作" fixed="right" align="center" width="100">
         <template #default="{ row }">
           <el-button
             class="action-btn"

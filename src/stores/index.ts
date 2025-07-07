@@ -3,6 +3,12 @@ import type { Keyword, FileInfo, UploadState, PasteConfig } from '@/types'
 import { Utils } from '@/utils'
 import { Constant } from '@/constant'
 
+export type Theme = 'light' | 'dark'
+
+// 默认晚上 8 点到早上 6 点为深色模式的判断标准
+const DARK_MODE_START_HOUR = 20
+const DARK_MODE_END_HOUR = 6
+
 // 主应用状态管理 - 只负责状态，不包含业务逻辑
 export const useAppStore = defineStore('app', {
   state: () => ({
@@ -27,12 +33,14 @@ export const useAppStore = defineStore('app', {
 
     // 设置状态
     showSettings: false,
+    showQRCodeDialog: false,
     password: '',
     expiry: Constant.EXPIRY_OPTIONS[2].value,
 
     // UI状态
-    isDark: false,
+    theme: 'light' as Theme,
     viewMode: true,
+    urlPrefix: null as string | null,
   }),
 
   getters: {
@@ -76,6 +84,27 @@ export const useAppStore = defineStore('app', {
   },
 
   actions: {
+    calculateUrlPrefix(): string {
+      if (this.urlPrefix !== null) {
+        return this.urlPrefix
+      }
+      const path = window.location.pathname
+      // 优先匹配 /v/xxx
+      const viewMatch = path.match(/^\/v\/[a-zA-Z0-9_]+/)
+      if (viewMatch) {
+        this.urlPrefix = viewMatch[0]
+        return this.urlPrefix
+      }
+      // 再匹配 /xxx
+      const wordMatch = path.match(/^\/[a-zA-Z0-9_]+/)
+      if (wordMatch) {
+        this.urlPrefix = wordMatch[0]
+        return this.urlPrefix
+      }
+      this.urlPrefix = ''
+      return this.urlPrefix
+    },
+
     // 剪贴板状态更新
     setKeyword(keyword: Keyword) {
       this.keyword = keyword
@@ -170,6 +199,10 @@ export const useAppStore = defineStore('app', {
       this.showSettings = show
     },
 
+    setShowQRCodeDialog(visible: boolean) {
+      this.showQRCodeDialog = visible
+    },
+
     setSettingsData(data: { password: string; expiry: number }) {
       this.password = data.password
       this.expiry = data.expiry
@@ -179,6 +212,53 @@ export const useAppStore = defineStore('app', {
       this.password = ''
       this.expiry = Constant.EXPIRY_OPTIONS[2].value
     },
+
+    // ==================
+    // 主题管理 Actions
+    // ==================
+
+    /**
+     * 应用当前主题设置到 DOM
+     * @private
+     */
+    _applyTheme() {
+      if (this.theme === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    },
+
+    /**
+     * 切换主题：在 light 和 dark 之间循环
+     */
+    toggleTheme() {
+      this.theme = this.theme === 'light' ? 'dark' : 'light'
+      localStorage.setItem('theme', this.theme)
+      this._applyTheme()
+    },
+
+    /**
+     * 初始化主题
+     * 1. 优先从 localStorage 读取用户设置。
+     * 2. 如果没有，则根据当前时间设置初始主题。
+     */
+    initTheme() {
+      const savedTheme = localStorage.getItem('theme') as Theme | null
+
+      if (savedTheme && ['light', 'dark'].includes(savedTheme)) {
+        this.theme = savedTheme
+      } else {
+        // 如果没有保存的主题，根据时间来决定初始主题
+        const currentHour = new Date().getHours()
+        if (currentHour >= DARK_MODE_START_HOUR || currentHour < DARK_MODE_END_HOUR) {
+          this.theme = 'dark'
+        } else {
+          this.theme = 'light'
+        }
+      }
+      this._applyTheme()
+    }
   },
 })
 

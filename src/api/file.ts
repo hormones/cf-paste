@@ -66,7 +66,7 @@ export const fileApi = {
    * 下载文件
    */
   download(fileName: string): void {
-    const url = `${api.urlPrefix}/file/download?name=${encodeURIComponent(fileName)}`
+    const url = `${api.getUrlPrefix()}/file/download?name=${encodeURIComponent(fileName)}`
     const link = document.createElement('a')
     link.href = url
     link.download = fileName

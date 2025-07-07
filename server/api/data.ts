@@ -6,7 +6,6 @@ import { Auth } from '../utils/auth'
 import { Constant } from '../constant'
 import { Utils } from '../utils'
 
-const keyword = 'keyword'
 const key = 'word'
 
 const word_router = AutoRouter({ base: '/:word/api/data' })
@@ -21,7 +20,7 @@ view_router.get('', async (req: IRequest, env: Env) => request4GetData(env, req)
 const request4GetData = async (env: Env, req: IRequest) => {
   console.log('data get', req.word)
   // 1. 先获取数据库中的关键词信息
-  const data = await D1.first<Keyword>(env, keyword, [{ key, value: req.word }])
+  const data = await D1.first<Keyword>(env, 'keyword', [{ key, value: req.word }])
 
   // 2. 如果找到数据，则获取对应的内容
   if (data) {
@@ -63,7 +62,7 @@ const request4PostData = async (env: Env, req: IRequest) => {
   // 将content上传到R2
   await uploadContent(env, req, content)
   // word信息插入数据库
-  return D1.insert(env, keyword, keywordDB).then((data) => newResponse({ data }))
+  return D1.insert(env, 'keyword', keywordDB).then((data) => newResponse({ data }))
 }
 
 /**
@@ -80,7 +79,7 @@ const request4PutData = async (env: Env, req: IRequest) => {
   // 将content上传到R2
   await uploadContent(env, req, data.content)
   // 更新数据库中的更新时间
-  return D1.update(env, keyword, { word: req.word }, [{ key, value: req.word }]).then((data) =>
+  return D1.update(env, 'keyword', { word: req.word }, [{ key, value: req.word }]).then((data) =>
     newResponse({ data })
   )
 }
@@ -109,8 +108,8 @@ const request4DeleteData = async (env: Env, req: IRequest) => {
 word_router.patch('/settings', async (req: IRequest, env: Env) => request4PatchSettings(env, req))
 view_router.patch('/settings', async (req: IRequest, env: Env) => request4PatchSettings(env, req))
 const request4PatchSettings = async (env: Env, req: IRequest) => {
-  const currentKeyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
-  if (!currentKeyword) {
+  const keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
+  if (!keyword) {
     return error(404, '关键词不存在')
   }
 
@@ -133,14 +132,14 @@ const request4PatchSettings = async (env: Env, req: IRequest) => {
 
   if (!newPassword) {
     // 意图：移除密码
-    if (currentKeyword.password) {
+    if (keyword.password) {
       passwordChanged = true
       updateData.password = ''
     }
   } else if (newPassword !== Constant.PASSWORD_DISPLAY) {
     // 意图：设置或修改密码
     const hashPassword = await Auth.hashPassword(newPassword, req.word!, env)
-    if (hashPassword !== currentKeyword.password) {
+    if (hashPassword !== keyword.password) {
       passwordChanged = true
       updateData.password = hashPassword
     }
@@ -160,6 +159,11 @@ const request4PatchSettings = async (env: Env, req: IRequest) => {
       responseData.view_word = updateData.view_word
     }
 
+    // 如果密码已更改，则设置授权cookie
+    if (passwordChanged && updateData.password) {
+      req.authorization = await Auth.encrypt(env, `${keyword.word}:${Date.now()}`)
+    }
+
     return newResponse({ data: responseData })
   } catch (err) {
     console.error('Settings update failed:', err)
@@ -175,8 +179,8 @@ const request4PatchSettings = async (env: Env, req: IRequest) => {
 word_router.patch('/view-word', async (req: IRequest, env: Env) => request4PatchViewWord(env, req))
 view_router.patch('/view-word', async (req: IRequest, env: Env) => request4PatchViewWord(env, req))
 const request4PatchViewWord = async (env: Env, req: IRequest) => {
-  const currentKeyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
-  if (!currentKeyword) {
+  const keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
+  if (!keyword) {
     return error(404, '关键词不存在')
   }
 
@@ -228,7 +232,7 @@ export const deleteKeyword = async (env: Env, word: string) => {
   // 删除R2中的文件夹files
   await R2.deleteFolder(env, { prefix: word + '/' + Constant.FILE_FOLDER })
   // 删除数据库中的关键词信息
-  await D1.delete(env, keyword, [{ key, value: word }])
+  await D1.delete(env, 'keyword', [{ key, value: word }])
 }
 
 export const getKeyword = async (
