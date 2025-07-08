@@ -1,24 +1,10 @@
-/**
- * R2对象存储操作封装
- * 提供文件上传、下载、删除和列表等基础操作
- * @module bindings/r2
- */
-
 import { error } from 'itty-router'
 import { Utils } from '../utils'
 import { newResponse } from '../utils/response'
 
-/**
- * R2对象存储操作封装
- */
 export const R2 = {
   /**
-   * 下载文件
-   * @param env 环境变量
-   * @param req 请求对象
-   * @param prefix 文件路径前缀
-   * @param name 文件名
-   * @returns 文件内容流
+   * Download file with range support
    */
   download: async (env: Env, req: IRequest, { prefix, name }: { prefix: string; name: string }) => {
     const path = `${prefix}/${name}`
@@ -72,14 +58,8 @@ export const R2 = {
   },
 
   /**
-   * 直接上传文件到 R2
-   * 前端已处理分片逻辑，这里只负责直接上传
-   * @param env 环境变量
-   * @param prefix 文件路径前缀
-   * @param name 文件名
-   * @param length 文件大小
-   * @param stream 文件内容流
-   * @returns 上传结果
+   * Upload file directly to R2
+   * Frontend handles chunking logic, this only handles direct upload
    */
   upload: async (
     env: Env,
@@ -94,27 +74,23 @@ export const R2 = {
     console.log(`upload file: ${path}, size: ${Utils.humanReadableSize(length)}`)
 
     if (!stream || length <= 0) {
-      return error(400, 'stream或length为空')
+      return error(400, 'Stream or length is empty')
     }
 
-    // 直接上传到 R2（前端已处理分片逻辑）
+    // Direct upload to R2 (frontend handles chunking logic)
     return env.R2.put(path, stream, {
       httpMetadata: { contentType: 'application/octet-stream' },
       customMetadata: { uploadedAt: new Date().toISOString() },
     })
       .then(() => newResponse({}))
       .catch((err) => {
-        console.error('上传文件失败', err)
-        return error(500, '上传文件失败')
+        console.error('File upload failed', err)
+        return error(500, 'File upload failed')
       })
   },
 
   /**
-   * 删除文件
-   * @param env 环境变量
-   * @param prefix 文件路径前缀
-   * @param name 文件名
-   * @returns 删除结果
+   * Delete file
    */
   delete: async (env: Env, { prefix, name }: { prefix: string; name: string }) => {
     const path = `${prefix}/${name}`
@@ -122,16 +98,13 @@ export const R2 = {
     return env.R2.delete(path)
       .then(() => newResponse({}))
       .catch((err) => {
-        console.error('删除文件失败', err)
-        return error(500, '删除文件失败')
+        console.error('File deletion failed', err)
+        return error(500, 'File deletion failed')
       })
   },
 
   /**
-   * 列出指定前缀下的所有文件
-   * @param env 环境变量
-   * @param prefix 文件路径前缀
-   * @returns 文件列表
+   * List all files under specified prefix
    */
   list: async (env: Env, { prefix }: { prefix: string }) => {
     try {
@@ -144,16 +117,13 @@ export const R2 = {
       }))
       return newResponse({ data })
     } catch (err) {
-      console.error('LIST文件失败', err)
-      return error(500, 'LIST文件失败')
+      console.error('List files failed', err)
+      return error(500, 'List files failed')
     }
   },
 
   /**
-   * 删除指定前缀下的所有文件（递归删除文件夹）
-   * @param env 环境变量
-   * @param prefix 文件路径前缀
-   * @returns 删除的文件数量
+   * Delete all files under specified prefix (recursive folder deletion)
    */
   deleteFolder: async (env: Env, { prefix }: { prefix: string }): Promise<number> => {
     let deletedCount = 0
@@ -161,29 +131,28 @@ export const R2 = {
 
     try {
       do {
-        // 列出文件，支持分页
+        // List files with pagination support
         const listResult = await env.R2.list({
           prefix: prefix,
           cursor: cursor,
-          limit: 1000, // R2单次最多返回1000个对象
+          limit: 1000, // R2 returns max 1000 objects per request
         })
 
         if (listResult.objects.length === 0) {
           break
         }
 
-        // 批量删除文件
+        // Batch delete files
         const deletePromises = listResult.objects.map((obj: any) => env.R2.delete(obj.key))
 
         await Promise.all(deletePromises)
         deletedCount += listResult.objects.length
 
-        // 记录删除日志
         console.log(
           `Deleted ${listResult.objects.length} files from ${prefix}, total: ${deletedCount}`
         )
 
-        // 获取下一批的游标
+        // Get cursor for next batch
         if (listResult.truncated && listResult.objects.length > 0) {
           cursor = listResult.objects[listResult.objects.length - 1].key
         } else {
@@ -200,10 +169,7 @@ export const R2 = {
   },
 
   /**
-   * 批量删除文件
-   * @param env 环境变量
-   * @param keys 要删除的文件路径数组
-   * @returns 删除的文件数量
+   * Batch delete files
    */
   batchDelete: async (env: Env, keys: string[]): Promise<number> => {
     if (keys.length === 0) {
@@ -211,8 +177,8 @@ export const R2 = {
     }
 
     try {
-      // 并发删除文件，但限制并发数量避免过载
-      const batchSize = 50 // 每批最多50个文件
+      // Concurrent deletion with batch size limit to avoid overload
+      const batchSize = 50 // Max 50 files per batch
       let deletedCount = 0
 
       for (let i = 0; i < keys.length; i += batchSize) {
@@ -220,7 +186,7 @@ export const R2 = {
         const deletePromises = batch.map((key) =>
           env.R2.delete(key).catch((error: any) => {
             console.error(`Failed to delete ${key}`, error)
-            return null // 继续删除其他文件
+            return null // Continue deleting other files
           })
         )
 
@@ -240,11 +206,7 @@ export const R2 = {
   },
 
   /**
-   * 初始化分片上传
-   * @param env 环境变量
-   * @param prefix 文件路径前缀
-   * @param name 文件名
-   * @returns 分片上传对象
+   * Initialize multipart upload
    */
   createMultipartUpload: async (env: Env, { prefix, name }: { prefix: string; name: string }) => {
     const path = `${prefix}/${name}`
@@ -267,13 +229,7 @@ export const R2 = {
   },
 
   /**
-   * 上传分片
-   * @param env 环境变量
-   * @param uploadId 上传ID
-   * @param key 文件路径
-   * @param partNumber 分片号（从1开始）
-   * @param data 分片数据
-   * @returns 上传结果
+   * Upload part
    */
   uploadPart: async (
     env: Env,
@@ -308,12 +264,7 @@ export const R2 = {
   },
 
   /**
-   * 完成分片上传
-   * @param env 环境变量
-   * @param uploadId 上传ID
-   * @param key 文件路径
-   * @param parts 分片信息数组
-   * @returns 完成结果
+   * Complete multipart upload
    */
   completeMultipartUpload: async (
     env: Env,
@@ -344,11 +295,7 @@ export const R2 = {
   },
 
   /**
-   * 取消分片上传
-   * @param env 环境变量
-   * @param uploadId 上传ID
-   * @param key 文件路径
-   * @returns 取消结果
+   * Abort multipart upload
    */
   abortMultipartUpload: async (
     env: Env,

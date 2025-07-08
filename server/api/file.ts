@@ -4,17 +4,11 @@ import { Constant } from '../constant'
 import { newResponse } from '../utils/response'
 import { error } from 'itty-router'
 
-/**
- * 文件相关API
- * 存储在R2中，每个word下都有一个files文件夹
- */
 const word_router = AutoRouter({ base: '/:word/api/file' })
 const view_router = AutoRouter({ base: '/v/:view_word/api/file' })
 
 /**
- * 列出指定前缀下的所有文件
- * @route GET /api/file/list
- * @returns {Promise<Response>} 文件列表
+ * List all files under specified prefix
  */
 word_router.get('/list', async (req: IRequest, env) => request4List(env, req))
 view_router.get('/list', async (req: IRequest, env) => request4List(env, req))
@@ -24,9 +18,7 @@ const request4List = async (env: Env, req: IRequest) => {
 }
 
 /**
- * 下载指定文件
- * @query {string} name - 文件名
- * @returns {Promise<Response>} 文件内容
+ * Download specified file
  */
 word_router.get('/download', async (req: IRequest, env: Env) => request4Download(env, req))
 view_router.get('/download', async (req: IRequest, env: Env) => request4Download(env, req))
@@ -39,17 +31,12 @@ const request4Download = async (env: Env, req: IRequest) => {
 
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
 
-  // 调用支持断点续传的 R2.download
+  // Call R2.download with resumable download support
   return R2.download(env, req, { prefix, name: fileName })
 }
 
 /**
- * 上传文件
- * @route POST /api/file/:name
- * @param {string} name - 文件名
- * @param {string} content-length - 文件大小(header)
- * @param {ReadableStream} body - 文件内容
- * @returns {Promise<Response>} 上传结果
+ * Upload file
  */
 word_router.post('', async (req: IRequest, env) => request4Upload(env, req))
 const request4Upload = async (env: Env, req: IRequest) => {
@@ -58,7 +45,7 @@ const request4Upload = async (env: Env, req: IRequest) => {
   if (!name) {
     return error(400, 'file name is required')
   }
-  // 从URL路径参数获取的文件名是编码过的，需要手动解码
+  // Filename from URL parameter is encoded, needs manual decoding
   const decodedName = decodeURIComponent(name)
   const length = req.headers.get('content-length')
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
@@ -72,35 +59,30 @@ const request4Upload = async (env: Env, req: IRequest) => {
 }
 
 /**
- * 删除所有文件（一键删除）
- * @route DELETE /api/file/batch/all
- * @returns {Promise<Response>} 删除结果
+ * Delete all files (one-click delete)
  */
 word_router.delete('/all', async (req: IRequest, env) => request4DeleteAll(env, req))
 const request4DeleteAll = async (env: Env, req: IRequest) => {
   try {
     const prefix = `${req.word}/${Constant.FILE_FOLDER}`
 
-    // 使用R2的deleteFolder方法批量删除所有文件
+    // Use R2's deleteFolder method to batch delete all files
     const deletedCount = await R2.deleteFolder(env, { prefix })
 
     return newResponse({
       data: {
         deletedCount,
-        message: `成功删除 ${deletedCount} 个文件`,
+        message: `Successfully deleted ${deletedCount} files`,
       },
     })
   } catch (err) {
-    console.error('批量删除文件失败', err)
-    return error(500, '批量删除文件失败')
+    console.error('Batch file deletion failed', err)
+    return error(500, 'Batch file deletion failed')
   }
 }
 
 /**
- * 删除指定文件
- * @route DELETE /api/file/:name
- * @param {string} name - 文件名
- * @returns {Promise<Response>} 删除结果
+ * Delete specified file
  */
 word_router.delete('', async (req: IRequest, env) => request4Delete(env, req))
 const request4Delete = async (env: Env, req: IRequest) => {
@@ -109,20 +91,17 @@ const request4Delete = async (env: Env, req: IRequest) => {
   if (!name) {
     return error(400, 'file name is required')
   }
-  // 从URL路径参数获取的文件名是编码过的，需要手动解码
+  // Filename from URL parameter is encoded, needs manual decoding
   const decodedName = decodeURIComponent(name)
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
   console.log('delete file: ', decodedName, prefix)
   return R2.delete(env, { prefix, name: decodedName })
 }
 
-// === 分片上传相关接口 ===
+// === Multipart upload related APIs ===
 
 /**
- * 初始化分片上传
- * @route POST /api/file/multipart/init
- * @body {filename: string, fileSize: number, chunkSize: number}
- * @returns {Promise<Response>} 上传会话信息
+ * Initialize multipart upload
  */
 word_router.post('/multipart/init', async (req: IRequest, env: Env) =>
   request4MultipartInit(env, req)
@@ -135,22 +114,22 @@ const request4MultipartInit = async (env: Env, req: IRequest) => {
       chunkSize: number
     }
 
-    // 参数验证
+    // Parameter validation
     if (!filename || !fileSize || !chunkSize) {
-      return error(400, '缺少必要参数')
+      return error(400, 'Missing required parameters')
     }
 
-    // 文件大小验证
+    // File size validation
     const maxFileSize = parseInt(env.MAX_FILE_SIZE || '300') * 1024 * 1024
     if (fileSize > maxFileSize) {
-      return error(400, `文件大小超过限制 ${maxFileSize / (1024 * 1024)}MB`)
+      return error(400, `File size exceeds limit ${maxFileSize / (1024 * 1024)}MB`)
     }
 
-    // 直接使用原始文件名
+    // Use original filename directly
     const uniqueFilename = filename
     const prefix = `${req.word}/${Constant.FILE_FOLDER}`
 
-    // 初始化R2分片上传
+    // Initialize R2 multipart upload
     const result = await R2.createMultipartUpload(env, {
       prefix,
       name: uniqueFilename,
@@ -170,17 +149,13 @@ const request4MultipartInit = async (env: Env, req: IRequest) => {
       },
     })
   } catch (err) {
-    console.error('初始化分片上传失败', err)
-    return error(500, '初始化分片上传失败')
+    console.error('Failed to initialize multipart upload', err)
+    return error(500, 'Failed to initialize multipart upload')
   }
 }
 
 /**
- * 取消分片上传
- * @route DELETE /api/file/multipart/cancel/:uploadId
- * @param {string} uploadId - 上传ID
- * @body {{ fileKey: string }}
- * @returns {Promise<Response>}
+ * Cancel multipart upload
  */
 word_router.delete('/multipart/cancel/:uploadId', async (req: IRequest, env: Env) =>
   request4MultipartCancel(env, req)
@@ -191,29 +166,23 @@ const request4MultipartCancel = async (env: Env, req: IRequest) => {
     const { fileKey } = await req.json<{ fileKey: string }>()
 
     if (!uploadId || !fileKey) {
-      return error(400, '缺少必要参数')
+      return error(400, 'Missing required parameters')
     }
 
-    // 调用R2的abortMultipartUpload
+    // Call R2's abortMultipartUpload
     await R2.abortMultipartUpload(env, { uploadId, key: fileKey })
 
     return newResponse({
-      data: { message: '上传已取消' },
+      data: { message: 'Upload cancelled' },
     })
   } catch (err) {
-    console.error('取消分片上传失败', err)
-    return error(500, '取消分片上传失败')
+    console.error('Failed to cancel multipart upload', err)
+    return error(500, 'Failed to cancel multipart upload')
   }
 }
 
 /**
- * 上传单个分片
- * @route POST /api/file/multipart/chunk/:uploadId/:chunkIndex
- * @param {string} uploadId - 上传ID
- * @param {string} chunkIndex - 分片索引（从0开始）
- * @query {string} fileKey - 文件路径
- * @body 分片数据
- * @returns {Promise<Response>} 分片上传结果
+ * Upload single chunk
  */
 word_router.post('/multipart/chunk/:uploadId/:chunkIndex', async (req: IRequest, env: Env) =>
   request4MultipartChunk(env, req)
@@ -221,26 +190,26 @@ word_router.post('/multipart/chunk/:uploadId/:chunkIndex', async (req: IRequest,
 const request4MultipartChunk = async (env: Env, req: IRequest) => {
   try {
     const { uploadId, chunkIndex } = req.params
-    const partNumber = parseInt(chunkIndex) + 1 // R2 partNumber从1开始
+    const partNumber = parseInt(chunkIndex) + 1 // R2 partNumber starts from 1
 
     if (!uploadId || !partNumber || partNumber < 1) {
-      return error(400, '无效的上传参数')
+      return error(400, 'Invalid upload parameters')
     }
 
-    // 从请求头获取fileKey并解码
+    // Get fileKey from request header and decode
     const encodedFileKey = req.headers.get('X-File-Key')
     if (!encodedFileKey) {
-      return error(400, '缺少fileKey参数')
+      return error(400, 'Missing fileKey parameter')
     }
     const fileKey = decodeURIComponent(encodedFileKey)
 
-    // 获取分片数据
+    // Get chunk data
     const chunkData = await req.arrayBuffer()
     if (!chunkData || chunkData.byteLength === 0) {
-      return error(400, '分片数据为空')
+      return error(400, 'Chunk data is empty')
     }
 
-    // 上传分片到R2
+    // Upload chunk to R2
     const result = await R2.uploadPart(env, {
       uploadId,
       key: fileKey,
@@ -256,18 +225,13 @@ const request4MultipartChunk = async (env: Env, req: IRequest) => {
       },
     })
   } catch (err) {
-    console.error('上传分片失败', err)
-    return error(500, '上传分片失败')
+    console.error('Chunk upload failed', err)
+    return error(500, 'Chunk upload failed')
   }
 }
 
 /**
- * 完成分片上传
- * @route POST /api/file/multipart/complete/:uploadId
- * @param {string} uploadId - 上传ID
- * @query {string} fileKey - 文件路径
- * @body {parts: Array<{partNumber: number, etag: string}>}
- * @returns {Promise<Response>} 完成结果
+ * Complete multipart upload
  */
 word_router.post('/multipart/complete/:uploadId', async (req: IRequest, env: Env) =>
   request4MultipartComplete(env, req)
@@ -281,10 +245,10 @@ const request4MultipartComplete = async (env: Env, req: IRequest) => {
     }
 
     if (!uploadId || !fileKey || !parts || !Array.isArray(parts)) {
-      return error(400, '缺少必要参数')
+      return error(400, 'Missing required parameters')
     }
 
-    // 验证分片完整性
+    // Validate chunk integrity
     const sortedParts = parts
       .map((part) => ({
         partNumber: part.partNumber,
@@ -292,17 +256,17 @@ const request4MultipartComplete = async (env: Env, req: IRequest) => {
       }))
       .sort((a, b) => a.partNumber - b.partNumber)
 
-    // 检查分片序号连续性
+    // Check chunk sequence continuity
     for (let i = 0; i < sortedParts.length; i++) {
       if (sortedParts[i].partNumber !== i + 1) {
-        return error(400, `分片序号不连续，缺少第${i + 1}个分片`)
+        return error(400, `Chunk sequence not continuous, missing chunk ${i + 1}`)
       }
     }
 
-    // 完成R2分片上传
+    // Complete R2 multipart upload
     const result = await R2.completeMultipartUpload(env, { uploadId, key: fileKey, parts })
 
-    // 从fileKey中提取文件名信息
+    // Extract filename info from fileKey
     const pathParts = fileKey.split('/')
     const uniqueFilename = pathParts[pathParts.length - 1]
     const originalFilename = uniqueFilename.substring(
@@ -317,12 +281,12 @@ const request4MultipartComplete = async (env: Env, req: IRequest) => {
         etag: result.etag,
         size: result.size,
         uploadId,
-        message: '文件上传完成',
+        message: 'File upload completed',
       },
     })
   } catch (err) {
-    console.error('完成分片上传失败', err)
-    return error(500, '完成分片上传失败')
+    console.error('Failed to complete multipart upload', err)
+    return error(500, 'Failed to complete multipart upload')
   }
 }
 

@@ -1,16 +1,5 @@
-/**
- * D1数据库操作封装
- * 提供基础的CRUD操作，支持灵活的查询条件
- * @module bindings/d1
- */
-
 import { Constant } from '../constant'
 
-/**
- * 处理SQL查询条件
- * @param where 查询条件数组
- * @returns 处理后的SQL条件子句和参数值
- */
 const processWhere = (where?: WhereCondition[]) => {
   if (!where || where.length === 0) {
     return { whereClause: '', values: [] }
@@ -35,16 +24,9 @@ const processWhere = (where?: WhereCondition[]) => {
   return { whereClause: ` WHERE ${whereClause}`, values }
 }
 
-/**
- * D1数据库操作封装
- */
 export const D1 = {
   /**
-   * 查询单条数据
-   * @param env 环境变量
-   * @param table 表名
-   * @param where 查询条件
-   * @returns 单条记录或null
+   * Query single record
    */
   first: async <T>(
     env: Env,
@@ -65,13 +47,7 @@ export const D1 = {
   },
 
   /**
-   * 分页查询数据
-   * @param env 环境变量
-   * @param table 表名
-   * @param where 查询条件
-   * @param page 页码，从1开始
-   * @param size 每页大小，-1表示不限制
-   * @returns 数据列表
+   * Query data with pagination
    */
   page: async <T>(
     env: Env,
@@ -96,12 +72,7 @@ export const D1 = {
   },
 
   /**
-   * 插入数据
-   * @param env 环境变量
-   * @param table 表名
-   * @param data 要插入的数据
-   * @returns 插入记录的ID
-   * @throws 插入失败时抛出错误
+   * Insert data
    */
   insert: async (
     env: Env,
@@ -125,12 +96,7 @@ export const D1 = {
   },
 
   /**
-   * 更新数据
-   * @param env 环境变量
-   * @param table 表名
-   * @param data 要更新的数据
-   * @param where 更新条件
-   * @returns 更新的记录数
+   * Update data
    */
   update: async (
     env: Env,
@@ -158,11 +124,7 @@ export const D1 = {
   },
 
   /**
-   * 删除数据
-   * @param env 环境变量
-   * @param table 表名
-   * @param where 删除条件
-   * @returns 删除的记录数
+   * Delete data
    */
   delete: async (
     env: Env,

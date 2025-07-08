@@ -1,9 +1,3 @@
-/**
- * Cloudflare Workers 定时任务处理器
- * 自动清理过期的剪贴板数据和文件
- * @module scheduled
- */
-
 import { D1 } from '../bindings/d1'
 import { deleteKeyword } from '../api/data'
 
@@ -12,7 +6,6 @@ export default async (_controller: ScheduledController, env: Env, _ctx: Executio
   console.log(`🕒 Scheduled task started at ${new Date().toISOString()}`)
 
   try {
-    // 执行清理任务
     await cleanupExpiredData(env)
     console.log(`✅ Scheduled task completed successfully`)
   } catch (error) {
@@ -24,22 +17,17 @@ export default async (_controller: ScheduledController, env: Env, _ctx: Executio
   }
 }
 
-/**
- * 清理过期数据的核心函数
- * @param env 环境变量
- * @returns 清理结果统计
- */
 async function cleanupExpiredData(env: Env) {
   const currentTimestamp = Date.now()
 
   console.log(`🔍 Starting cleanup process, current timestamp: ${currentTimestamp}`)
 
-  // 清理过期的keywords
+  // Clean up expired keywords
   const expiredKeywords = await D1.page<KeywordDB>(
     env,
     'keyword',
     [{ key: 'expire_time', value: currentTimestamp, operator: '<' }],
-    -1, // 不限制页面大小，获取所有过期记录
+    -1, // No page size limit, get all expired records
     -1
   )
 
@@ -60,7 +48,7 @@ async function cleanupExpiredData(env: Env) {
       await deleteKeyword(env, keyword.word)
     } catch (error) {
       console.error(`❌ Failed to cleanup word: ${keyword.word}`, error)
-      // 继续处理其他记录，不因为单个记录失败而停止整个清理过程
+      // Continue processing other records, don't stop the entire cleanup process due to single record failure
     }
   }
 

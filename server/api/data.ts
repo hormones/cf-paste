@@ -12,17 +12,16 @@ const word_router = AutoRouter({ base: '/:word/api/data' })
 const view_router = AutoRouter({ base: '/v/:view_word/api/data' })
 
 /**
- * 获取关键词元数据详情
- * @returns {Promise<Response>} 关键词信息
+ * Get keyword metadata details
  */
 word_router.get('', async (req: IRequest, env: Env) => request4GetData(env, req))
 view_router.get('', async (req: IRequest, env: Env) => request4GetData(env, req))
 const request4GetData = async (env: Env, req: IRequest) => {
   console.log('data get', req.word)
-  // 1. 先获取数据库中的关键词信息
+  // First get keyword info from database
   const data = await D1.first<Keyword>(env, 'keyword', [{ key, value: req.word }])
 
-  // 2. 如果找到数据，则获取对应的内容
+  // If data found, get corresponding content
   if (data) {
     if (data.password) {
       data.password = Constant.PASSWORD_DISPLAY
@@ -33,18 +32,16 @@ const request4GetData = async (env: Env, req: IRequest) => {
     data.content = await downloadContent(env, req)
   }
 
-  // 浏览模式找不到数据则抛出404异常
+  // Throw 404 error in view mode if data not found
   if (!data && !req.edit) {
-    return error(404, '关键词不存在')
+    return error(404, 'Keyword not found')
   }
 
   return newResponse({ data: data })
 }
 
 /**
- * 创建新的关键词
- * @body {Object} data - 关键词数据
- * @returns {Promise<Response>} 创建结果，包含新记录ID
+ * Create new keyword
  */
 word_router.post('', async (req: IRequest, env: Env) => request4PostData(env, req))
 view_router.post('', async (req: IRequest, env: Env) => request4PostData(env, req))
@@ -52,23 +49,21 @@ const request4PostData = async (env: Env, req: IRequest) => {
   console.log('data post', req.word)
   const data: Keyword = (await req.json()) as Keyword
   const { content, ...keywordDB } = data
-  keywordDB.word = req.word // 防止用户传入word
+  keywordDB.word = req.word // Prevent user from passing word
 
-  // 如果设置了密码，则进行哈希处理
+  // Hash password if set
   if (keywordDB.password) {
     keywordDB.password = await Auth.hashPassword(keywordDB.password, req.word!, env)
   }
 
-  // 将content上传到R2
+  // Upload content to R2
   await uploadContent(env, req, content)
-  // word信息插入数据库
+  // Insert word info to database
   return D1.insert(env, 'keyword', keywordDB).then((data) => newResponse({ data }))
 }
 
 /**
- * 更新关键词信息（仅内容相关字段）
- * @body {Object} data - 要更新的数据
- * @returns {Promise<Response>} 更新结果，包含更新的记录数
+ * Update keyword info (content-related fields only)
  */
 word_router.put('', async (req: IRequest, env: Env) => request4PutData(env, req))
 view_router.put('', async (req: IRequest, env: Env) => request4PutData(env, req))
@@ -76,90 +71,85 @@ const request4PutData = async (env: Env, req: IRequest) => {
   console.log('data put', req.word)
   const data: Keyword = (await req.json()) as Keyword
 
-  // 将content上传到R2
+  // Upload content to R2
   await uploadContent(env, req, data.content)
-  // 更新数据库中的更新时间
+  // Update timestamp in database
   return D1.update(env, 'keyword', { word: req.word }, [{ key, value: req.word }]).then((data) =>
     newResponse({ data })
   )
 }
 
 /**
- * 删除关键词
- * @route DELETE /api/data
- * @returns {Promise<Response>} 删除结果，包含删除的记录数
+ * Delete keyword
  */
 word_router.delete('', async (req: IRequest, env: Env) => request4DeleteData(env, req))
 view_router.delete('', async (req: IRequest, env: Env) => request4DeleteData(env, req))
 const request4DeleteData = async (env: Env, req: IRequest) => {
   await deleteKeyword(env, req.word)
-  // 清除cookie
+  // Clear cookie
   const response = newResponse({ data: null })
   req.clearAuthCookie = true
   return response
 }
 
 /**
- * 保存设置（过期时间和密码）
- * @route PATCH /api/data/settings
- * @body {Object} settings - 设置数据 {expire_value: number, password?: string}
- * @returns {Promise<Response>} 更新结果，包含更新的记录数
+ * Save settings (expiry time and password)
  */
 word_router.patch('/settings', async (req: IRequest, env: Env) => request4PatchSettings(env, req))
 view_router.patch('/settings', async (req: IRequest, env: Env) => request4PatchSettings(env, req))
 const request4PatchSettings = async (env: Env, req: IRequest) => {
   const keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
   if (!keyword) {
-    return error(404, '关键词不存在')
+    return error(404, 'Keyword not found')
   }
 
   const settings = (await req.json()) as { expire_value: number; password?: string | null }
 
-  // 1. 验证expire_value是否在允许范围内
+  // 1. Validate expire_value is within allowed range
   if (!Constant.ALLOWED_EXPIRE_VALUES.includes(settings.expire_value)) {
-    return error(400, '无效的过期时间设置')
+    return error(400, 'Invalid expiry time setting')
   }
 
-  // 2. 构建更新数据
+  // 2. Build update data
   const updateData: Record<string, any> = {
     expire_value: settings.expire_value,
     expire_time: Date.now() + settings.expire_value * 1000,
   }
 
-  // 3. 处理密码设置和view_word更新
+  // 3. Handle password setting and view_word update
   let passwordChanged = false
   const newPassword = settings.password
 
   if (!newPassword) {
-    // 意图：移除密码
+    // Intent: remove password
     if (keyword.password) {
       passwordChanged = true
       updateData.password = ''
     }
   } else if (newPassword !== Constant.PASSWORD_DISPLAY) {
-    // 意图：设置或修改密码
+    // Intent: set or modify password
     const hashPassword = await Auth.hashPassword(newPassword, req.word!, env)
     if (hashPassword !== keyword.password) {
       passwordChanged = true
       updateData.password = hashPassword
     }
   }
-  // 如果 newPassword === '******', 则不处理密码字段
+  // If newPassword === '******', don't process password field
 
   if (passwordChanged) {
     updateData.view_word = Utils.getRandomWord(6)
   }
 
-  // 4. 更新数据库
+  // 4. Update database
   try {
     await D1.update(env, 'keyword', updateData, [{ key: 'word', value: req.word }])
 
-    const responseData: { message: string; view_word?: string } = { message: '设置已保存' }
+    const responseData: { message: string; view_word?: string } = { message: 'Settings saved' }
     if (passwordChanged && updateData.view_word) {
       responseData.view_word = updateData.view_word
     }
 
-    // 如果密码已更改，则设置授权cookie
+    // Set authorization cookie if password changed
     if (passwordChanged && updateData.password) {
       req.authorization = await Auth.encrypt(env, `${keyword.word}:${Date.now()}`)
     }
@@ -167,21 +157,19 @@ const request4PatchSettings = async (env: Env, req: IRequest) => {
     return newResponse({ data: responseData })
   } catch (err) {
     console.error('Settings update failed:', err)
-    return error(500, '保存设置失败')
+    return error(500, 'Failed to save settings')
   }
 }
 
 /**
- * 重置只读链接的 view_word
- * @route PATCH /api/data/view-word
- * @returns {Promise<Response>} 更新结果，包含新的 view_word
+ * Reset view_word for readonly link
  */
 word_router.patch('/view-word', async (req: IRequest, env: Env) => request4PatchViewWord(env, req))
 view_router.patch('/view-word', async (req: IRequest, env: Env) => request4PatchViewWord(env, req))
 const request4PatchViewWord = async (env: Env, req: IRequest) => {
   const keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
   if (!keyword) {
-    return error(404, '关键词不存在')
+    return error(404, 'Keyword not found')
   }
 
   const newViewWord = Utils.getRandomWord(6)
@@ -191,24 +179,21 @@ const request4PatchViewWord = async (env: Env, req: IRequest) => {
     return newResponse({ data: { view_word: newViewWord } })
   } catch (err) {
     console.error('View word reset failed:', err)
-    return error(500, '重置只读链接失败')
+    return error(500, 'Failed to reset readonly link')
   }
 }
 
 /**
- * 上传剪贴板内容到R2
- * @param env 环境变量
- * @param word 关键词
- * @param content 剪贴板内容
+ * Upload clipboard content to R2
  */
 const uploadContent = async (env: Env, req: IRequest, content: string) => {
-  // 如果content为空，则删除R2中的文件
+  // Delete file in R2 if content is empty
   if (!content) {
     return R2.delete(env, { prefix: req.word, name: Constant.PASTE_FILE })
   }
-  // 如果content不为空，则上传到R2
+  // Upload to R2 if content is not empty
   const contentBuffer = new TextEncoder().encode(content)
-  // 使用 Response 创建一个固定长度的流
+  // Create a fixed-length stream using Response
   await R2.upload(env, {
     prefix: req.word,
     name: Constant.PASTE_FILE,
@@ -227,11 +212,11 @@ const downloadContent = async (env: Env, req: IRequest) => {
 }
 
 export const deleteKeyword = async (env: Env, word: string) => {
-  // 删除R2中的index.txt文件
+  // Delete index.txt file in R2
   await R2.delete(env, { prefix: word, name: Constant.PASTE_FILE })
-  // 删除R2中的文件夹files
+  // Delete files folder in R2
   await R2.deleteFolder(env, { prefix: word + '/' + Constant.FILE_FOLDER })
-  // 删除数据库中的关键词信息
+  // Delete keyword info in database
   await D1.delete(env, 'keyword', [{ key, value: word }])
 }
 
