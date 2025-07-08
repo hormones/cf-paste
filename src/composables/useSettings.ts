@@ -1,7 +1,3 @@
-/**
- * 设置管理 Composable - 重构版
- * 使用统一的 Store 管理状态，Composable 只负责业务逻辑
- */
 import { computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { dataApi } from '@/api/data'
@@ -12,12 +8,8 @@ import type { Keyword } from '@/types'
 export function useSettings() {
   const appStore = useAppStore()
 
-    /**
-   * 打开设置对话框
-   */
   const openSettings = () => {
-    // 从 keyword 中读取当前设置
-    // 如果有密码，显示 ******；如果没有密码，显示空字符串
+    // Read current settings from keyword - show ****** if password exists, empty string if none
     const passwordValue = appStore.keyword.password || ''
 
     appStore.setSettingsData({
@@ -27,17 +19,11 @@ export function useSettings() {
     appStore.setShowSettings(true)
   }
 
-  /**
-   * 关闭设置对话框
-   */
   const closeSettings = () => {
     appStore.setShowSettings(false)
     appStore.resetSettings()
   }
 
-  /**
-   * 保存设置
-   */
   const saveSettings = async () => {
     appStore.setLoading(true)
     try {
@@ -48,7 +34,7 @@ export function useSettings() {
 
       const response = await dataApi.saveSettings(settings)
 
-      // 更新本地状态
+      // Update local state with server response
       const updatedFields: Partial<Keyword> = {
         expire_value: appStore.expiry,
         password: appStore.password || undefined,
@@ -72,7 +58,7 @@ export function useSettings() {
   }
 
   return {
-    // 状态 (来自 Store)
+    // State (from Store)
     password: computed({
       get: () => appStore.password,
       set: (value: string) => appStore.setSettingsData({

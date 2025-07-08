@@ -5,26 +5,26 @@
       :data="appStore.fileList"
       style="width: 100%"
       height="100%"
-      empty-text="暂无文件"
+      empty-text="No files"
     >
-      <el-table-column prop="name" label="文件名" min-width="180">
+      <el-table-column prop="name" label="Filename" min-width="180">
         <template #default="{ row }">
           <div class="file-name-cell">
             <span class="file-name-text">{{ row.name }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="size" label="大小" width="120">
+      <el-table-column prop="size" label="Size" width="120">
         <template #default="{ row }">
           {{ Utils.humanReadableSize(row.size) }}
         </template>
       </el-table-column>
-      <el-table-column prop="uploaded" label="创建时间" width="180">
+      <el-table-column prop="uploaded" label="Created" width="180">
         <template #default="{ row }">
           {{ new Date(row.uploaded).toLocaleString() }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" fixed="right" align="center" width="100">
+      <el-table-column label="Actions" fixed="right" align="center" width="100">
         <template #default="{ row }">
           <el-button
             class="action-btn"
@@ -67,14 +67,14 @@ const handleFileDownload = async (file: FileInfo) => {
 
 const handleFileDelete = async (file: FileInfo) => {
   try {
-    await ElMessageBox.confirm(`确定要删除文件 ${file.name} 吗？`, '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(`Are you sure you want to delete ${file.name}?`, 'Confirm', {
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
       type: 'warning',
     })
     await deleteFile(file.name)
   } catch (error) {
-    // ElMessageBox.confirm会处理取消操作的异常，这里无需额外处理
+    // ElMessageBox.confirm handles cancellation exceptions, no additional handling needed
   }
 }
 </script>

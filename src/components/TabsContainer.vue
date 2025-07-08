@@ -1,14 +1,14 @@
 <template>
   <div class="tabs-container">
-    <!-- 顶部操作栏 -->
+    <!-- Top action bar -->
     <div class="tabs-header">
       <el-tabs v-model="activeTab">
-        <el-tab-pane label="剪贴板" name="clipboard" />
+        <el-tab-pane label="Clipboard" name="clipboard" />
         <el-tab-pane :label="appStore.fileTabLabel" name="files" />
       </el-tabs>
     </div>
 
-    <!-- 内容区域 -->
+    <!-- Content area -->
     <div class="tab-content">
       <div v-show="activeTab === 'clipboard'" class="tab-pane clipboard-panel-wrapper">
         <ClipboardPanel v-model="appStore.keyword.content" @auto-save="handleAutoSave" />
@@ -48,27 +48,27 @@ const handleAutoSave = () => {
   flex-direction: column;
   gap: 1rem;
   transition: border-color 0.5s, background-color 0.5s;
-  overflow: hidden; /* 防止子元素溢出圆角 */
+  overflow: hidden; /* Prevent child elements from overflowing rounded corners */
 }
 
-/* 覆盖 Element Plus 的样式 */
+/* Override Element Plus styles */
 :deep(.el-tabs__header) {
   margin-bottom: 0;
 }
 :deep(.el-tabs__nav-wrap::after) {
-  display: none; /* 移除底部分割线 */
+  display: none; /* Remove bottom divider */
 }
 :deep(.el-tabs__item) {
-  padding: 0 16px; /* 减小内边距 */
+  padding: 0 16px; /* Reduce padding */
 }
 :deep(.el-tabs__item.is-active) {
-  color: var(--el-color-primary); /* 保持激活状态的品牌色 */
+  color: var(--el-color-primary); /* Maintain brand color for active state */
 }
 
 .tab-actions {
   display: flex;
   align-items: center;
-  flex-shrink: 0; /* 防止按钮组被压缩 */
+  flex-shrink: 0; /* Prevent button group from being compressed */
 }
 
 .tab-content {
@@ -86,7 +86,7 @@ const handleAutoSave = () => {
   overflow-y: auto;
 }
 
-/* 移动端样式 */
+/* Mobile styles */
 @media (max-width: 768px) {
   .tabs-header {
     flex-direction: column;

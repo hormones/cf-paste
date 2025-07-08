@@ -1,6 +1,6 @@
 /**
- * 极简文件上传器
- * 利用现有 axios 架构，两个函数解决一切
+ * Minimal file uploader
+ * Uses existing axios architecture, two functions solve everything
  */
 import { request } from '@/api/request'
 import { useAppStore } from '@/stores'
@@ -8,10 +8,10 @@ import { handleError } from './errorHandler'
 import type { PasteConfig } from '@/types'
 
 /**
- * 主上传函数 - 自动选择上传策略
- * @param file 要上传的文件
- * @param onProgress 进度回调函数 (percentage: 0-100)
- * @param signal 取消信号
+ * Main upload function - automatically selects upload strategy
+ * @param file File to upload
+ * @param onProgress Progress callback function (percentage: 0-100)
+ * @param signal Cancellation signal
  */
 export async function uploadFile(
   file: File,
@@ -23,17 +23,17 @@ export async function uploadFile(
     const config = appStore.pasteConfig
 
     if (!config) {
-      throw new Error('上传配置不可用。应用初始化可能失败。')
+      throw new Error('Upload configuration unavailable. Application initialization may have failed.')
     }
 
-    // 根据文件大小自动选择上传策略
+    // Automatically select upload strategy based on file size
     if (file.size > config.chunkThreshold && config.chunkSize > 0) {
       return await uploadChunked(file, config, onProgress, signal)
     } else {
       return await uploadDirect(file, onProgress, signal)
     }
   } catch (error) {
-    // 如果是取消错误，直接抛出原始错误，不要包装
+    // If it's a cancellation error, throw original error directly without wrapping
     if (
       error instanceof Error &&
       (error.name === 'AbortError' ||
@@ -45,13 +45,13 @@ export async function uploadFile(
     ) {
       throw error
     }
-    // 其他错误才进行包装
+    // Wrap other errors
     throw new Error(handleError(error))
   }
 }
 
 /**
- * 直传上传 - 利用专用的文件上传方法
+ * Direct upload - uses dedicated file upload method
  */
 async function uploadDirect(
   file: File,
@@ -65,7 +65,7 @@ async function uploadDirect(
 }
 
 /**
- * 分片上传 - 利用 axios 架构，支持进度监控和取消
+ * Chunked upload - uses axios architecture, supports progress monitoring and cancellation
  */
 async function uploadChunked(
   file: File,
@@ -77,7 +77,7 @@ async function uploadChunked(
   let fileKey = ''
 
   try {
-    // 1. 初始化分片上传
+    // 1. Initialize chunked upload
     const init = await request.post(
       '/file/multipart/init',
       {
@@ -90,12 +90,12 @@ async function uploadChunked(
 
     const { uploadId: id, totalChunks, fileKey: key } = init
     uploadId = id
-    fileKey = key // 使用服务端返回的完整fileKey路径
+    fileKey = key // Use complete fileKey path returned by server
     const parts: Array<{ partNumber: number; etag: string }> = []
 
-    // 2. 顺序上传分片（利用 axios 进度监控）
+    // 2. Upload chunks sequentially (using axios progress monitoring)
     for (let i = 0; i < totalChunks; i++) {
-      // 在每个分片开始前检查是否已被取消
+      // Check if cancelled before each chunk starts
       if (signal?.aborted) {
         throw new Error('Upload cancelled by user')
       }
@@ -104,7 +104,7 @@ async function uploadChunked(
       const end = Math.min(start + config.chunkSize, file.size)
       const chunk = file.slice(start, end)
 
-      // 上传单个分片，利用专用的文件上传方法
+      // Upload single chunk using dedicated file upload method
       const chunkResult = await request.uploadFile(
         `/file/multipart/chunk/${uploadId}/${i}`,
         chunk,
@@ -115,7 +115,7 @@ async function uploadChunked(
           signal,
           onProgress: onProgress
             ? (chunkProgress) => {
-                // 计算总体进度：已完成分片 + 当前分片进度
+                // Calculate overall progress: completed chunks + current chunk progress
                 const completedProgress = (i / totalChunks) * 100
                 const currentChunkProgress = (chunkProgress / 100) * (100 / totalChunks)
                 const totalProgress = Math.round(completedProgress + currentChunkProgress)
@@ -131,33 +131,33 @@ async function uploadChunked(
       })
     }
 
-    // 3. 完成分片上传
+    // 3. Complete chunked upload
     await request.post(
       `/file/multipart/complete/${uploadId}`,
       {
-        fileKey: fileKey, // 使用完整的fileKey路径，而不是file.name
+        fileKey: fileKey, // Use complete fileKey path instead of file.name
         parts,
       },
       { signal }
     )
 
-    // 确保进度达到100%
+    // Ensure progress reaches 100%
     if (onProgress) {
       onProgress(100)
     }
   } catch (error) {
-    // 清理失败的上传
+    // Clean up failed upload
     if (uploadId && fileKey) {
       try {
-        // 不再等待清理请求，直接"发后不理"，让它在后台执行
+        // Fire-and-forget cleanup request, let it execute in background
         request.delete(`/file/multipart/cancel/${uploadId}`, {
-          data: { fileKey: fileKey }, // 使用完整的fileKey路径，而不是file.name
+          data: { fileKey: fileKey }, // Use complete fileKey path instead of file.name
         })
       } catch (cleanupError) {
-        // 清理失败也不影响错误抛出
-        console.warn('清理失败的上传时出错:', cleanupError)
+        // Cleanup failure doesn't affect error throwing
+        console.warn('Error during cleanup of failed upload:', cleanupError)
       }
     }
-    throw error // 直接抛出原始错误，让上层统一处理
+    throw error // Throw original error directly, let upper layer handle uniformly
   }
 }

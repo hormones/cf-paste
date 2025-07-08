@@ -1,17 +1,17 @@
 <template>
   <div class="qrcode-panel card-style" v-if="appStore.keyword.id && appStore.readOnlyLink">
     <div class="panel-header">
-      <span>只读链接</span>
-      <el-icon class="refresh-btn" title="刷新链接" @click="resetViewWord">
+      <span>Read-only Link</span>
+      <el-icon class="refresh-btn" title="Refresh link" @click="resetViewWord">
         <Refresh />
       </el-icon>
     </div>
 
-    <div class="qrcode-wrapper" title="点击复制链接" @click="handleCopy(appStore.readOnlyLink)">
+    <div class="qrcode-wrapper" title="Click to copy link" @click="handleCopy(appStore.readOnlyLink)">
       <img v-if="qrCodeUrl" :src="qrCodeUrl" alt="QR Code" />
     </div>
 
-    <p class="link-text" title="点击复制链接" @click="handleCopy(appStore.readOnlyLink)">
+    <p class="link-text" title="Click to copy link" @click="handleCopy(appStore.readOnlyLink)">
       {{ appStore.readOnlyLink }}
     </p>
   </div>
@@ -45,7 +45,7 @@ const generateQRCode = async () => {
       })
     } catch (err) {
       console.error(err)
-      ElMessage.error('二维码生成失败')
+      ElMessage.error('QR code generation failed')
     }
   } else {
     qrCodeUrl.value = ''
@@ -56,7 +56,7 @@ watch(() => appStore.readOnlyLink, generateQRCode, { immediate: true })
 
 const handleCopy = (text: string) => {
   copy(text)
-  ElMessage.success('已复制到剪贴板')
+  ElMessage.success('Copied to clipboard')
 }
 </script>
 
@@ -99,7 +99,7 @@ const handleCopy = (text: string) => {
 .qrcode-wrapper {
   cursor: pointer;
   padding: 10px;
-  background-color: white; /* 始终为白色以获得最佳扫描效果 */
+  background-color: white; /* Always white for optimal scanning */
   border-radius: 8px;
   transition: transform 0.2s ease-out;
 }
@@ -124,7 +124,7 @@ const handleCopy = (text: string) => {
   cursor: pointer;
   box-sizing: border-box;
 
-  /* 超长链接截断 */
+  /* Truncate long links */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -3,7 +3,7 @@ import { RouterView } from 'vue-router'
 import { ElConfigProvider } from 'element-plus'
 import { useAppStore } from '@/stores'
 
-// 初始化主题管理
+// Initialize theme management
 const appStore = useAppStore()
 appStore.initTheme()
 </script>

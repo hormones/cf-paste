@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '@/stores'
 import { ElButton, ElMessageBox } from 'element-plus'
@@ -10,39 +9,33 @@ import { useMain } from '@/composables/useMain'
 const appStore = useAppStore()
 const { deleteKeyword } = useMain()
 const { theme: currentTheme } = storeToRefs(appStore)
-const { toggleTheme } = appStore // 直接解构新的 action
-/**
- * 打开设置对话框
- */
+const { toggleTheme } = appStore
+
 const openSettings = () => {
   appStore.showSettings = true
 }
 
-/**
- * 根据当前主题动态计算应显示的图标
- */
+// Dynamic theme icon based on current theme
 const themeIcon = computed(() => {
   return currentTheme.value === 'light' ? Sunny : Moon
 })
 
-/**
- * 根据当前主题动态计算提示文本
- */
+// Dynamic tooltip text based on current theme
 const themeTitle = computed(() => {
-  return currentTheme.value === 'light' ? '切换到深色模式' : '切换到亮色模式'
+  return currentTheme.value === 'light' ? 'Switch to dark mode' : 'Switch to light mode'
 })
 
 const handleDelete = async () => {
   try {
-    await ElMessageBox.confirm('确定要删除剪贴板内容和所有文件吗？', '警告', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm('Are you sure you want to delete all clipboard content and files?', 'Warning', {
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
       buttonSize: 'default',
       type: 'warning',
     })
     await deleteKeyword()
   } catch (error) {
-    // 用户取消操作时，ElMessageBox会抛出 'cancel'，这里无需处理
+    // User cancellation is handled by ElMessageBox, no additional processing needed
   }
 }
 </script>
@@ -50,7 +43,7 @@ const handleDelete = async () => {
 <template>
   <header class="page-header">
     <div class="header-title">
-      <span>剪切板</span>
+      <span>Clipboard</span>
     </div>
     <div class="header-actions">
       <el-button
@@ -72,7 +65,7 @@ const handleDelete = async () => {
         :icon="Setting"
         v-if="!appStore.viewMode"
         text
-        title="设置"
+        title="Settings"
         @click="openSettings"
       />
       <el-button :icon="themeIcon" text :title="themeTitle" @click="toggleTheme" />

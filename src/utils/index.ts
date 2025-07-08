@@ -1,16 +1,16 @@
 export const Utils = {
-  // 生成随机word
+  // Generate random word
   getRandomWord: (length = 6): string => {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
     return Array.from({ length }, () =>
       chars.charAt(Math.floor(Math.random() * chars.length))
     ).join('')
   },
-  // 验证word格式
+  // Validate word format
   isValidWord: (word: string): boolean => {
     return /^[a-zA-Z0-9_]{4,20}$/.test(word)
   },
-  // 将字节数转换为人类可读的文件大小
+  // Convert bytes to human-readable file size
   humanReadableSize(size: number) {
     const units = ['B', 'KB', 'MB', 'GB', 'TB']
     let unitIndex = 0
@@ -20,9 +20,7 @@ export const Utils = {
     }
     return `${size.toFixed(2)} ${units[unitIndex]}`
   },
-  /**
-   * 清理Cookie
-   */
+  // Clear cookies
   clearCookies() {
     document.cookie.split(';').forEach((c) => {
       document.cookie = c.replace(/^ +/, '').replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`)
@@ -31,11 +29,11 @@ export const Utils = {
 }
 
 /**
- * 计算平滑的上传速率和剩余时间
- * @param fileSize 文件总大小
- * @param uploadedBytes 已上传字节数
- * @param speedHistory 速度历史记录
- * @returns 速率和剩余时间信息
+ * Calculate smooth upload rate and remaining time
+ * @param fileSize Total file size
+ * @param uploadedBytes Uploaded bytes
+ * @param speedHistory Speed history records
+ * @returns Rate and remaining time information
  */
 export function calculateUploadStats(
   fileSize: number,
@@ -45,7 +43,7 @@ export function calculateUploadStats(
   uploadSpeed: number
   remainingTime: number
 } {
-  // 如果历史记录少于2个点，无法计算速率
+  // Cannot calculate rate with less than 2 points in history
   if (speedHistory.length < 2) {
     return {
       uploadSpeed: 0,
@@ -53,25 +51,25 @@ export function calculateUploadStats(
     }
   }
 
-  // 计算最近几个点的平均速率
+  // Calculate average rate from recent points
   const speeds: number[] = []
 
   for (let i = 1; i < speedHistory.length; i++) {
     const prev = speedHistory[i - 1]
     const curr = speedHistory[i]
-    const timeDiff = (curr.timestamp - prev.timestamp) / 1000 // 转换为秒
+    const timeDiff = (curr.timestamp - prev.timestamp) / 1000 // Convert to seconds
     const bytesDiff = curr.uploadedBytes - prev.uploadedBytes
 
     if (timeDiff > 0) {
-      speeds.push(bytesDiff / timeDiff) // 字节/秒
+      speeds.push(bytesDiff / timeDiff) // bytes/second
     }
   }
 
-  // 计算平均速率
+  // Calculate average rate
   const avgSpeed =
     speeds.length > 0 ? speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length : 0
 
-  // 计算剩余时间
+  // Calculate remaining time
   const remainingBytes = fileSize - uploadedBytes
   const remainingTime = avgSpeed > 0 ? remainingBytes / avgSpeed : 0
 
@@ -82,11 +80,11 @@ export function calculateUploadStats(
 }
 
 /**
- * 更新速度历史记录（保持最近5次）
- * @param speedHistory 当前历史记录
- * @param timestamp 时间戳
- * @param uploadedBytes 已上传字节数
- * @returns 更新后的历史记录
+ * Update speed history records (keep last 5)
+ * @param speedHistory Current history records
+ * @param timestamp Timestamp
+ * @param uploadedBytes Uploaded bytes
+ * @returns Updated history records
  */
 export function updateSpeedHistory(
   speedHistory: Array<{ timestamp: number; uploadedBytes: number }>,
@@ -95,7 +93,7 @@ export function updateSpeedHistory(
 ): Array<{ timestamp: number; uploadedBytes: number }> {
   const newHistory = [...speedHistory, { timestamp, uploadedBytes }]
 
-  // 保持最近5次记录
+  // Keep last 5 records
   if (newHistory.length > 5) {
     newHistory.shift()
   }
@@ -104,9 +102,9 @@ export function updateSpeedHistory(
 }
 
 /**
- * 格式化上传速率显示
- * @param bytesPerSecond 字节每秒
- * @returns 格式化的速率字符串
+ * Format upload rate display
+ * @param bytesPerSecond Bytes per second
+ * @returns Formatted rate string
  */
 export function formatUploadSpeed(bytesPerSecond: number): string {
   if (bytesPerSecond === 0) return '0 B/s'
@@ -124,22 +122,22 @@ export function formatUploadSpeed(bytesPerSecond: number): string {
 }
 
 /**
- * 格式化剩余时间显示
- * @param seconds 剩余秒数
- * @returns 格式化的时间字符串
+ * Format remaining time display
+ * @param seconds Remaining seconds
+ * @returns Formatted time string
  */
 export function formatRemainingTime(seconds: number): string {
-  if (seconds === 0 || !isFinite(seconds)) return '计算中...'
+  if (seconds === 0 || !isFinite(seconds)) return 'Calculating...'
 
   if (seconds < 60) {
-    return `${Math.ceil(seconds)}秒`
+    return `${Math.ceil(seconds)}s`
   } else if (seconds < 3600) {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = Math.ceil(seconds % 60)
-    return `${minutes}分${remainingSeconds}秒`
+    return `${minutes}m ${remainingSeconds}s`
   } else {
     const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
-    return `${hours}小时${minutes}分钟`
+    return `${hours}h ${minutes}m`
   }
 }

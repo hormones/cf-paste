@@ -1,7 +1,3 @@
-/**
- * 文件上传管理 Composable - 重构版
- * 使用统一的 Store 管理状态，Composable 只负责业务逻辑
- */
 import { ElMessage } from 'element-plus'
 import { fileApi } from '@/api/file'
 import { passApi } from '@/api/pass'
@@ -14,47 +10,39 @@ import { Constant } from '@/constant'
 export function useFileUpload() {
   const appStore = useAppStore()
 
-  /**
-   * 获取上传配置
-   */
   const fetchConfig = async () => {
     try {
       const config = await passApi.getPasteConfig()
       appStore.setPasteConfig(config)
     } catch (error) {
-      console.error('获取配置失败:', error)
+      console.error('Failed to fetch config:', error)
     }
   }
 
-  /**
-   * 获取文件列表
-   */
   const fetchFileList = async () => {
     try {
       const files = await fileApi.list()
       appStore.setFileList(files || [])
     } catch (error) {
-      console.error('获取文件列表失败:', error)
+      console.error('Failed to fetch file list:', error)
       appStore.setFileList([])
     }
   }
 
-  /**
-   * 上传文件
-   */
+  // Core upload function with progress tracking and rate limiting
   const uploadFile = async (file: File) => {
-    // 检查上传条件
+    // Check upload conditions
     if (!appStore.uploadFileCheck(file)) {
-      ElMessage.error('无法上传：已达到文件数量或大小限制')
+      ElMessage.error('Cannot upload: file count or size limit reached')
       return
     }
 
-    // 创建取消控制器
+    // Create cancellation controller
     const controller = new AbortController()
     const startTime = Date.now()
     let lastUpdateTime = startTime
 
-    // 创建上传状态（包含取消函数和速率统计字段）
+    // Create upload state with cancellation function and rate statistics
     const uploadState: UploadState = {
       currentFile: file,
       progress: 0,
@@ -70,40 +58,40 @@ export function useFileUpload() {
     appStore.addUploadState(file.name, uploadState)
 
     try {
-      // 执行上传
+      // Execute upload
       await fileApi.upload(
         file,
         (progress) => {
           const now = Date.now()
           const uploadedBytes = Math.round((progress / 100) * file.size)
 
-          // 节流：最少间隔500ms更新一次速度统计
+          // Throttling: update speed statistics at minimum 500ms intervals
           const shouldUpdateStats = now - lastUpdateTime >= 500
 
-          // 更新基本进度（每次都更新）
+          // Update basic progress (every time)
           appStore.updateUploadState(file.name, {
             progress,
             uploadedBytes,
           })
 
-          // 更新速度统计（节流更新）
+          // Update speed statistics (throttled)
           if (shouldUpdateStats) {
             lastUpdateTime = now
 
-            // 获取当前状态以更新速度历史
+            // Get current state to update speed history
             const currentState = appStore.uploadStates.get(file.name)
             if (currentState && currentState.speedHistory) {
-              // 更新速度历史记录
+              // Update speed history
               const newSpeedHistory = updateSpeedHistory(
                 currentState.speedHistory,
                 now,
                 uploadedBytes
               )
 
-              // 计算平滑的速率和剩余时间
+              // Calculate smooth rate and remaining time
               const stats = calculateUploadStats(file.size, uploadedBytes, newSpeedHistory)
 
-              // 更新状态
+              // Update state
               appStore.updateUploadState(file.name, {
                 speedHistory: newSpeedHistory,
                 uploadSpeed: stats.uploadSpeed,
@@ -115,7 +103,7 @@ export function useFileUpload() {
         controller.signal
       )
 
-      // 上传成功
+      // Upload successful
       appStore.updateUploadState(file.name, {
         status: 'completed',
         progress: 100,
@@ -126,13 +114,13 @@ export function useFileUpload() {
 
       ElMessage.success(Constant.MESSAGES.UPLOAD_SUCCESS)
 
-      // 刷新文件列表
+      // Refresh file list
       await fetchFileList()
 
-      // 立即清理上传状态
+      // Immediately clean up upload state
       appStore.removeUploadState(file.name)
     } catch (error) {
-      // 检查是否是用户取消
+      // Check if user cancelled
       if (
         error instanceof Error &&
         (error.name === 'AbortError' ||
@@ -147,7 +135,7 @@ export function useFileUpload() {
         return
       }
 
-      // 上传失败
+      // Upload failed
       const errorMessage = handleError(error)
       appStore.updateUploadState(file.name, {
         status: 'error',
@@ -159,15 +147,12 @@ export function useFileUpload() {
     }
   }
 
-  /**
-   * 删除文件
-   */
   const deleteFile = async (fileName: string) => {
     try {
       await fileApi.delete(fileName)
       ElMessage.success(Constant.MESSAGES.DELETE_SUCCESS)
 
-      // 刷新文件列表
+      // Refresh file list
       await fetchFileList()
     } catch (error) {
       ElMessage.error(Constant.MESSAGES.DELETE_FAILED)
@@ -175,15 +160,12 @@ export function useFileUpload() {
     }
   }
 
-  /**
-   * 删除所有文件
-   */
   const deleteAllFiles = async () => {
     try {
       const result = await fileApi.deleteAll()
       ElMessage.success(Constant.MESSAGES.DELETE_SUCCESS)
 
-      // 清空文件列表
+      // Clear file list
       appStore.setFileList([])
     } catch (error) {
       ElMessage.error(Constant.MESSAGES.DELETE_FAILED)
@@ -192,7 +174,7 @@ export function useFileUpload() {
   }
 
   return {
-    // 业务方法
+    // Business methods
     fetchConfig,
     fetchFileList,
     uploadFile,

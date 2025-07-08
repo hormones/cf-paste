@@ -1,6 +1,6 @@
 @import './base.css';
 
-/* 全局布局规则 - 统一宽度继承约定 */
+/* Global layout system - unified width inheritance convention */
 .layout-container {
   width: 100%;
   box-sizing: border-box;
@@ -18,7 +18,7 @@
   width: 100%;
 }
 
-/* Element Plus 组件统一宽度规则 */
+/* Element Plus component width normalization overrides */
 .el-space {
   width: 100% !important;
 }

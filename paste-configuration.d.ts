@@ -1,98 +1,91 @@
-/**
- * 全局类型定义文件
- * @module paste-configuration
- */
 import { IRequestStrict } from 'itty-router'
 
-/**
- * API响应数据结构
- */
 declare global {
   interface ApiResponse<T = never> {
-    /** 状态码 */
+    /** Status code */
     code?: number
-    /** 响应数据 */
+    /** Response data */
     data?: T | null
-    /** 响应消息 */
+    /** Response message */
     msg?: string
   }
 
   interface Keyword {
-    /** 主键ID */
+    /** Primary key ID */
     id: number
-    /** 关键词 */
+    /** Keyword */
     word: string
-    /** 剪贴板内容，最后会放到R2的word文件夹下，文件名为index.txt，不会存入到D1数据库中 */
+    /** Clipboard content - stored in R2 under word folder as index.txt, not in D1 database */
     content: string
-    /** 密码 */
+    /** Password */
     password?: string
-    /** 过期时间 */
+    /** Expiration time */
     expire_time: number
-    /** 用户选择的过期时长（秒），默认3天 */
+    /** User-selected expiration duration (seconds), default 3 days */
     expire_value?: number
-    /** 创建时间 */
+    /** Creation time */
     create_time: number
-    /** 更新时间 */
+    /** Update time */
     update_time: number
-    /** 随机密钥 */
+    /** Random key */
     view_word: string
-    /** 最后访问时间 */
+    /** Last access time */
     last_view_time: number
-    /** 访问次数 */
+    /** View count */
     view_count: number
   }
 
   interface Token {
-    /** 令牌 */
+    /** Token */
     token: string
-    /** 关键词 */
+    /** Keyword */
     word: string
-    /** 浏览密码 */
+    /** View password */
     view_word: string
-    /** 创建IP */
+    /** Creation IP */
     ip_address: string
-    /** 创建时间 */
+    /** Creation time */
     create_time: number
-    /** 过期时间 */
+    /** Expiration time */
     expire_time: number
   }
 
   type KeywordDB = Omit<Keyword, 'content'>
 
-  /** 数据库查询操作符 */
+  /** Database query operators */
   type Operator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'LIKE' | 'IN'
 
-  /** 查询条件结构 */
+  /** Query condition structure */
   type WhereCondition = {
-    /** 字段名 */
+    /** Field name */
     key: string
-    /** 字段值 */
+    /** Field value */
     value: string | number | Array<string | number>
-    /** 操作符，默认为 = */
+    /** Operator, defaults to = */
     operator?: Operator
   }
 
   type IContext = {
-    /** 关键词 */
+    /** Keyword */
     word: string
-    /** 浏览关键词 */
+    /** View keyword */
     view_word: string
-    /** 发起时间 */
+    /** Start time */
     startTime: number
   }
 
   type IRequest = {
-    /** 请求IP */
+    /** Request IP */
     ip: string
-    /** 函数路径 */
+    /** Function path */
     functionPath: string
-    /** 请求位置 */
+    /** Request location */
     location: string
-    /** 编辑模式，0表示浏览模式，1表示编辑模式 */
+    /** Edit mode: 0 for view mode, 1 for edit mode */
     edit: number
-    /** 授权信息 */
+    /** Authorization info */
     authorization: string
-    /** 清理授权信息 */
+    /** Clear auth cookie */
     clearAuthCookie: boolean
   } & IContext & IRequestStrict
 }

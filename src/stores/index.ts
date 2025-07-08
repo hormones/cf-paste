@@ -5,14 +5,14 @@ import { Constant } from '@/constant'
 
 export type Theme = 'light' | 'dark'
 
-// 默认晚上 8 点到早上 6 点为深色模式的判断标准
+// Default dark mode time range: 8 PM to 6 AM
 const DARK_MODE_START_HOUR = 20
 const DARK_MODE_END_HOUR = 6
 
-// 主应用状态管理 - 只负责状态，不包含业务逻辑
+// Main application state management - only handles state, not business logic
 export const useAppStore = defineStore('app', {
   state: () => ({
-    // 剪贴板状态
+    // Clipboard state
     keyword: {
       word: undefined,
       view_word: Utils.getRandomWord(6),
@@ -24,27 +24,27 @@ export const useAppStore = defineStore('app', {
     loading: false,
     showPasswordDialog: false,
 
-    // 文件状态
+    // File state
     fileList: [] as FileInfo[],
     uploadStates: new Map() as Map<string, UploadState>,
 
-    // 上传配置状态 - 集中管理
+    // Upload configuration state - centralized management
     pasteConfig: null as PasteConfig | null,
 
-    // 设置状态
+    // Settings state
     showSettings: false,
     showQRCodeDialog: false,
     password: '',
     expiry: Constant.EXPIRY_OPTIONS[2].value,
 
-    // UI状态
+    // UI state
     theme: 'light' as Theme,
     viewMode: true,
     urlPrefix: null as string | null,
   }),
 
   getters: {
-    // 剪贴板相关计算属性
+    // Clipboard related computed properties
     hasUnsavedChanges(): boolean {
       return (this.keyword.content || '') !== this.lastSavedContent
     },
@@ -57,10 +57,10 @@ export const useAppStore = defineStore('app', {
       return `/v/${this.keyword.view_word}`
     },
 
-    // 文件相关计算属性
+    // File related computed properties
     fileTabLabel(): string {
       const count = this.fileList.length
-      return count > 0 ? `文件 (${count})` : '文件'
+      return count > 0 ? `Files (${count})` : 'Files'
     },
 
     usedSpace(): number {
@@ -77,7 +77,7 @@ export const useAppStore = defineStore('app', {
       )
     },
 
-    // 设置相关计算属性
+    // Settings related computed properties
     getExpiryOptions() {
       return () => Constant.EXPIRY_OPTIONS
     },
@@ -89,13 +89,13 @@ export const useAppStore = defineStore('app', {
         return this.urlPrefix
       }
       const path = window.location.pathname
-      // 优先匹配 /v/xxx
+      // First match /v/xxx
       const viewMatch = path.match(/^\/v\/[a-zA-Z0-9_]+/)
       if (viewMatch) {
         this.urlPrefix = viewMatch[0]
         return this.urlPrefix
       }
-      // 再匹配 /xxx
+      // Then match /xxx
       const wordMatch = path.match(/^\/[a-zA-Z0-9_]+/)
       if (wordMatch) {
         this.urlPrefix = wordMatch[0]
@@ -105,16 +105,12 @@ export const useAppStore = defineStore('app', {
       return this.urlPrefix
     },
 
-    // 剪贴板状态更新
+    // Clipboard state updates
     setKeyword(keyword: Keyword) {
       this.keyword = keyword
     },
 
-    /**
-     * 检查是否可以上传文件
-     * @param file 上传的文件，允许覆盖
-     * @returns 是否可以上传
-     */
+    // Check if file can be uploaded, allows overwriting
     uploadFileCheck(file: File | null): boolean {
       if (!this.pasteConfig) {
         return false
@@ -166,7 +162,7 @@ export const useAppStore = defineStore('app', {
       this.uploadStates.clear()
     },
 
-    // 文件状态更新
+    // File state updates
     setFileList(files: FileInfo[]) {
       this.fileList = files
     },
@@ -194,7 +190,7 @@ export const useAppStore = defineStore('app', {
       this.uploadStates.clear()
     },
 
-    // 设置状态更新
+    // Settings state updates
     setShowSettings(show: boolean) {
       this.showSettings = show
     },
@@ -213,14 +209,9 @@ export const useAppStore = defineStore('app', {
       this.expiry = Constant.EXPIRY_OPTIONS[2].value
     },
 
-    // ==================
-    // 主题管理 Actions
-    // ==================
+    // Theme management actions
 
-    /**
-     * 应用当前主题设置到 DOM
-     * @private
-     */
+    // Apply current theme settings to DOM
     _applyTheme() {
       if (this.theme === 'dark') {
         document.documentElement.classList.add('dark')
@@ -229,27 +220,21 @@ export const useAppStore = defineStore('app', {
       }
     },
 
-    /**
-     * 切换主题：在 light 和 dark 之间循环
-     */
+    // Toggle theme between light and dark
     toggleTheme() {
       this.theme = this.theme === 'light' ? 'dark' : 'light'
       localStorage.setItem('theme', this.theme)
       this._applyTheme()
     },
 
-    /**
-     * 初始化主题
-     * 1. 优先从 localStorage 读取用户设置。
-     * 2. 如果没有，则根据当前时间设置初始主题。
-     */
+    // Initialize theme: 1. Read from localStorage first. 2. If not available, set based on current time.
     initTheme() {
       const savedTheme = localStorage.getItem('theme') as Theme | null
 
       if (savedTheme && ['light', 'dark'].includes(savedTheme)) {
         this.theme = savedTheme
       } else {
-        // 如果没有保存的主题，根据时间来决定初始主题
+        // If no saved theme, decide initial theme based on time
         const currentHour = new Date().getHours()
         if (currentHour >= DARK_MODE_START_HOUR || currentHour < DARK_MODE_END_HOUR) {
           this.theme = 'dark'

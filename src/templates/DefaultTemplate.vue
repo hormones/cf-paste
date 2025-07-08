@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 
-// 组件导入
+// Component imports
 import PageHeader from '@/components/PageHeader.vue'
 import PasswordDialog from '@/components/PasswordDialog.vue'
 import TabsContainer from '@/components/TabsContainer.vue'
@@ -9,37 +9,33 @@ import InfoPanel from '@/components/InfoPanel.vue'
 import QRCodePanel from '@/components/QRCodePanel.vue'
 import SettingsDialog from '@/components/SettingsDialog.vue'
 
-// Store 和 Composable 导入
+// Store and Composable imports
 import { useAppStore } from '@/stores'
 import { useMain } from '@/composables/useMain'
 import { useFileUpload } from '@/composables/useFileUpload'
 
-// ===================
-// Store 和 Composables
-// ===================
+// Store and Composables
 const appStore = useAppStore()
 
-// 业务逻辑 Composables
+// Business logic Composables
 const { fetchKeyword } = useMain()
 
 const { fetchConfig, fetchFileList } = useFileUpload()
 
-// ===================
-// 事件处理函数
-// ===================
+// Event handlers
 
 onMounted(async () => {
-  // 初始化配置
+  // Initialize configuration
   await fetchConfig()
 
-  // 加载内容
+  // Load content
   const keywordData = await fetchKeyword()
-  // 如果存在keyword，才加载文件列表
+  // If keyword exists, load file list
   if (keywordData) {
     await fetchFileList()
   }
 
-  // 设置全局 viewMode
+  // Set global viewMode
   appStore.viewMode = !appStore.keyword.word
 })
 </script>
@@ -48,7 +44,7 @@ onMounted(async () => {
   <div class="paste-container">
     <PageHeader />
 
-    <!-- 使用 el-row/el-col 替代自定义布局 -->
+    <!-- Use el-row/el-col to replace custom layout -->
     <el-row :gutter="20" class="main-layout">
       <el-col
         :span="appStore.viewMode ? 24 : 16"
@@ -70,7 +66,7 @@ onMounted(async () => {
 
     <SettingsDialog />
 
-    <!-- 用于显示二维码的对话框，同样使用 ElDialog -->
+    <!-- Dialog for displaying QR code, also uses ElDialog -->
     <el-dialog
       v-model="appStore.showQRCodeDialog"
       width="360px"
@@ -86,20 +82,20 @@ onMounted(async () => {
 
 <style scoped>
 .paste-container {
-  /* 容器样式 */
+  /* Container styles */
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  /* 使用 body 的背景色，这里不需要额外设置 */
+  /* Use body background color, no need to set additional background here */
 }
 
-/* 主要布局使用Element Plus的el-row/el-col，无需自定义样式 */
+/* Main layout uses Element Plus el-row/el-col, no need for custom styles */
 .main-layout {
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* 侧边栏样式 - 为基本信息和只读链接添加间距 */
+/* Sidebar styles - add spacing between basic info and read-only link */
 .side-panel {
   display: flex;
   flex-direction: column;
@@ -131,7 +127,7 @@ onMounted(async () => {
 </style>
 
 <style>
-/* 针对二维码弹窗的全局样式，移除默认内边距并使其背景透明 */
+/* Global styles for QR code popup, remove default padding and make background transparent */
 .qr-code-dialog .el-dialog__body {
   padding: 0;
 }

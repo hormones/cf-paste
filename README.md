@@ -1,6 +1,8 @@
 # CF-PASTE
 
-**一个基于 Cloudflare 全家桶构建的在线匿名剪贴板，无需注册，即开即用。**
+<p align="center">English | <a href="README_zh-cn.md">中文文档</a></p>
+
+**An online anonymous clipboard built with the Cloudflare stack. No registration required, ready to use instantly.**
 
 <p align="center">
   <img src="https://img.shields.io/badge/Vue.js-3.x-green" alt="Vue.js 3.x">
@@ -10,81 +12,84 @@
   <img src="https://img.shields.io/github/license/hormones/cf-paste" alt="License">
 </p>
 
-## ✨ 功能特性
-- [x] **大文件上传**：突破 Cloudflare Workers 的 100MB 上传限制。
-- [x] **多格式支持**：支持分享文本和文件。
-- [x] **批量上传**：支持最多10个文件，总大小不超过300MB（可通过修改配置调整）。
-- [x] **匿名分享**：无需注册登录，保护隐私。
-- [x] **密码保护**：为分享内容设置访问密码。
-- [x] **自定义有效期**：过期后自动删除，可选1小时到2年等多个时间段。
-- [ ] **Markdown 支持**：计划中。
-- [ ] **文件预览**：计划中。
 
-## 🚀 在线演示
+## ✨ Features
+
+- [x] **Large File Upload**: Bypass Cloudflare Workers' 100MB upload limit.
+- [x] **Multi-format Support**: Share both text and files.
+- [x] **Batch Upload**: Support up to 10 files with total size under 300MB (configurable).
+- [x] **Anonymous Sharing**: No registration or login required, privacy protected.
+- [x] **Password Protection**: Set access passwords for shared content.
+- [x] **Custom Expiration**: Automatic deletion after expiration, options from 1 hour to 2 years.
+- [ ] **Markdown Support**: Planned feature.
+- [ ] **File Preview**: Planned feature.
+
+## 🚀 Live Demo
 
 [https://cf-paste.a-e8c.workers.dev](https://cf-paste.a-e8c.workers.dev)
 
-## 🛠️ 使用方式
+## 🛠️ Usage
 
-1.  **随机模式**
-    访问网站主页 `https://www.example.com`，系统会自动跳转至一个随机生成的唯一地址，如 `https://www.example.com/xxxx`。
+1.  **Random Mode**
+    Visit the homepage `https://www.example.com`, the system will automatically redirect to a randomly generated unique address like `https://www.example.com/xxxx`.
 
-2.  **自定义模式**
-    直接在浏览器地址栏输入 `https://www.example.com/your_word`，`your_word` 即为您的自定义关键字。
-    
-    > **自定义关键字规则**：长度为4-20个字符，且只能包含字母、数字和下划线。
+2.  **Custom Mode**
+    Directly enter `https://www.example.com/your_word` in the browser address bar, where `your_word` is your custom keyword.
 
-## ⚙️ 部署指南
+    > **Custom Keyword Rules**: 4-20 characters long, containing only letters, numbers, and underscores.
 
-    环境要求：Node.js >= 20.x
+## ⚙️ Deployment Guide
 
-1.  **克隆仓库**
+    Requirements: Node.js >= 20.x
+
+1.  **Clone Repository**
 
     ```bash
     git clone git@github.com:hormones/cf-paste.git
     cd cf-paste && npm install
     ```
 
-2.  **登录 Cloudflare**
+2.  **Login to Cloudflare**
 
     ```bash
     npx wrangler login
     ```
 
-3.  **初始化 Cloudflare D1 和 R2**
+3.  **Initialize Cloudflare D1 and R2**
 
     ```bash
-    # 创建 D1 数据库 (记下 database_id)
+    # Create D1 database (note down the database_id)
     npx wrangler d1 create cf-paste
 
-    # 创建 R2 存储桶
+    # Create R2 bucket
     npx wrangler r2 bucket create cf-paste
     ```
 
-4.  **配置 `wrangler.jsonc`**
+4.  **Configure `wrangler.jsonc`**
 
-    复制 `wrangler.example.jsonc` 并重命名为 `wrangler.jsonc`。根据文件内的注释提示，填写必要的配置项，特别是 `database_id` 和 `AUTH_KEY`。
+    Copy `wrangler.example.jsonc` and rename it to `wrangler.jsonc`. Follow the comments in the file to fill in the necessary configuration items, especially `database_id` and `AUTH_KEY`.
 
-5.  **部署**
+5.  **Deploy**
 
-    - **生产环境**
+    - **Production Environment**
+
       ```bash
-      # 将 schema.sql 应用到远程数据库
+      # Apply schema.sql to remote database
       npx wrangler d1 execute cf-paste --remote --file=./schema.sql
-      # 部署到 Cloudflare
+      # Deploy to Cloudflare
       npm run deploy
       ```
 
-    - **本地开发**
+    - **Local Development**
       ```bash
-      # 将 schema.sql 应用到本地数据库
+      # Apply schema.sql to local database
       npx wrangler d1 execute cf-paste --local --file=./schema.sql
-      # 启动本地开发服务器
+      # Start local development server
       npm run preview
       ```
 
-## 🙏 参考文档
+## 🙏 Reference Documentation
 
-- [Cloudflare Workers 文档](https://developers.cloudflare.com/workers/)
-- [Vue 3 文档](https://vuejs.org/)
-- [TypeScript 文档](https://www.typescriptlang.org/docs/)
+- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
+- [Vue 3 Documentation](https://vuejs.org/)
+- [TypeScript Documentation](https://www.typescriptlang.org/docs/)

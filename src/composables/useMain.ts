@@ -1,7 +1,3 @@
-/**
- * 剪贴板管理 Composable - 重构版
- * 使用统一的 Store 管理状态，Composable 只负责业务逻辑
- */
 import { ElMessage } from 'element-plus'
 import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
@@ -11,9 +7,6 @@ import { Constant } from '@/constant'
 export function useMain() {
   const appStore = useAppStore()
 
-  /**
-   * 获取keyword
-   */
   const fetchKeyword = async () => {
     appStore.setLoading(true)
     try {
@@ -34,9 +27,7 @@ export function useMain() {
     }
   }
 
-  /**
-   * 处理获取错误
-   */
+  // Handle fetch errors with appropriate UI feedback
   const handleFetchError = (response: any) => {
     if (response?.status === 401) {
       appStore.setShowPasswordDialog(true)
@@ -46,27 +37,24 @@ export function useMain() {
     }
   }
 
-  /**
-   * 保存剪贴板内容
-   */
   const saveKeyword = async (silent = false) => {
     appStore.setLoading(true)
     try {
       const currentTime = Date.now()
 
       if (appStore.keyword.id) {
-        // 更新现有记录
+        // Update existing record
         const data: Partial<Keyword> = {
           content: appStore.keyword.content,
         }
         await dataApi.updateKeyword(data)
 
-        // 更新前端的update_time
+        // Update frontend update_time
         appStore.updateKeywordFields({
           update_time: currentTime,
         })
       } else {
-        // 创建新记录
+        // Create new record
         const data: Keyword = {
           word: appStore.keyword.word,
           view_word: appStore.keyword.view_word,
@@ -75,7 +63,7 @@ export function useMain() {
         }
         const id = await dataApi.createKeyword(data)
 
-        // 创建成功后更新前端的时间字段
+        // Update frontend time fields after successful creation
         appStore.updateKeywordFields({
           id,
           create_time: currentTime,
@@ -96,9 +84,6 @@ export function useMain() {
     }
   }
 
-  /**
-   * 删除keyword
-   */
   const deleteKeyword = async () => {
     try {
       await dataApi.deleteKeyword()
@@ -110,39 +95,33 @@ export function useMain() {
     }
   }
 
-  /**
-   * 复制只读链接
-   */
   const copyReadOnlyLink = async () => {
     try {
       const fullUrl = `${window.location.origin}${appStore.readOnlyUrl}`
       await navigator.clipboard.writeText(fullUrl)
-      ElMessage.success('链接已复制到剪贴板')
+      ElMessage.success('Link copied to clipboard')
     } catch (error) {
-      // 兜底方案：使用传统方法复制
+      // Fallback: use traditional copy method
       const textArea = document.createElement('textarea')
       textArea.value = `${window.location.origin}${appStore.readOnlyUrl}`
       document.body.appendChild(textArea)
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
-      ElMessage.success('链接已复制到剪贴板')
+      ElMessage.success('Link copied to clipboard')
     }
   }
 
-  /**
-   * 重置只读链接
-   */
   const resetViewWord = async () => {
     appStore.setLoading(true)
     try {
       const response = await dataApi.resetViewWord()
       if (response.view_word) {
         appStore.updateKeywordFields({ view_word: response.view_word })
-        ElMessage.success('只读链接已更新')
+        ElMessage.success('Read-only link updated')
       }
     } catch (error) {
-      ElMessage.error('重置失败，请稍后重试')
+      ElMessage.error('Reset failed, please try again later')
       throw error
     } finally {
       appStore.setLoading(false)

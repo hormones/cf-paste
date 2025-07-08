@@ -17,7 +17,7 @@ const currentTemplate = shallowRef<Component>(Template)
       </main>
     </template>
     <template #fallback>
-      <div class="loading">加载中...</div>
+      <div class="loading">Loading...</div>
     </template>
   </Suspense>
 </template>

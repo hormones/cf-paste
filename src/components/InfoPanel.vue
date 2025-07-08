@@ -1,30 +1,30 @@
 <template>
   <div class="info-panel card-style">
-    <div class="panel-header">基本信息</div>
+    <div class="panel-header">Basic Information</div>
     <div class="info-grid">
       <div class="info-item">
-        <span class="info-label">创建时间</span>
+        <span class="info-label">Created</span>
         <span class="info-value">{{ formatDate(appStore.keyword.create_time) }}</span>
       </div>
 
       <div class="info-item">
-        <span class="info-label">更新时间</span>
+        <span class="info-label">Updated</span>
         <span class="info-value">{{ formatDate(appStore.keyword.update_time) }}</span>
       </div>
 
       <!-- <div class="info-item">
-        <span class="info-label">上次查看</span>
+        <span class="info-label">Last Viewed</span>
         <span class="info-value">{{ formatDate(appStore.keyword.last_view_time) }}</span>
       </div> -->
 
       <div class="info-item">
-        <span class="info-label">过期时间</span>
+        <span class="info-label">Expires</span>
         <span class="info-value">{{ formatDate(appStore.keyword.expire_time) }}</span>
       </div>
 
       <!-- <div class="info-item">
-        <span class="info-label">查看次数</span>
-        <span class="info-value">{{ !appStore.keyword.id ? '-' : (appStore.keyword.view_count || 0) + '次' }}</span>
+        <span class="info-label">View Count</span>
+        <span class="info-value">{{ !appStore.keyword.id ? '-' : (appStore.keyword.view_count || 0) + ' times' }}</span>
       </div> -->
     </div>
   </div>
@@ -35,9 +35,6 @@ import { useAppStore } from '@/stores'
 
 const appStore = useAppStore()
 
-/**
- * 格式化时间戳为可读的日期时间字符串
- */
 const formatDate = (timestamp?: number): string => {
   if (!timestamp) {
     return '-'

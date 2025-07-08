@@ -1,7 +1,7 @@
 <template>
-  <!-- 上传区域容器 - 添加相对定位和统一的虚线边框 -->
+  <!-- Upload area container - adds relative positioning and unified dashed border -->
   <div class="upload-panel-container">
-    <!-- 上传卡片：始终在底层 -->
+    <!-- Upload card: always at the bottom layer -->
     <el-card class="layout-item upload-card" shadow="never">
       <el-upload
         :http-request="handleUpload"
@@ -11,11 +11,11 @@
         class="upload-dragger"
       >
         <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        <div class="el-upload__text">Drag files here, or <em>click to upload</em></div>
       </el-upload>
     </el-card>
 
-    <!-- 上传进度：当有上传任务时，通过绝对定位覆盖在上方 -->
+    <!-- Upload progress: when there are upload tasks, overlay on top with absolute positioning -->
     <UploadProgress
       v-if="appStore.uploadStates.size > 0"
       class="upload-progress-overlay"
@@ -39,13 +39,13 @@ const emit = defineEmits<{
 const appStore = useAppStore()
 const { uploadFile } = useFileUpload()
 
-// 内部处理上传逻辑
+// Internal upload logic handling
 const handleUpload = async (options: any) => {
   try {
     await uploadFile(options.file as File)
     emit('upload-success')
   } catch (error) {
-    console.error('文件上传失败:', error)
+    console.error('File upload failed:', error)
   }
 }
 
@@ -72,13 +72,13 @@ const handleCancelUpload = (fileName: string) => {
 <style scoped>
 .upload-panel-container {
   position: relative;
-  min-height: 230px; /* 增加最小高度以容纳进度条 */
+  min-height: 230px; /* Increase minimum height to accommodate progress bar */
   border: 2px dashed var(--el-border-color);
   border-radius: 8px;
   transition: border-color 0.3s ease;
-  display: flex; /* 使用flex布局让子元素撑满 */
-  align-items: center; /* 垂直居中 */
-  justify-content: center; /* 水平居中 */
+  display: flex; /* Use flex layout to make child elements fill */
+  align-items: center; /* Vertical center */
+  justify-content: center; /* Horizontal center */
 }
 
 .upload-panel-container:hover {
@@ -89,10 +89,10 @@ const handleCancelUpload = (fileName: string) => {
   border: none;
   background: transparent;
   box-shadow: none;
-  width: 100%; /* 确保卡片撑满容器 */
+  width: 100%; /* Ensure card fills container */
 }
 
-/* 覆盖 Element Plus 的默认卡片样式 */
+/* Override Element Plus default card styles */
 .upload-card :deep(.el-card__body) {
   padding: 0;
   height: 100%;
@@ -109,8 +109,8 @@ const handleCancelUpload = (fileName: string) => {
   justify-content: center;
   align-items: center;
   height: 100%;
-  border: none; /* 移除内部边框 */
-  background: transparent; /* 移除内部背景 */
+  border: none; /* Remove internal border */
+  background: transparent; /* Remove internal background */
 }
 
 .upload-progress-overlay {
@@ -119,9 +119,9 @@ const handleCancelUpload = (fileName: string) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--color-surface); /* 使用主题表面颜色覆盖 */
+  background-color: var(--color-surface); /* Use theme surface color overlay */
   z-index: 10;
   border-radius: 8px;
-  overflow-y: auto; /* 如果内容过多则滚动 */
+  overflow-y: auto; /* Scroll if content is too much */
 }
 </style>

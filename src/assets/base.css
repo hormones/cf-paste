@@ -28,12 +28,12 @@
   --color-heading: var(--vt-c-text-light-1);
 
   /* Backgrounds */
-  --color-background: var(--vt-c-white-soft); /* 主背景用柔和白 */
+  --color-background: var(--vt-c-white-soft); /* Main background with soft white */
   --color-background-mute: var(--vt-c-white-mute);
 
   /* UI Elements */
-  --color-surface: var(--vt-c-white); /* 卡片、表单等表面用纯白 */
-  --color-surface-hover: var(--vt-c-white-soft); /* 新增：悬浮背景色 */
+  --color-surface: var(--vt-c-white); /* Cards and forms with pure white */
+  --color-surface-hover: var(--vt-c-white-soft); /* Hover background color */
   --color-border: var(--vt-c-divider-light-2);
   --color-border-hover: var(--vt-c-divider-light-1);
 
@@ -46,12 +46,12 @@ html.dark {
   --color-heading: var(--vt-c-text-dark-1);
 
   /* Backgrounds */
-  --color-background: var(--vt-c-black); /* 深色主背景 */
+  --color-background: var(--vt-c-black); /* Dark main background */
   --color-background-mute: var(--vt-c-black-mute);
 
   /* UI Elements */
-  --color-surface: var(--vt-c-black-soft); /* 深色卡片 */
-  --color-surface-hover: var(--vt-c-black-mute); /* 新增：深色悬浮背景 */
+  --color-surface: var(--vt-c-black-soft); /* Dark cards */
+  --color-surface-hover: var(--vt-c-black-mute); /* Dark hover background */
   --color-border: var(--vt-c-divider-dark-2);
   --color-border-hover: var(--vt-c-divider-dark-1);
 }
@@ -92,9 +92,9 @@ body {
   scroll-behavior: smooth;
 }
 
-/* --- 为 Element Plus 对话框添加平滑的毛玻璃过渡效果 --- */
+/* Element Plus dialog backdrop blur transition effects */
 
-/* 1. 让遮罩层同时过渡 opacity 和 backdrop-filter */
+/* Overlay transitions for both opacity and backdrop-filter */
 .el-overlay {
   transition:
     opacity var(--el-transition-duration),
@@ -102,12 +102,12 @@ body {
   -webkit-transition:
     opacity var(--el-transition-duration),
     -webkit-backdrop-filter var(--el-transition-duration);
-  /* 默认结束状态，应用模糊效果 */
+  /* Default end state with blur effect */
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
-/* 2. 在动画的起始/结束帧，将模糊效果重置为0 */
+/* Reset blur effect to 0 in animation start/end frames */
 .el-fade-in-linear-enter-from,
 .el-fade-in-linear-leave-to {
   opacity: 0;

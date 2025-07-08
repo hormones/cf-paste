@@ -25,19 +25,19 @@ const router = createRouter({
       },
     },
     {
-      // 捕获其它所有路径
+      // Catch all other paths
       path: '/:pathMatch(.*)*',
       name: 'home',
       component: HomeView,
       beforeEnter: (to, from, next) => {
         const store = useAppStore()
-        const word = to.path.slice(1) // 移除开头的 /
-        // 如果word无效，重定向到随机word
+        const word = to.path.slice(1) // Remove leading /
+        // If word is invalid, redirect to random word
         if (!Utils.isValidWord(word)) {
           next(`/${Utils.getRandomWord()}`)
           return
         }
-        // 设置新的word
+        // Set new word
         store.updateKeywordFields({ word: word })
         next()
       },

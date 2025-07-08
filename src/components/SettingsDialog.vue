@@ -7,10 +7,9 @@ const { closeSettings, saveSettings } = useSettings()
 </script>
 
 <template>
-  <!-- 设置对话框: 使用 ElDialog 和 ElForm 重构 -->
   <el-dialog
     v-model="appStore.showSettings"
-    title="设置"
+    title="Settings"
     width="380px"
     :append-to-body="true"
     :close-on-click-modal="false"
@@ -19,10 +18,10 @@ const { closeSettings, saveSettings } = useSettings()
   >
     <div class="setting-item">
       <div class="setting-label">
-        <span>过期时间</span>
-        <small>链接和文件将在指定时间后失效</small>
+        <span>Expiration Time</span>
+        <small>Links and files will expire after the specified time</small>
       </div>
-      <el-select v-model="appStore.expiry" placeholder="选择有效期" style="width: 100%" size="large">
+      <el-select v-model="appStore.expiry" placeholder="Select validity period" style="width: 100%" size="large">
         <el-option
           v-for="option in appStore.getExpiryOptions()"
           :key="option.value"
@@ -34,12 +33,12 @@ const { closeSettings, saveSettings } = useSettings()
 
     <div class="setting-item">
       <div class="setting-label">
-        <span>访问密码</span>
-        <small>为您的内容添加密码保护</small>
+        <span>Access Password</span>
+        <small>Add password protection to your content</small>
       </div>
       <el-input
         v-model="appStore.password"
-        placeholder="留空则不设密码"
+        placeholder="Leave empty for no password"
         show-password
         clearable
         size="large"
@@ -48,8 +47,8 @@ const { closeSettings, saveSettings } = useSettings()
 
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="closeSettings" size="large">取消</el-button>
-        <el-button type="primary" @click="saveSettings" size="large">保存设置</el-button>
+        <el-button @click="closeSettings" size="large">Cancel</el-button>
+        <el-button type="primary" @click="saveSettings" size="large">Save Settings</el-button>
       </span>
     </template>
   </el-dialog>

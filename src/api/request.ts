@@ -9,30 +9,30 @@ import type { ApiResponse } from '@/types'
 import api from './index'
 import { ElMessage } from 'element-plus'
 
-// 与后端约定的请求成功码
+// Success code agreed with backend
 const SUCCESS_CODE = 0
 
-// 拓展 axios 请求配置，加入我们自己的配置
+// Extended axios request config with custom options
 interface RequestOptions {
-  // 是否全局展示请求错误信息
+  // Whether to globally display request error messages
   logError?: boolean
-  // 是否跳过响应转换
+  // Whether to skip response transformation
   skipResponseTransform?: boolean
 }
 
-// 拓展自定义请求配置
+// Extended custom request config
 interface ExpandAxiosRequestConfig<D = any> extends AxiosRequestConfig<D> {
   interceptorHooks?: InterceptorHooks
   added?: RequestOptions
 }
 
-// 拓展 axios 请求配置
+// Extended axios request config
 interface ExpandInternalAxiosRequestConfig<D = any> extends InternalAxiosRequestConfig<D> {
   interceptorHooks?: InterceptorHooks
   added?: RequestOptions
 }
 
-// 拓展 axios 返回配置
+// Extended axios response config
 interface ExpandAxiosResponse<T = any, D = any> extends AxiosResponse<T, D> {
   config: ExpandInternalAxiosRequestConfig<D>
 }
@@ -44,70 +44,70 @@ export interface InterceptorHooks {
   responseInterceptorCatch?: (error: any) => any
 }
 
-// 请求拦截器
+// Request interceptor
 const transform: InterceptorHooks = {
   requestInterceptor(config) {
-    // 动态拼接 URL
+    // Dynamically construct URL
     config.url = `${api.getUrlPrefix()}${config.url}`
     return config
   },
   requestInterceptorCatch(err) {
-    // 请求错误，这里可以用全局提示框进行提示
+    // Request error, can use global notification here
     return Promise.reject(err)
   },
   responseInterceptor(response: ExpandAxiosResponse) {
     if (response.status !== 200) return Promise.reject(response)
-    // 如果跳过响应转换，则直接返回响应
+    // If skip response transformation, return response directly
     if (response.config.added?.skipResponseTransform) {
       return response
     }
     const result = response.data as ApiResponse<any>
     if (result.code !== SUCCESS_CODE) {
-      // 这里全局提示错误
+      // Global error notification here
       if (response.config.added?.logError) {
         console.error(result.msg)
       }
       return Promise.reject(result)
     }
-    // 请求返回值，建议将 返回值 进行解构
+    // Request return value, recommend destructuring the return value
     return result.data
   },
   responseInterceptorCatch(err: any) {
-    // 如果是取消请求导致的错误，则直接抛出，由业务代码处理
+    // If it's a cancellation error, throw directly for business code to handle
     if (axios.isCancel(err) || err.name === 'AbortError' || err.name === 'CanceledError') {
       return Promise.reject(err)
     }
-    // 这里用来处理 http 常见错误，进行全局提示
+    // Handle common HTTP errors with global notifications
     const mapErrorStatus = new Map([
-      [400, '请求方式错误'],
-      [401, '请重新登录'],
-      [403, '拒绝访问'],
-      [404, '请求地址有误'],
-      [500, '服务器出错'],
-      [502, '服务器出错'],
-      [503, '服务不可用'],
-      [504, '请求超时'],
+      [400, 'Request method error'],
+      [401, 'Please login again'],
+      [403, 'Access denied'],
+      [404, 'Request address error'],
+      [500, 'Server error'],
+      [502, 'Server error'],
+      [503, 'Service unavailable'],
+      [504, 'Request timeout'],
     ])
-    // 网络错误或服务器未返回响应
+    // Network error or server didn't return response
     if (!err.response) {
-      console.error('网络错误，请检查您的网络连接')
-      ElMessage.error('网络错误，请检查您的网络连接')
+      console.error('Network error, please check your network connection')
+      ElMessage.error('Network error, please check your network connection')
       return Promise.reject(err)
     }
     const message =
-      err.response.data?.error || mapErrorStatus.get(err.response.status) || '请求出错，请稍后再试'
-    // 此处全局报错
+      err.response.data?.error || mapErrorStatus.get(err.response.status) || 'Request error, please try again later'
+    // Global error notification here
     ElMessage.error(message)
-    console.error('请求异常', err)
+    console.error('Request exception', err)
     return Promise.reject(err)
   },
 }
 
-// 导出Request类，可以用来自定义传递配置来创建实例
+// Export Request class for custom configuration to create instances
 class Request {
-  // axios 实例
+  // axios instance
   private _instance: AxiosInstance
-  // 默认配置
+  // Default configuration
   private _defaultConfig: ExpandAxiosRequestConfig = {
     baseURL: '',
     timeout: 5000,
@@ -119,13 +119,13 @@ class Request {
   private _interceptorHooks?: InterceptorHooks
 
   constructor(config: ExpandAxiosRequestConfig) {
-    // 使用axios.create创建axios实例
+    // Use axios.create to create axios instance
     this._instance = axios.create(Object.assign(this._defaultConfig, config))
     this._interceptorHooks = config.interceptorHooks
     this.setupInterceptors()
   }
 
-  // 通用拦截，在初始化时就进行注册和运行，对基础属性进行处理
+  // Common interceptors, registered and run during initialization to handle basic properties
   private setupInterceptors() {
     this._instance.interceptors.request.use(
       this._interceptorHooks?.requestInterceptor,
@@ -137,7 +137,7 @@ class Request {
     )
   }
 
-  // 定义核心请求
+  // Define core request
   public request(config: ExpandAxiosRequestConfig): Promise<AxiosResponse> {
     return this._instance.request(config)
   }
@@ -170,12 +170,7 @@ class Request {
     return this._instance.get(url, config)
   }
 
-  /**
-   * 文件上传专用方法 - 针对文件上传场景优化
-   * @param url 上传地址
-   * @param file 文件数据
-   * @param options 上传选项
-   */
+  // File upload method - optimized for file upload scenarios
   public uploadFile<T = any>(
     url: string,
     file: File | Blob,
@@ -191,7 +186,7 @@ class Request {
         'Content-Type': 'application/octet-stream',
         ...options?.headers,
       },
-      timeout: options?.timeout || 10 * 60 * 1000, // 默认10分钟超时
+      timeout: options?.timeout || 10 * 60 * 1000, // Default 10 minutes timeout
       signal: options?.signal,
       onUploadProgress: options?.onProgress
         ? (progressEvent) => {
@@ -207,7 +202,7 @@ class Request {
   }
 }
 
-// 具体使用时先实例一个请求对象
+// Create request instance for actual use
 export const request = new Request({
   baseURL: '',
   timeout: 5000,

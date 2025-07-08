@@ -25,14 +25,14 @@ const submitForm = async () => {
   loading.value = true
   try {
     await passApi.verifyPassword(password.value)
-    handleClose() // 验证成功后关闭对话框
-    // 验证成功后，直接加载数据
+    handleClose() // Close dialog after successful verification
+    // After successful verification, load data directly
     const keywordData = await fetchKeyword()
     if (keywordData) {
       await fetchFileList()
     }
   } catch (error: any) {
-    // 错误处理已在请求拦截器中完成
+    // Error handling is completed in request interceptor
   } finally {
     loading.value = false
   }
@@ -42,7 +42,7 @@ const submitForm = async () => {
 <template>
   <el-dialog
     :model-value="store.showPasswordDialog"
-    title="请输入密码"
+    title="Please enter password"
     width="380px"
     :append-to-body="true"
     :close-on-click-modal="false"
@@ -55,7 +55,7 @@ const submitForm = async () => {
     <el-input
       v-model="password"
       type="password"
-      placeholder="请输入访问密码"
+      placeholder="Please enter access password"
       show-password
       clearable
       autofocus
@@ -69,22 +69,22 @@ const submitForm = async () => {
         style="width: 100%"
         size="large"
       >
-        确认
+        Confirm
       </el-button>
     </template>
   </el-dialog>
 </template>
 
 <style scoped>
-/* 现代化的对话框样式 */
+/* Modern dialog styling */
 :deep(.modern-dialog) {
-  border-radius: 12px; /* 更大的圆角 */
+  border-radius: 12px; /* Larger rounded corners */
 }
 
 :deep(.modern-dialog .el-dialog__header) {
   text-align: center;
   padding-bottom: 12px;
-  /* 移除 header 和 body 之间的分隔线 */
+  /* Remove divider between header and body */
   border-bottom: none;
   margin-right: 0;
 }

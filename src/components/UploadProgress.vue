@@ -1,5 +1,5 @@
 <template>
-  <!-- 上传进度卡片 - 使用简洁样式，不改变边框 -->
+  <!-- Upload progress card - uses simple styling without changing borders -->
   <el-card class="upload-progress-card" shadow="never">
     <div class="upload-progress-container">
       <div
@@ -32,17 +32,17 @@
                 {{ getStatusText(state.status) }}
               </el-tag>
               <el-text v-if="state.status === 'error'" size="small" type="danger">
-                {{ state.error || '上传失败' }}
+                {{ state.error || 'Upload failed' }}
               </el-text>
             </div>
 
-            <!-- 上传速率和剩余时间显示 -->
+            <!-- Upload speed and remaining time display -->
             <div v-if="state.status === 'uploading'" class="progress-stats">
               <el-text size="small" type="info">
                 {{ formatUploadSpeed(state.uploadSpeed || 0) }}
               </el-text>
               <el-text size="small" type="info">
-                剩余: {{ formatRemainingTime(state.remainingTime || 0) }}
+                Remaining: {{ formatRemainingTime(state.remainingTime || 0) }}
               </el-text>
             </div>
           </div>
@@ -56,7 +56,7 @@
             round
             @click="$emit('retry', fileName)"
           >
-            重试
+            Retry
           </el-button>
           <el-button
             v-if="state.cancel && state.status === 'uploading'"
@@ -67,7 +67,7 @@
             round
             @click="$emit('cancel', fileName)"
           >
-            取消
+            Cancel
           </el-button>
           <el-button
             v-if="state.status === 'completed' || state.status === 'error'"
@@ -75,7 +75,7 @@
             round
             @click="$emit('dismiss', fileName)"
           >
-            关闭
+            Close
           </el-button>
         </div>
       </div>
@@ -120,20 +120,20 @@ const getTagType = (status: string) => {
 const getStatusText = (status: string) => {
   switch (status) {
     case 'uploading':
-      return '上传中'
+      return 'Uploading'
     case 'completed':
-      return '已完成'
+      return 'Completed'
     case 'error':
-      return '失败'
+      return 'Failed'
     default:
-      return '等待'
+      return 'Waiting'
   }
 }
 </script>
 
 <style scoped>
 .upload-progress-card {
-  /* 移除边框和背景，使用容器的虚线边框 */
+  /* Remove borders and background, use container's dashed border */
   border: none;
   background: transparent;
   box-shadow: none;

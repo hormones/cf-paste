@@ -1,11 +1,11 @@
-/** API响应数据结构 */
+/** API response data structure */
 export interface ApiResponse<T = never> {
   code: number
   data?: T | null
   msg?: string
 }
 
-/** 关键词数据结构 */
+/** Keyword data structure */
 export interface Keyword {
   id?: number | null
   word?: string
@@ -13,7 +13,7 @@ export interface Keyword {
   content?: string
   password?: string
   expire_time: number
-  /** 用户选择的过期时长（秒），默认3天 */
+  /** User-selected expiration duration (seconds), default 3 days */
   expire_value?: number
   create_time?: number
   update_time?: number
@@ -21,21 +21,21 @@ export interface Keyword {
   view_count?: number
 }
 
-/** 粘贴配置接口 */
+/** Paste configuration interface */
 export interface PasteConfig {
-  /** 单文件最大大小(字节) */
+  /** Maximum single file size (bytes) */
   maxFileSize: number
-  /** 总文件大小限制(字节) */
+  /** Total file size limit (bytes) */
   maxTotalSize: number
-  /** 最大文件数量 */
+  /** Maximum number of files */
   maxFiles: number
-  /** 分片大小(字节) */
+  /** Chunk size (bytes) */
   chunkSize: number
-  /** 分片上传阈值(字节) - 超过此大小使用分片上传 */
+  /** Chunked upload threshold (bytes) - use chunked upload for files exceeding this size */
   chunkThreshold: number
 }
 
-/** 文件信息结构 */
+/** File information structure */
 export interface FileInfo {
   name: string
   size: number
@@ -50,15 +50,15 @@ export interface UploadState {
   error: string | null
   cancel?: () => void
 
-  // 速度和时间统计字段 - 支持平滑计算
-  startTime?: number // 开始时间(毫秒)
-  uploadedBytes?: number // 已上传字节数
-  uploadSpeed?: number // 平均上传速度(字节/秒)
-  remainingTime?: number // 预估剩余时间(秒)
+  // Speed and time statistics fields - supports smooth calculation
+  startTime?: number // Start time (milliseconds)
+  uploadedBytes?: number // Uploaded bytes
+  uploadSpeed?: number // Average upload speed (bytes/second)
+  remainingTime?: number // Estimated remaining time (seconds)
 
-  // 用于平滑计算的历史记录 (最近5次)
+  // History for smooth calculation (last 5 records)
   speedHistory?: Array<{
-    timestamp: number // 时间戳(毫秒)
-    uploadedBytes: number // 累计上传字节数
+    timestamp: number // Timestamp (milliseconds)
+    uploadedBytes: number // Cumulative uploaded bytes
   }>
 }

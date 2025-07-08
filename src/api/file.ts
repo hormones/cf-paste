@@ -1,7 +1,3 @@
-/**
- * 文件相关API - 极简版
- * 利用新的统一上传架构
- */
 import { request } from './request'
 import type { FileInfo } from '@/types'
 import { uploadFile } from '@/utils/fileUploader'
@@ -9,20 +5,11 @@ import { handleError } from '@/utils/errorHandler'
 import api from './index'
 
 export const fileApi = {
-  /**
-   * 获取文件列表
-   */
   async list(): Promise<FileInfo[]> {
     return request.get<FileInfo[]>('/file/list')
   },
 
-  /**
-   * 上传文件 - 自动选择最佳策略（直传或分片）
-   * @param file 要上传的文件
-   * @param onProgress 进度回调函数
-   * @param signal 取消信号
-   * @returns 上传Promise
-   */
+  // Automatically selects optimal strategy (direct or chunked upload)
   async upload(
     file: File,
     onProgress?: (percentage: number) => void,
@@ -31,7 +18,7 @@ export const fileApi = {
     try {
       await uploadFile(file, onProgress, signal)
     } catch (error) {
-      // 如果是取消错误，直接抛出原始错误，不要包装
+      // If it's a cancellation error, throw original error without wrapping
       if (
         error instanceof Error &&
         (error.name === 'AbortError' ||
@@ -43,28 +30,19 @@ export const fileApi = {
       ) {
         throw error
       }
-      // 其他错误才进行包装
+      // Wrap other errors
       throw new Error(handleError(error))
     }
   },
 
-  /**
-   * 删除文件
-   */
   async delete(fileName: string): Promise<void> {
     return request.delete('/file', { params: { name: fileName } })
   },
 
-  /**
-   * 删除所有文件
-   */
   async deleteAll(): Promise<{ deletedCount: number; message: string }> {
     return request.delete('/file/all')
   },
 
-  /**
-   * 下载文件
-   */
   download(fileName: string): void {
     const url = `${api.getUrlPrefix()}/file/download?name=${encodeURIComponent(fileName)}`
     const link = document.createElement('a')
