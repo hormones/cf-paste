@@ -2,7 +2,7 @@
  * For more details on how to configure Wrangler, refer to:
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */
- {
+{
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "cf-paste",
   "compatibility_date": "2025-06-12",
@@ -57,21 +57,12 @@
   "vars": {
     // Random string containing letters and numbers, recommended length ~16 chars, MUST BE CHANGED!!!
     "AUTH_KEY": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-    "MAX_FILE_SIZE": "300",        // Maximum single file size (MB) - 300MB
-    "MAX_TOTAL_SIZE": "300",       // Total file size limit (MB) - 300MB
-    "MAX_FILES": "10",             // Maximum number of files
-    "CHUNK_SIZE": "50",            // Chunk size (MB) - 50MB, Worker request body limit is 100MB
-    "CHUNK_THRESHOLD": "100",      // Chunked upload threshold (MB) - use chunks for files >100MB, Worker request body limit is 100MB
-    // Internationalization Configuration
-    // Supported options: "auto", "en", "zh-CN"
-    // "auto" - Automatic language detection based on:
-    //   1. Environment LANGUAGE setting (this value)
-    //   2. Cloudflare request.cf.country (country detection)
-    //   3. Accept-Language header (browser preference)
-    //   4. Default to "en" if all above fail
-    // "en" - Force English for all users
-    // "zh-CN" - Force Simplified Chinese for all users
-    "LANGUAGE": "auto"
+    "LANGUAGE": "auto", // Language: auto(auto-detect) | en(force English) | zh-CN(force Chinese)
+    "MAX_FILE_SIZE": "300", // Maximum single file size (MB) - 300MB
+    "MAX_TOTAL_SIZE": "300", // Total file size limit (MB) - 300MB
+    "MAX_FILES": "10", // Maximum number of files
+    "CHUNK_SIZE": "50", // Chunk size (MB) - 50MB, Worker request body limit is 100MB
+    "CHUNK_THRESHOLD": "100" // Chunked upload threshold (MB) - use chunks for files >100MB, Worker request body limit is 100MB
   },
 
   /**

@@ -44,7 +44,7 @@ const submitForm = async () => {
 <template>
   <el-dialog
     :model-value="store.showPasswordDialog"
-    :title="t('dialogs.passwordRequired.title')"
+    :title="t('auth.passwordRequired')"
     width="380px"
     :append-to-body="true"
     :close-on-click-modal="false"
@@ -57,7 +57,7 @@ const submitForm = async () => {
     <el-input
       v-model="password"
       type="password"
-      :placeholder="t('dialogs.passwordRequired.placeholder')"
+      :placeholder="t('auth.enterPassword')"
       show-password
       clearable
       autofocus

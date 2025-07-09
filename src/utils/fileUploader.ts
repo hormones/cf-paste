@@ -5,6 +5,7 @@
 import { request } from '@/api/request'
 import { useAppStore } from '@/stores'
 import { handleError } from './errorHandler'
+import { useI18nComposable } from '@/composables/useI18n'
 import type { PasteConfig } from '@/types'
 
 /**
@@ -45,8 +46,12 @@ export async function uploadFile(
     ) {
       throw error
     }
-    // Wrap other errors
-    throw new Error(handleError(error))
+          // Wrap other errors
+      const { t } = useI18nComposable()
+      const errorKey = handleError(error)
+      // Check if it's an error key or direct message
+      const errorMessage = errorKey.startsWith('errors.') ? t(errorKey as any) : errorKey
+      throw new Error(errorMessage)
   }
 }
 

@@ -21,6 +21,7 @@
 - [x] **Anonymous Sharing**: No registration or login required, privacy protected.
 - [x] **Password Protection**: Set access passwords for shared content.
 - [x] **Custom Expiration**: Automatic deletion after expiration, options from 1 hour to 2 years.
+- [x] **Multi-language Support**: Support Chinese and English.
 - [ ] **Markdown Support**: Planned feature.
 - [ ] **File Preview**: Planned feature.
 
@@ -67,7 +68,7 @@
 
 4.  **Configure `wrangler.jsonc`**
 
-    Copy `wrangler.example.jsonc` and rename it to `wrangler.jsonc`. Follow the comments in the file to fill in the necessary configuration items, especially `database_id` and `AUTH_KEY`.
+    Copy `wrangler.example.jsonc` and rename it to `wrangler.jsonc`. Follow the comments in the file to fill in the necessary configuration items, especially `database_id`, `AUTH_KEY` and `LANGUAGE`.
 
 5.  **Deploy**
 

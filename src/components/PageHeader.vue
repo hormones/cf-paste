@@ -25,15 +25,15 @@ const themeIcon = computed(() => {
 // Dynamic tooltip text based on current theme
 const themeTitle = computed(() => {
   return currentTheme.value === 'light'
-    ? t('components.pageHeader.theme.switchToDark')
-    : t('components.pageHeader.theme.switchToLight')
+    ? t('app.theme.toDark')
+    : t('app.theme.toLight')
 })
 
 const handleDelete = async () => {
   try {
     await ElMessageBox.confirm(
-      t('dialogs.deleteConfirm.message'),
-      t('dialogs.deleteConfirm.title'),
+      t('clipboard.deleteConfirm'),
+      t('common.states.warning'),
       {
         confirmButtonText: t('common.buttons.confirm'),
         cancelButtonText: t('common.buttons.cancel'),
@@ -51,10 +51,11 @@ const handleDelete = async () => {
 <template>
   <header class="page-header">
     <div class="header-title">
-      <span>{{ t('components.pageHeader.title') }}</span>
+      <span>{{ t('app.title') }}</span>
     </div>
     <div class="header-actions">
       <el-button
+        size="small"
         type="danger"
         v-if="!appStore.viewMode"
         @click="handleDelete"
@@ -62,6 +63,7 @@ const handleDelete = async () => {
         text
       />
       <el-button
+        size="small"
         type="primary"
         @click="appStore.setShowQRCodeDialog(true)"
         :icon="InfoFilled"
@@ -70,13 +72,20 @@ const handleDelete = async () => {
         class="mobile-info-btn"
       />
       <el-button
+        size="small"
         :icon="Setting"
         v-if="!appStore.viewMode"
         text
         :title="t('common.buttons.settings')"
         @click="openSettings"
       />
-      <el-button :icon="themeIcon" text :title="themeTitle" @click="toggleTheme" />
+      <el-button
+        size="small"
+        :icon="themeIcon"
+        text
+        :title="themeTitle"
+        @click="toggleTheme"
+      />
     </div>
   </header>
 </template>

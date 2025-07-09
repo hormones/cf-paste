@@ -1,14 +1,14 @@
 <template>
   <div class="info-panel card-style">
-    <div class="panel-header">Basic Information</div>
+    <div class="panel-header">{{ t('clipboard.info.title') }}</div>
     <div class="info-grid">
       <div class="info-item">
-        <span class="info-label">Created</span>
+        <span class="info-label">{{ t('clipboard.info.created') }}</span>
         <span class="info-value">{{ formatDate(appStore.keyword.create_time) }}</span>
       </div>
 
       <div class="info-item">
-        <span class="info-label">Updated</span>
+        <span class="info-label">{{ t('clipboard.info.updated') }}</span>
         <span class="info-value">{{ formatDate(appStore.keyword.update_time) }}</span>
       </div>
 
@@ -18,7 +18,7 @@
       </div> -->
 
       <div class="info-item">
-        <span class="info-label">Expires</span>
+        <span class="info-label">{{ t('clipboard.info.expires') }}</span>
         <span class="info-value">{{ formatDate(appStore.keyword.expire_time) }}</span>
       </div>
 
@@ -32,12 +32,14 @@
 
 <script setup lang="ts">
 import { useAppStore } from '@/stores'
+import { useI18nComposable } from '@/composables/useI18n'
 
 const appStore = useAppStore()
+const { t } = useI18nComposable()
 
 const formatDate = (timestamp?: number): string => {
   if (!timestamp) {
-    return '-'
+    return t('common.placeholders.emptyValue')
   }
   return new Date(timestamp).toLocaleString()
 }

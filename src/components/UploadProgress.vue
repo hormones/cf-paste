@@ -31,9 +31,9 @@
               <el-tag :type="getTagType(state.status)" size="small" effect="light" round>
                 {{ getStatusText(state.status) }}
               </el-tag>
-              <el-text v-if="state.status === 'error'" size="small" type="danger">
-                {{ state.error || 'Upload failed' }}
-              </el-text>
+                        <el-text v-if="state.status === 'error'" size="small" type="danger">
+            {{ state.error || t('file.uploadFail') }}
+          </el-text>
             </div>
 
             <!-- Upload speed and remaining time display -->
@@ -41,9 +41,13 @@
               <el-text size="small" type="info">
                 {{ formatUploadSpeed(state.uploadSpeed || 0) }}
               </el-text>
-              <el-text size="small" type="info">
-                Remaining: {{ formatRemainingTime(state.remainingTime || 0) }}
-              </el-text>
+                          <el-text size="small" type="info">
+              {{
+                formatRemainingTime(state.remainingTime || 0)
+                  ? t('common.time.remaining', { time: formatRemainingTime(state.remainingTime || 0) })
+                  : t('common.time.calculating')
+              }}
+            </el-text>
             </div>
           </div>
         </div>
@@ -56,7 +60,7 @@
             round
             @click="$emit('retry', fileName)"
           >
-            Retry
+            {{ t('common.buttons.retry') }}
           </el-button>
           <el-button
             v-if="state.cancel && state.status === 'uploading'"
@@ -67,7 +71,7 @@
             round
             @click="$emit('cancel', fileName)"
           >
-            Cancel
+            {{ t('common.buttons.cancel') }}
           </el-button>
           <el-button
             v-if="state.status === 'completed' || state.status === 'error'"
@@ -75,7 +79,7 @@
             round
             @click="$emit('dismiss', fileName)"
           >
-            Close
+            {{ t('common.buttons.close') }}
           </el-button>
         </div>
       </div>
@@ -87,6 +91,7 @@
 import { Document } from '@element-plus/icons-vue'
 import { Utils, formatUploadSpeed, formatRemainingTime } from '@/utils'
 import { useAppStore } from '@/stores'
+import { useI18nComposable } from '@/composables/useI18n'
 
 interface Emits {
   (e: 'retry', fileName: string): void
@@ -95,6 +100,7 @@ interface Emits {
 }
 
 const appStore = useAppStore()
+const { t } = useI18nComposable()
 
 defineEmits<Emits>()
 
@@ -120,13 +126,13 @@ const getTagType = (status: string) => {
 const getStatusText = (status: string) => {
   switch (status) {
     case 'uploading':
-      return 'Uploading'
+      return t('common.states.uploading')
     case 'completed':
-      return 'Completed'
+      return t('common.states.completed')
     case 'error':
-      return 'Failed'
+      return t('common.states.failed')
     default:
-      return 'Waiting'
+      return t('common.states.waiting')
   }
 }
 </script>

@@ -3,7 +3,7 @@
     <!-- Top action bar -->
     <div class="tabs-header">
       <el-tabs v-model="activeTab">
-        <el-tab-pane :label="t('components.tabs.clipboard')" name="clipboard" />
+        <el-tab-pane :label="t('clipboard.tab')" name="clipboard" />
         <el-tab-pane :label="fileTabLabel" name="files" />
       </el-tabs>
     </div>
@@ -35,7 +35,7 @@ const { t } = useI18nComposable()
 // 本地化的文件标签页标题
 const fileTabLabel = computed(() => {
   const count = appStore.fileList.length
-  const baseLabel = t('components.tabs.files')
+  const baseLabel = t('file.tab')
   return count > 0 ? `${baseLabel} (${count})` : baseLabel
 })
 

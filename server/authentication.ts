@@ -16,7 +16,7 @@ export const prepare: RequestHandler<IRequest> = async (
 
   // Language detection and cookie handling
   let language = Auth.getCookie(req, 'language')
-
+  console.log('language: ', language)
   if (!language) {
     // Detect language using environment variables, CF headers, and Accept-Language
     language = detectLanguage(
@@ -29,6 +29,7 @@ export const prepare: RequestHandler<IRequest> = async (
     req.setLanguageCookie = language
   }
 
+  console.log('language: ', language)
   req.language = language
 }
 
@@ -114,22 +115,19 @@ export const authenticate: RequestHandler<IRequest> = async (
 }
 
 export const handle = (res: Response, req: IRequest) => {
+  const path = req.edit ? `/${req.word}` : `/v/${req.view_word}`
   if (req.authorization) {
-    const path = req.edit ? `/${req.word}` : `/v/${req.view_word}`
-    console.log('set cookie', path, req.authorization)
+    console.log('set cookie', req.authorization)
     Auth.setCookie(res, 'authorization', req.authorization, { path })
   } else if (req.clearAuthCookie) {
     console.log('clear cookie')
     Auth.clearCookie(res, 'authorization')
   }
 
-    // Set language cookie if detected for the first time
+  // Set language cookie if detected for the first time
   if (req.setLanguageCookie) {
     console.log('set language cookie', req.setLanguageCookie)
-    Auth.setCookie(res, 'language', req.setLanguageCookie, {
-      path: '/',
-      'max-age': 365 * 24 * 60 * 60 // 1 year
-    })
+    Auth.setCookie(res, 'language', req.setLanguageCookie, { path })
   }
 
   if (res.status !== 200) {

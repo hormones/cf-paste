@@ -42,7 +42,7 @@ export const D1 = {
       .first<T>()
       .catch((error) => {
         console.error('d1 first failed\n', sql, values, error)
-        throw new Error('first failed')
+        throw new Error('Database query failed')
       })
   },
 
@@ -91,7 +91,7 @@ export const D1 = {
       .run()
       .catch((error) => {
         console.error('insert failed', error, 'SQL:', sql, 'Values:', values)
-        throw new Error('insert failed')
+        throw new Error('Database insert failed')
       })
   },
 
@@ -119,7 +119,7 @@ export const D1 = {
       .run()
       .catch((error) => {
         console.error('update failed', error, 'SQL:', sql, 'Values:', values)
-        throw new Error('update failed')
+        throw new Error('Database update failed')
       })
   },
 
@@ -141,7 +141,7 @@ export const D1 = {
       .run()
       .catch((error) => {
         console.error('delete failed', error, 'SQL:', sql, 'Values:', values)
-        throw new Error('delete failed')
+        throw new Error('Database delete failed')
       })
   },
 }

@@ -8,6 +8,7 @@ import type {
 import type { ApiResponse } from '@/types'
 import api from './index'
 import { ElMessage } from 'element-plus'
+import { useI18nComposable } from '@/composables/useI18n'
 
 // Success code agreed with backend
 const SUCCESS_CODE = 0
@@ -78,24 +79,25 @@ const transform: InterceptorHooks = {
       return Promise.reject(err)
     }
     // Handle common HTTP errors with global notifications
+    const { t } = useI18nComposable()
     const mapErrorStatus = new Map([
-      [400, 'Request method error'],
-      [401, 'Please login again'],
-      [403, 'Access denied'],
-      [404, 'Request address error'],
-      [500, 'Server error'],
-      [502, 'Server error'],
-      [503, 'Service unavailable'],
-      [504, 'Request timeout'],
+      [400, t('errors.requestMethod')],
+      [401, t('errors.relogin')],
+      [403, t('errors.accessDenied')],
+      [404, t('errors.requestAddress')],
+      [500, t('errors.server')],
+      [502, t('errors.server')],
+      [503, t('errors.serviceUnavailable')],
+      [504, t('errors.requestTimeout')],
     ])
     // Network error or server didn't return response
     if (!err.response) {
-      console.error('Network error, please check your network connection')
-      ElMessage.error('Network error, please check your network connection')
+      console.error(t('errors.network'))
+      ElMessage.error(t('errors.network'))
       return Promise.reject(err)
     }
     const message =
-      err.response.data?.error || mapErrorStatus.get(err.response.status) || 'Request error, please try again later'
+      err.response.data?.error || mapErrorStatus.get(err.response.status) || t('errors.requestGeneral')
     // Global error notification here
     ElMessage.error(message)
     console.error('Request exception', err)

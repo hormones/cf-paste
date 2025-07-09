@@ -17,7 +17,7 @@ const currentTemplate = shallowRef<Component>(Template)
       </main>
     </template>
     <template #fallback>
-      <div class="loading">Loading...</div>
+      <div class="loading">{{ $t('common.states.loading') }}</div>
     </template>
   </Suspense>
 </template>

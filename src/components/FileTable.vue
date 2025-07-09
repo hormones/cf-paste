@@ -5,26 +5,26 @@
       :data="appStore.fileList"
       style="width: 100%"
       height="100%"
-      :empty-text="t('components.fileTable.noFiles')"
+      :empty-text="t('file.noFiles')"
     >
-      <el-table-column prop="name" :label="t('components.fileTable.name')" min-width="180">
+      <el-table-column prop="name" :label="t('common.table.name')" min-width="180">
         <template #default="{ row }">
           <div class="file-name-cell">
             <span class="file-name-text">{{ row.name }}</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="size" :label="t('components.fileTable.size')" width="120">
+      <el-table-column prop="size" :label="t('common.table.size')" width="120">
         <template #default="{ row }">
           {{ Utils.humanReadableSize(row.size) }}
         </template>
       </el-table-column>
-      <el-table-column prop="uploaded" :label="t('components.fileTable.uploadTime')" width="180">
+      <el-table-column prop="uploaded" :label="t('common.table.time')" width="180">
         <template #default="{ row }">
           {{ new Date(row.uploaded).toLocaleString() }}
         </template>
       </el-table-column>
-      <el-table-column :label="t('components.fileTable.actions')" fixed="right" align="center" width="100">
+      <el-table-column :label="t('common.table.actions')" fixed="right" align="center" width="100">
         <template #default="{ row }">
           <el-button
             class="action-btn"
@@ -69,8 +69,8 @@ const handleFileDownload = async (file: FileInfo) => {
 
 const handleFileDelete = async (file: FileInfo) => {
   try {
-    const message = t('dialogs.deleteConfirm.message').replace('all clipboard content and files', file.name)
-    await ElMessageBox.confirm(message, t('dialogs.deleteConfirm.title'), {
+    const message = t('file.deleteConfirm', { filename: file.name })
+    await ElMessageBox.confirm(message, t('common.states.warning'), {
       confirmButtonText: t('common.buttons.confirm'),
       cancelButtonText: t('common.buttons.cancel'),
       type: 'warning',

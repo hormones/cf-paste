@@ -50,9 +50,9 @@ export function useSettings() {
       appStore.updateKeywordFields(updatedFields)
 
       appStore.setShowSettings(false)
-      ElMessage.success(t('messages.settingsSaved'))
+      ElMessage.success(t('settings.saveOk'))
     } catch (error) {
-      ElMessage.error(t('messages.settingsFailed'))
+      ElMessage.error(t('settings.saveFail'))
       throw error
     } finally {
       appStore.setLoading(false)

@@ -11,7 +11,7 @@ const { t, getExpiryOptions } = useI18nComposable()
 <template>
   <el-dialog
     v-model="appStore.showSettings"
-    :title="t('components.settings.title')"
+    :title="t('settings.title')"
     width="380px"
     :append-to-body="true"
     :close-on-click-modal="false"
@@ -20,12 +20,12 @@ const { t, getExpiryOptions } = useI18nComposable()
   >
     <div class="setting-item">
       <div class="setting-label">
-        <span>{{ t('components.settings.expirationTime.label') }}</span>
-        <small>{{ t('components.settings.expirationTime.description') }}</small>
+        <span>{{ t('settings.expiry.label') }}</span>
+        <small>{{ t('settings.expiry.desc') }}</small>
       </div>
       <el-select
         v-model="appStore.expiry"
-        :placeholder="t('components.settings.expirationTime.placeholder')"
+        :placeholder="t('settings.expiry.placeholder')"
         style="width: 100%"
         size="large"
       >
@@ -40,12 +40,12 @@ const { t, getExpiryOptions } = useI18nComposable()
 
     <div class="setting-item">
       <div class="setting-label">
-        <span>{{ t('components.settings.accessPassword.label') }}</span>
-        <small>{{ t('components.settings.accessPassword.description') }}</small>
+        <span>{{ t('settings.password.label') }}</span>
+        <small>{{ t('settings.password.desc') }}</small>
       </div>
       <el-input
         v-model="appStore.password"
-        :placeholder="t('components.settings.accessPassword.placeholder')"
+        :placeholder="t('settings.password.placeholder')"
         show-password
         clearable
         size="large"
@@ -55,7 +55,7 @@ const { t, getExpiryOptions } = useI18nComposable()
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="closeSettings" size="large">{{ t('common.buttons.cancel') }}</el-button>
-        <el-button type="primary" @click="saveSettings" size="large">{{ t('common.buttons.saveSettings') }}</el-button>
+        <el-button type="primary" @click="saveSettings" size="large">{{ t('common.buttons.save') }}</el-button>
       </span>
     </template>
   </el-dialog>

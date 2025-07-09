@@ -6,135 +6,122 @@
       "confirm": "确认",
       "delete": "删除",
       "settings": "设置",
-      "saveSettings": "保存设置"
+      "retry": "重试",
+      "close": "关闭"
     },
-    "status": {
+    "states": {
       "loading": "加载中...",
       "success": "成功",
       "failed": "失败",
-      "warning": "警告"
+      "warning": "警告",
+      "uploading": "上传中",
+      "completed": "已完成",
+      "waiting": "等待中"
+    },
+    "table": {
+      "name": "名称",
+      "size": "大小",
+      "time": "时间",
+      "actions": "操作"
     },
     "time": {
-      "expiry": {
-        "1hour": "1小时",
-        "1day": "1天", 
-        "3days": "3天",
-        "1week": "1周",
-        "1month": "1个月",
-        "3months": "3个月"
-      }
+      "1h": "1小时",
+      "1d": "1天",
+      "3d": "3天",
+      "1w": "1周",
+      "1m": "1个月",
+      "3m": "3个月",
+      "remaining": "剩余: {time}",
+      "calculating": "计算中..."
+    },
+    "placeholders": {
+      "emptyValue": "-"
+    },
+    "tooltips": {
+      "clickToCopy": "点击复制链接",
+      "refresh": "刷新链接"
     }
   },
-  "components": {
-    "pageHeader": {
-      "title": "剪贴板",
-      "theme": {
-        "switchToDark": "切换到深色模式",
-        "switchToLight": "切换到浅色模式"
-      }
-    },
-    "tabs": {
-      "clipboard": "剪贴板",
-      "files": "文件"
-    },
-    "settings": {
-      "title": "设置",
-      "expirationTime": {
-        "label": "过期时间",
-        "description": "链接和文件将在指定时间后过期",
-        "placeholder": "选择有效期"
-      },
-      "accessPassword": {
-        "label": "访问密码", 
-        "description": "为您的内容添加密码保护",
-        "placeholder": "留空则不设密码"
-      }
-    },
-    "fileUpload": {
-      "dragText": "拖拽文件到这里，或",
-      "clickText": "点击上传",
-      "selectFiles": "选择文件"
-    },
-    "fileTable": {
-      "name": "文件名",
-      "size": "大小", 
-      "uploadTime": "上传时间",
-      "actions": "操作",
-      "download": "下载",
-      "preview": "预览",
-      "noFiles": "暂无上传文件"
+  "app": {
+    "title": "剪贴板",
+    "theme": {
+      "toDark": "切换到深色模式",
+      "toLight": "切换到浅色模式"
     }
   },
-  "messages": {
-    "noContent": "请输入内容或上传文件",
-    "saveSuccess": "保存成功",
-    "saveFailed": "保存失败",
-    "uploadSuccess": "上传成功",
-    "uploadFailed": "上传失败",
-    "uploadCancelled": "已取消上传",
-    "deleteSuccess": "删除成功",
-    "deleteFailed": "删除失败",
-    "settingsSaved": "设置已保存",
-    "settingsFailed": "设置保存失败",
-    "fetchFailed": "获取内容失败",
-    "downloadFailed": "下载失败",
+  "clipboard": {
+    "tab": "剪贴板",
+    "placeholder": "在此粘贴任何内容",
+    "saveOk": "保存成功",
+    "saveFail": "保存失败",
+    "deleteOk": "删除成功",
+    "deleteFail": "删除失败",
+    "fetchFail": "获取内容失败",
     "linkCopied": "链接已复制到剪贴板",
-    "readonlyLinkUpdated": "只读链接已更新",
-    "resetFailed": "重置失败，请稍后再试"
-  },
-  "dialogs": {
-    "deleteConfirm": {
-      "title": "警告",
-      "message": "确定要删除所有剪贴板内容和文件吗？"
+    "linkUpdated": "只读链接已更新",
+    "deleteConfirm": "确定要删除所有剪贴板内容和文件吗？",
+    "info": {
+      "title": "基本信息",
+      "created": "创建时间",
+      "updated": "更新时间",
+      "expires": "过期时间"
     },
-    "passwordRequired": {
-      "title": "需要密码",
-      "placeholder": "请输入密码",
-      "message": "此内容受密码保护"
+    "qrcode": {
+      "title": "只读链接",
+      "generateFailed": "二维码生成失败"
+    }
+  },
+  "file": {
+    "tab": "文件",
+    "uploadOk": "上传成功",
+    "uploadFail": "上传失败",
+    "uploadCancel": "已取消上传",
+    "downloadFail": "下载失败",
+    "deleteOk": "删除成功",
+    "deleteFail": "删除失败",
+    "deleteConfirm": "确定要删除文件 \"{filename}\" 吗？",
+    "dragHint": "拖拽文件到这里，或点击上传",
+    "noFiles": "暂无上传文件",
+    "uploadLimitReached": "无法上传：文件数量或大小超出限制"
+  },
+  "auth": {
+    "passwordRequired": "需要密码",
+    "enterPassword": "请输入密码",
+    "accessDenied": "访问被拒绝"
+  },
+  "settings": {
+    "title": "设置",
+    "saveOk": "设置已保存",
+    "saveFail": "设置保存失败",
+    "resetFail": "重置失败，请稍后再试",
+    "expiry": {
+      "label": "过期时间",
+      "desc": "链接和文件将在指定时间后过期",
+      "placeholder": "选择有效期"
+    },
+    "password": {
+      "label": "访问密码",
+      "desc": "为您的内容添加密码保护",
+      "placeholder": "留空则不设密码"
     }
   },
   "errors": {
-    "network": "网络错误",
-    "serverError": "服务器错误",
-    "notFound": "内容未找到",
-    "accessDenied": "访问被拒绝",
-    "invalidPassword": "密码错误",
-    "expiredContent": "内容已过期",
-    "authenticationRequired": "需要身份验证",
-    "reauthenticationRequired": "需要重新身份验证",
-    "authorizationFailed": "授权失败",
-    "accessErrorPageNotFound": "访问错误，页面未找到",
-    "incorrectPassword": "密码错误",
-    "fileNotFound": "文件未找到",
-    "fileNameRequired": "文件名是必需的",
-    "fileSizeExceedsLimit": "文件大小超过限制 {limit}MB",
-    "fileUploadFailed": "文件上传失败",
-    "fileDeletionFailed": "文件删除失败",
-    "batchFileDeletionFailed": "批量文件删除失败",
-    "listFilesFailed": "列出文件失败",
-    "streamOrLengthEmpty": "流或长度为空",
-    "chunkDataEmpty": "分块数据为空",
-    "chunkUploadFailed": "分块上传失败",
-    "failedToInitializeMultipartUpload": "初始化分片上传失败",
-    "failedToCancelMultipartUpload": "取消分片上传失败",
-    "failedToCompleteMultipartUpload": "完成分片上传失败",
-    "invalidUploadParameters": "无效的上传参数",
-    "missingFileKeyParameter": "缺少文件键参数",
-    "chunkSequenceNotContinuous": "分块序列不连续，缺少分块 {chunkNumber}",
-    "keywordNotFound": "关键词未找到",
-    "invalidExpiryTimeSetting": "无效的过期时间设置",
-    "failedToSaveSettings": "保存设置失败",
-    "failedToResetReadonlyLink": "重置只读链接失败",
-    "resourceNotFound": "资源未找到",
-    "missingRequiredParameters": "缺少必需参数",
-    "invalidParameters": "无效参数",
-    "invalidSecretKey": "无效的密钥",
-    "invalidKeyLength": "无效的密钥长度",
-    "passwordMissing": "缺少密码"
+    "network": "网络错误，请检查网络连接",
+    "server": "服务器错误",
+    "requestMethod": "请求方法错误",
+    "requestAddress": "请求地址错误",
+    "serviceUnavailable": "服务不可用",
+    "requestTimeout": "请求超时",
+    "relogin": "请重新登录",
+    "requestGeneral": "请求错误，请稍后重试",
+    "fileTooLarge": "文件过大，请选择较小的文件",
+    "accessDeniedWithPassword": "访问被拒绝，请检查密码或权限",
+    "operationCancelled": "操作已取消",
+    "operationFailed": "操作失败，请重试",
+    "apiExecuteError": "API执行错误"
   },
-  "validation": {
-    "required": "此项为必填项",
-    "tooLong": "内容过长",
-    "invalidFormat": "格式无效"
+  "messages": {
+    "success": "成功",
+    "settingsSaved": "设置已保存"
   }
 } 

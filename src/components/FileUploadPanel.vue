@@ -11,7 +11,7 @@
         class="upload-dragger"
       >
         <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-        <div class="el-upload__text">{{ t('components.fileUpload.dragText') }} <em>{{ t('components.fileUpload.clickText') }}</em></div>
+        <div class="el-upload__text">{{ t('file.dragHint') }}</div>
       </el-upload>
     </el-card>
 

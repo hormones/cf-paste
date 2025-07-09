@@ -31,7 +31,7 @@ export default {
     const executeRouter = () =>
       router.fetch(req, env, ctx).catch((err: any) => {
         console.log('api execute error', err)
-        return newResponse({ code: 500, msg: 'api execute error' })
+        return newResponse({ code: 500, msg: t('errors.apiExecuteError', req.language || 'en') }, req.language)
       })
 
     // Match /:word/api/ requests

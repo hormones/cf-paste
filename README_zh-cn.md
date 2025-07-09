@@ -20,6 +20,7 @@
 - [x] **匿名分享**：无需注册登录，保护隐私。
 - [x] **密码保护**：为分享内容设置访问密码。
 - [x] **自定义有效期**：过期后自动删除，可选 1 小时到 2 年等多个时间段。
+- [x] **多语言支持**：支持中文和英文。
 - [ ] **Markdown 支持**：计划中。
 - [ ] **文件预览**：计划中。
 
@@ -66,7 +67,7 @@
 
 4.  **配置 `wrangler.jsonc`**
 
-    复制 `wrangler.example.jsonc` 并重命名为 `wrangler.jsonc`。根据文件内的注释提示，填写必要的配置项，特别是 `database_id` 和 `AUTH_KEY`。
+    复制 `wrangler.example.jsonc` 并重命名为 `wrangler.jsonc`。根据文件内的注释提示，填写必要的配置项，特别是 `database_id` 、 `AUTH_KEY` 和 `LANGUAGE`。
 
 5.  **部署**
 

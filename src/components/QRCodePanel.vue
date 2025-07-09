@@ -1,17 +1,17 @@
 <template>
   <div class="qrcode-panel card-style" v-if="appStore.keyword.id && appStore.readOnlyLink">
     <div class="panel-header">
-      <span>Read-only Link</span>
-      <el-icon class="refresh-btn" title="Refresh link" @click="resetViewWord">
+      <span>{{ t('clipboard.qrcode.title') }}</span>
+      <el-icon class="refresh-btn" :title="t('common.tooltips.refresh')" @click="resetViewWord">
         <Refresh />
       </el-icon>
     </div>
 
-    <div class="qrcode-wrapper" title="Click to copy link" @click="handleCopy(appStore.readOnlyLink)">
-      <img v-if="qrCodeUrl" :src="qrCodeUrl" alt="QR Code" />
+    <div class="qrcode-wrapper" :title="t('common.tooltips.clickToCopy')" @click="handleCopy(appStore.readOnlyLink)">
+      <img v-if="qrCodeUrl" :src="qrCodeUrl" :alt="t('clipboard.qrcode.title')" />
     </div>
 
-    <p class="link-text" title="Click to copy link" @click="handleCopy(appStore.readOnlyLink)">
+    <p class="link-text" :title="t('common.tooltips.clickToCopy')" @click="handleCopy(appStore.readOnlyLink)">
       {{ appStore.readOnlyLink }}
     </p>
   </div>
@@ -22,6 +22,7 @@ import { useClipboard } from '@vueuse/core'
 import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores'
 import { useMain } from '@/composables/useMain'
+import { useI18nComposable } from '@/composables/useI18n'
 import { Refresh } from '@element-plus/icons-vue'
 import { ref, watch } from 'vue'
 import QRCodeGenerator from 'qrcode'
@@ -29,6 +30,7 @@ import QRCodeGenerator from 'qrcode'
 const appStore = useAppStore()
 const { copy } = useClipboard()
 const { resetViewWord } = useMain()
+const { t } = useI18nComposable()
 
 const qrCodeUrl = ref('')
 
@@ -45,7 +47,7 @@ const generateQRCode = async () => {
       })
     } catch (err) {
       console.error(err)
-      ElMessage.error('QR code generation failed')
+      ElMessage.error(t('clipboard.qrcode.generateFailed'))
     }
   } else {
     qrCodeUrl.value = ''
@@ -56,7 +58,7 @@ watch(() => appStore.readOnlyLink, generateQRCode, { immediate: true })
 
 const handleCopy = (text: string) => {
   copy(text)
-  ElMessage.success('Copied to clipboard')
+  ElMessage.success(t('clipboard.linkCopied'))
 }
 </script>
 

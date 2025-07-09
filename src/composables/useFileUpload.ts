@@ -35,7 +35,7 @@ export function useFileUpload() {
   const uploadFile = async (file: File) => {
     // Check upload conditions
     if (!appStore.uploadFileCheck(file)) {
-      ElMessage.error('Cannot upload: file count or size limit reached')
+      ElMessage.error(t('file.uploadLimitReached'))
       return
     }
 
@@ -114,7 +114,7 @@ export function useFileUpload() {
         remainingTime: 0,
       })
 
-      ElMessage.success(t('messages.uploadSuccess'))
+      ElMessage.success(t('file.uploadOk'))
 
       // Refresh file list
       await fetchFileList()
@@ -133,7 +133,7 @@ export function useFileUpload() {
           (error as any).code === 'ERR_CANCELED')
       ) {
         appStore.removeUploadState(file.name)
-        ElMessage.info(t('messages.uploadCancelled'))
+        ElMessage.info(t('file.uploadCancel'))
         return
       }
 
@@ -145,19 +145,19 @@ export function useFileUpload() {
         uploadSpeed: 0,
         remainingTime: 0,
       })
-      ElMessage.error(t('messages.uploadFailed'))
+      ElMessage.error(t('file.uploadFail'))
     }
   }
 
   const deleteFile = async (fileName: string) => {
     try {
       await fileApi.delete(fileName)
-      ElMessage.success(t('messages.deleteSuccess'))
+      ElMessage.success(t('file.deleteOk'))
 
       // Refresh file list
       await fetchFileList()
     } catch (error) {
-      ElMessage.error(t('messages.deleteFailed'))
+      ElMessage.error(t('file.deleteFail'))
       throw error
     }
   }
@@ -165,12 +165,12 @@ export function useFileUpload() {
   const deleteAllFiles = async () => {
     try {
       const result = await fileApi.deleteAll()
-      ElMessage.success(t('messages.deleteSuccess'))
+      ElMessage.success(t('file.deleteOk'))
 
       // Clear file list
       appStore.setFileList([])
     } catch (error) {
-      ElMessage.error(t('messages.deleteFailed'))
+      ElMessage.error(t('file.deleteFail'))
       throw error
     }
   }

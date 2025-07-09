@@ -35,7 +35,7 @@ export function useMain() {
       appStore.setShowPasswordDialog(true)
     } else {
       console.error(response)
-      ElMessage.error(response?.msg || response?.error || t('messages.fetchFailed'))
+      ElMessage.error(response?.msg || response?.error || t('clipboard.fetchFail'))
     }
   }
 
@@ -76,10 +76,10 @@ export function useMain() {
       appStore.setLastSavedContent(appStore.keyword.content || '')
 
       if (!silent) {
-        ElMessage.success(t('messages.saveSuccess'))
+        ElMessage.success(t('clipboard.saveOk'))
       }
     } catch (error) {
-      ElMessage.error(t('messages.saveFailed'))
+      ElMessage.error(t('clipboard.saveFail'))
       throw error
     } finally {
       appStore.setLoading(false)
@@ -90,9 +90,9 @@ export function useMain() {
     try {
       await dataApi.deleteKeyword()
       appStore.resetKeyword()
-      ElMessage.success(t('messages.deleteSuccess'))
+      ElMessage.success(t('clipboard.deleteOk'))
     } catch (error) {
-      ElMessage.error(t('messages.deleteFailed'))
+      ElMessage.error(t('clipboard.deleteFail'))
       throw error
     }
   }
@@ -101,7 +101,7 @@ export function useMain() {
     try {
       const fullUrl = `${window.location.origin}${appStore.readOnlyUrl}`
       await navigator.clipboard.writeText(fullUrl)
-      ElMessage.success(t('messages.linkCopied'))
+      ElMessage.success(t('clipboard.linkCopied'))
     } catch (error) {
       // Fallback: use traditional copy method
       const textArea = document.createElement('textarea')
@@ -110,7 +110,7 @@ export function useMain() {
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
-      ElMessage.success(t('messages.linkCopied'))
+      ElMessage.success(t('clipboard.linkCopied'))
     }
   }
 
@@ -120,10 +120,10 @@ export function useMain() {
       const response = await dataApi.resetViewWord()
       if (response.view_word) {
         appStore.updateKeywordFields({ view_word: response.view_word })
-        ElMessage.success(t('messages.readonlyLinkUpdated'))
+        ElMessage.success(t('clipboard.linkUpdated'))
       }
     } catch (error) {
-      ElMessage.error(t('messages.resetFailed'))
+      ElMessage.error(t('settings.resetFail'))
       throw error
     } finally {
       appStore.setLoading(false)

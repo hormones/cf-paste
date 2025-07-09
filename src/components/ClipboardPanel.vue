@@ -3,7 +3,7 @@
     v-model="modelValue"
     type="textarea"
     :autosize="{ minRows: 12, maxRows: 20 }"
-    placeholder="Paste any content here"
+    :placeholder="t('clipboard.placeholder')"
     :disabled="appStore.viewMode"
     @blur="handleBlur"
   />
@@ -11,10 +11,12 @@
 
 <script setup lang="ts">
 import { useAppStore } from '@/stores'
+import { useI18nComposable } from '@/composables/useI18n'
 
 const modelValue = defineModel<string>()
 
 const appStore = useAppStore()
+const { t } = useI18nComposable()
 
 const emit = defineEmits(['auto-save'])
 

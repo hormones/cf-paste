@@ -32,6 +32,11 @@ export function useI18n() {
     return 'en'
   }
 
+  // 更新浏览器标题
+  const updateDocumentTitle = () => {
+    document.title = i18n.global.t('app.title')
+  }
+
   // 更新 i18n 实例的语言设置
   const updateI18nLocale = (locale: 'en' | 'zh-CN') => {
     i18n.global.locale.value = locale as any
@@ -41,12 +46,23 @@ export function useI18n() {
   const initializeLanguage = () => {
     const currentLanguage = getCurrentLanguage()
     updateI18nLocale(currentLanguage)
+    updateDocumentTitle()
   }
 
   // 获取本地化的过期时间选项
   const getExpiryOptions = (): ExpiryOption[] => {
+    // 将EXPIRY_VALUES的key映射到语言文件中的时间key
+    const keyMapping = {
+      '1hour': '1h',
+      '1day': '1d',
+      '3days': '3d',
+      '1week': '1w',
+      '1month': '1m',
+      '3months': '3m'
+    } as const
+
     return EXPIRY_VALUES.map(option => ({
-      label: i18n.global.t(`common.time.expiry.${option.key}`),
+      label: i18n.global.t(`common.time.${keyMapping[option.key as keyof typeof keyMapping]}`),
       value: option.value
     }))
   }

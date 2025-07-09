@@ -5,6 +5,7 @@ export function detectLanguage(
   acceptLanguage?: string,
   country?: string
 ): Locale {
+  console.log('envLanguage|acceptLanguage|country: ', envLanguage, acceptLanguage, country)
   const supportedLocales = getSupportedLocales()
   const defaultLocale = getDefaultLocale()
 
