@@ -59,7 +59,7 @@ const handleRetry = async (fileName: string) => {
 }
 
 /**
- * 取消上传
+ * Cancel upload
  */
 const handleCancelUpload = (fileName: string) => {
   const state = appStore.uploadStates.get(fileName)

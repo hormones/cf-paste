@@ -13,13 +13,13 @@ import zhCnLocale from 'element-plus/es/locale/lang/zh-cn'
 
 const { getCurrentLanguage } = useI18n()
 
-// Element Plus 语言映射
+// Element Plus language mapping
 const elementLocaleMap = {
   'en': enLocale,
   'zh-CN': zhCnLocale
 }
 
-// 响应式计算当前 Element Plus 语言包
+// Reactively compute current Element Plus language pack
 const currentElementLocale = computed(() => {
   const currentLanguage = getCurrentLanguage()
   return elementLocaleMap[currentLanguage] || enLocale

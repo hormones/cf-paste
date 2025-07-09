@@ -127,7 +127,7 @@ export function formatUploadSpeed(bytesPerSecond: number): string {
  * @returns Formatted time string or null if calculating
  */
 export function formatRemainingTime(seconds: number): string | null {
-  if (seconds === 0 || !isFinite(seconds)) return null // 返回null，由组件处理国际化
+  if (seconds === 0 || !isFinite(seconds)) return null // Return null, let component handle i18n
 
   if (seconds < 60) {
     return `${Math.ceil(seconds)}s`

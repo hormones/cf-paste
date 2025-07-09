@@ -32,7 +32,7 @@ const appStore = useAppStore()
 const { saveKeyword } = useMain()
 const { t } = useI18nComposable()
 
-// 本地化的文件标签页标题
+// Localized file tab title
 const fileTabLabel = computed(() => {
   const count = appStore.fileList.length
   const baseLabel = t('file.tab')

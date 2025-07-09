@@ -2,11 +2,11 @@
  * Lightweight error handling
  * One function handles all error processing, keeping it simple
  *
- * Note: 由于这是工具函数，不使用组合函数，而是返回错误key，由调用方处理国际化
+ * Note: This is a utility function, does not use composables, returns error key for caller to handle i18n
  */
 
 /**
- * 错误代码映射
+ * Error code mappings
  */
 const ERROR_CODES = {
   NETWORK: 'errors.network',

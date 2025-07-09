@@ -4,54 +4,54 @@ import { messages } from '../../shared/locales'
 import type { MessageSchema } from '../../shared/locales'
 import { EXPIRY_VALUES, type ExpiryOption } from '../../shared/constants'
 
-// 创建 i18n 实例
+// Create i18n instance
 export const i18n = createI18n({
-  legacy: false, // 使用组合式 API 模式
-  locale: 'en', // 默认语言，会在应用启动后根据服务端检测结果更新
-  fallbackLocale: 'en', // 回退语言
+  legacy: false, // Use Composition API mode
+  locale: 'en', // Default language, will be updated based on server detection result after app startup
+  fallbackLocale: 'en', // Fallback language
   messages,
-  globalInjection: true // 允许在模板中直接使用 $t
+  globalInjection: true // Allow direct use of $t in templates
 })
 
 /**
- * 组合式 API 包装器，提供响应式的语言切换支持
+ * Composition API wrapper providing reactive language switching support
  */
 export function useI18n() {
   const appStore = useAppStore()
 
-  // 获取当前语言，优先从配置中读取
+  // Get current language, prioritize reading from config
   const getCurrentLanguage = (): 'en' | 'zh-CN' => {
     const configLanguage = appStore.pasteConfig?.language
 
-    // 如果配置中有语言信息，使用配置的语言
+    // If there's language info in config, use the configured language
     if (configLanguage) {
       return configLanguage as 'en' | 'zh-CN'
     }
 
-    // 默认使用英语
+    // Default to English
     return 'en'
   }
 
-  // 更新浏览器标题
+  // Update browser title
   const updateDocumentTitle = () => {
     document.title = i18n.global.t('app.title')
   }
 
-  // 更新 i18n 实例的语言设置
+  // Update i18n instance language setting
   const updateI18nLocale = (locale: 'en' | 'zh-CN') => {
     i18n.global.locale.value = locale as any
   }
 
-  // 初始化语言设置
+  // Initialize language settings
   const initializeLanguage = () => {
     const currentLanguage = getCurrentLanguage()
     updateI18nLocale(currentLanguage)
     updateDocumentTitle()
   }
 
-  // 获取本地化的过期时间选项
+  // Get localized expiry time options
   const getExpiryOptions = (): ExpiryOption[] => {
-    // 将EXPIRY_VALUES的key映射到语言文件中的时间key
+    // Map EXPIRY_VALUES keys to time keys in language files
     const keyMapping = {
       '1hour': '1h',
       '1day': '1d',
@@ -72,7 +72,7 @@ export function useI18n() {
     updateI18nLocale,
     initializeLanguage,
     getExpiryOptions,
-    // 导出 i18n 的 t 函数
+    // Export i18n's t function
     t: i18n.global.t,
     locale: i18n.global.locale
   }

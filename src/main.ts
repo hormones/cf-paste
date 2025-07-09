@@ -13,6 +13,6 @@ const pinia = createPinia()
 
 app.use(pinia)
 app.use(router)
-app.use(i18n) // 注册 Vue I18n 插件
+app.use(i18n) // Register Vue I18n plugin
 
 app.mount('#app')

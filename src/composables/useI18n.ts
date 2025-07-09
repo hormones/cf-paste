@@ -1,25 +1,25 @@
 import { useI18n as useVueI18n } from '../i18n'
 
 /**
- * 前端翻译函数包装器
- * 提供便捷的翻译功能和本地化选项
+ * Frontend translation function wrapper
+ * Provides convenient translation functionality and localization options
  */
 export function useI18nComposable() {
   const { t, getExpiryOptions, getCurrentLanguage, updateI18nLocale, initializeLanguage } = useVueI18n()
 
   return {
-    // 翻译函数
+    // Translation function
     t,
 
-    // 获取本地化的过期时间选项
+    // Get localized expiry time options
     getExpiryOptions,
 
-    // 语言管理函数
+    // Language management functions
     getCurrentLanguage,
     updateI18nLocale,
     initializeLanguage,
   }
 }
 
-// 导出类型
+// Export types
 export type { ExpiryOption } from '../../shared/constants'

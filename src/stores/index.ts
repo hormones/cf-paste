@@ -61,7 +61,7 @@ export const useAppStore = defineStore('app', {
     // File related computed properties
     fileTabLabel(): string {
       const count = this.fileList.length
-      // 这里暂时保持硬编码，将在组件中使用computed来实现国际化
+      // Temporarily keep hardcoded, will use computed in component for i18n
       return count > 0 ? `Files (${count})` : 'Files'
     },
 
@@ -79,7 +79,7 @@ export const useAppStore = defineStore('app', {
       )
     },
 
-    // Settings related computed properties - getExpiryOptions已移除，组件直接使用useI18nComposable().getExpiryOptions()
+    // Settings related computed properties - getExpiryOptions removed, components use useI18nComposable().getExpiryOptions() directly
   },
 
   actions: {
@@ -248,11 +248,11 @@ export const useAppStore = defineStore('app', {
 
 // export const useMainStore = defineStore('main', {
 //   state: () => ({
-//     // 是否暗黑模式
+//     // Whether dark mode is enabled
 //     isDark: false,
-//     // 是否为分享者模式
+//     // Whether in owner mode
 //     isOwnerMode: true,
-//     // 下载会话Token（仅浏览者模式使用）
+//     // Download session token (only used in viewer mode)
 //     sessionToken: '',
 //   }),
 //   getters: {
