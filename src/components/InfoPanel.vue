@@ -77,7 +77,7 @@ const formatDate = (timestamp?: number): string => {
 }
 
 .info-value {
-  color: var(--el-text-color-primary);
+  color: var(--el-text-color-secondary);
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 }
 </style>

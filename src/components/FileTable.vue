@@ -83,7 +83,63 @@ const handleFileDelete = async (file: FileInfo) => {
 </script>
 
 <style scoped>
+.file-table-container {
+  transition: background-color 0.5s, border-color 0.5s;
+}
+
 .el-button.action-btn {
   padding: 4px;
+  transition:
+    background-color 0.5s,
+    color 0.5s,
+    border-color 0.5s,
+    box-shadow 0.5s;
+}
+
+.file-name-cell {
+  transition: color 0.5s;
+}
+
+.file-name-text {
+  transition: color 0.5s;
+}
+
+:deep(.el-table),
+:deep(.el-table__header-wrapper),
+:deep(.el-table__header),
+:deep(.el-table__body-wrapper),
+:deep(.el-table__body),
+:deep(.el-scrollbar__view) {
+  transition: background-color 0.5s;
+}
+
+:deep(.el-table) {
+  transition: background-color 0.5s, border-color 0.5s;
+}
+
+:deep(.el-table__header th),
+:deep(.el-table__body td) {
+  transition: background-color 0.5s, color 0.5s, border-color 0.5s;
+}
+
+:deep(.el-table__row),
+:deep(.el-table__row:hover td) {
+  transition: background-color 0.5s;
+}
+
+:deep(.el-table__empty-block) {
+  transition: background-color 0.5s, color 0.5s, border-color 0.5s;
+}
+
+:deep(.el-table__empty-text) {
+  transition: color 0.5s, background-color 0.5s;
+}
+
+:deep(.el-button) {
+  transition: background-color 0.5s, color 0.5s, border-color 0.5s;
+}
+
+:deep(.action-btn .el-icon) {
+  transition: color 0.5s;
 }
 </style>

@@ -116,6 +116,7 @@
     "requestGeneral": "请求错误，请稍后重试",
     "fileTooLarge": "文件过大，请选择较小的文件",
     "accessDeniedWithPassword": "访问被拒绝，请检查密码或权限",
+    "accessErrorPageNotFound": "访问错误：页面未找到",
     "operationCancelled": "操作已取消",
     "operationFailed": "操作失败，请重试",
     "apiExecuteError": "API执行错误"

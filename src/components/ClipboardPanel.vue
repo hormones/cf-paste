@@ -21,6 +21,12 @@ const { t } = useI18nComposable()
 const emit = defineEmits(['auto-save'])
 
 const handleBlur = () => {
+  if (appStore.viewMode) {
+    return
+  }
+  if (appStore.lastSavedContent === modelValue.value) {
+    return
+  }
   emit('auto-save')
 }
 </script>
@@ -38,6 +44,9 @@ const handleBlur = () => {
 
   /* Ensure proper disabled state styling */
   box-shadow: none;
+
+  /* 添加过渡动画，与主题切换保持一致 */
+  transition: background-color 0.5s, color 0.5s, border-color 0.5s;
 }
 :deep(.el-textarea__inner:hover),
 :deep(.el-textarea__inner:focus) {

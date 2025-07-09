@@ -116,6 +116,7 @@
     "requestGeneral": "Request error, please try again later",
     "fileTooLarge": "File too large, please select a smaller file",
     "accessDeniedWithPassword": "Access denied, please check password or permissions",
+    "accessErrorPageNotFound": "Access error: Page not found",
     "operationCancelled": "Operation cancelled",
     "operationFailed": "Operation failed, please try again",
     "apiExecuteError": "API execution error"
