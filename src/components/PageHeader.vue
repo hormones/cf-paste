@@ -5,11 +5,13 @@ import { useAppStore } from '@/stores'
 import { ElButton, ElMessageBox } from 'element-plus'
 import { Setting, Moon, Sunny, InfoFilled, Delete } from '@element-plus/icons-vue'
 import { useMain } from '@/composables/useMain'
+import { useI18nComposable } from '@/composables/useI18n'
 
 const appStore = useAppStore()
 const { deleteKeyword } = useMain()
 const { theme: currentTheme } = storeToRefs(appStore)
 const { toggleTheme } = appStore
+const { t } = useI18nComposable()
 
 const openSettings = () => {
   appStore.showSettings = true
@@ -22,17 +24,23 @@ const themeIcon = computed(() => {
 
 // Dynamic tooltip text based on current theme
 const themeTitle = computed(() => {
-  return currentTheme.value === 'light' ? 'Switch to dark mode' : 'Switch to light mode'
+  return currentTheme.value === 'light'
+    ? t('components.pageHeader.theme.switchToDark')
+    : t('components.pageHeader.theme.switchToLight')
 })
 
 const handleDelete = async () => {
   try {
-    await ElMessageBox.confirm('Are you sure you want to delete all clipboard content and files?', 'Warning', {
-      confirmButtonText: 'Confirm',
-      cancelButtonText: 'Cancel',
-      buttonSize: 'default',
-      type: 'warning',
-    })
+    await ElMessageBox.confirm(
+      t('dialogs.deleteConfirm.message'),
+      t('dialogs.deleteConfirm.title'),
+      {
+        confirmButtonText: t('common.buttons.confirm'),
+        cancelButtonText: t('common.buttons.cancel'),
+        buttonSize: 'default',
+        type: 'warning',
+      }
+    )
     await deleteKeyword()
   } catch (error) {
     // User cancellation is handled by ElMessageBox, no additional processing needed
@@ -43,7 +51,7 @@ const handleDelete = async () => {
 <template>
   <header class="page-header">
     <div class="header-title">
-      <span>Clipboard</span>
+      <span>{{ t('components.pageHeader.title') }}</span>
     </div>
     <div class="header-actions">
       <el-button
@@ -65,7 +73,7 @@ const handleDelete = async () => {
         :icon="Setting"
         v-if="!appStore.viewMode"
         text
-        title="Settings"
+        :title="t('common.buttons.settings')"
         @click="openSettings"
       />
       <el-button :icon="themeIcon" text :title="themeTitle" @click="toggleTheme" />

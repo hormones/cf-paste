@@ -13,20 +13,24 @@ import SettingsDialog from '@/components/SettingsDialog.vue'
 import { useAppStore } from '@/stores'
 import { useMain } from '@/composables/useMain'
 import { useFileUpload } from '@/composables/useFileUpload'
+import { useI18n } from '@/i18n'
 
 // Store and Composables
 const appStore = useAppStore()
 
 // Business logic Composables
 const { fetchKeyword } = useMain()
-
 const { fetchConfig, fetchFileList } = useFileUpload()
+const { initializeLanguage } = useI18n()
 
 // Event handlers
 
 onMounted(async () => {
   // Initialize configuration
   await fetchConfig()
+
+  // Initialize language after config is loaded
+  initializeLanguage()
 
   // Load content
   const keywordData = await fetchKeyword()

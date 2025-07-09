@@ -5,6 +5,7 @@ import { newResponse } from '../utils/response'
 import { Auth } from '../utils/auth'
 import { Constant } from '../constant'
 import { Utils } from '../utils'
+import { t } from '../i18n'
 
 const key = 'word'
 
@@ -34,7 +35,7 @@ const request4GetData = async (env: Env, req: IRequest) => {
 
   // Throw 404 error in view mode if data not found
   if (!data && !req.edit) {
-    return error(404, 'Keyword not found')
+    return error(404, t('errors.keywordNotFound', req.language))
   }
 
   return newResponse({ data: data })
@@ -100,14 +101,14 @@ view_router.patch('/settings', async (req: IRequest, env: Env) => request4PatchS
 const request4PatchSettings = async (env: Env, req: IRequest) => {
   const keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
   if (!keyword) {
-    return error(404, 'Keyword not found')
+    return error(404, t('errors.keywordNotFound', req.language))
   }
 
   const settings = (await req.json()) as { expire_value: number; password?: string | null }
 
   // 1. Validate expire_value is within allowed range
   if (!Constant.ALLOWED_EXPIRE_VALUES.includes(settings.expire_value)) {
-    return error(400, 'Invalid expiry time setting')
+    return error(400, t('errors.invalidExpiryTimeSetting', req.language))
   }
 
   // 2. Build update data
@@ -157,7 +158,7 @@ const request4PatchSettings = async (env: Env, req: IRequest) => {
     return newResponse({ data: responseData })
   } catch (err) {
     console.error('Settings update failed:', err)
-    return error(500, 'Failed to save settings')
+    return error(500, t('errors.failedToSaveSettings', req.language))
   }
 }
 
@@ -169,7 +170,7 @@ view_router.patch('/view-word', async (req: IRequest, env: Env) => request4Patch
 const request4PatchViewWord = async (env: Env, req: IRequest) => {
   const keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
   if (!keyword) {
-    return error(404, 'Keyword not found')
+    return error(404, t('errors.keywordNotFound', req.language))
   }
 
   const newViewWord = Utils.getRandomWord(6)
@@ -179,7 +180,7 @@ const request4PatchViewWord = async (env: Env, req: IRequest) => {
     return newResponse({ data: { view_word: newViewWord } })
   } catch (err) {
     console.error('View word reset failed:', err)
-    return error(500, 'Failed to reset readonly link')
+    return error(500, t('errors.failedToResetReadonlyLink', req.language))
   }
 }
 
@@ -189,7 +190,7 @@ const request4PatchViewWord = async (env: Env, req: IRequest) => {
 const uploadContent = async (env: Env, req: IRequest, content: string) => {
   // Delete file in R2 if content is empty
   if (!content) {
-    return R2.delete(env, { prefix: req.word, name: Constant.PASTE_FILE })
+    return R2.delete(env, { prefix: req.word, name: Constant.PASTE_FILE, language: req.language })
   }
   // Upload to R2 if content is not empty
   const contentBuffer = new TextEncoder().encode(content)
@@ -199,6 +200,7 @@ const uploadContent = async (env: Env, req: IRequest, content: string) => {
     name: Constant.PASTE_FILE,
     length: contentBuffer.length,
     stream: new Response(contentBuffer).body,
+    language: req.language,
   })
 }
 

@@ -1,16 +1,35 @@
 import { RequestHandler, ResponseHandler, error } from 'itty-router'
 import { Auth } from './utils/auth'
 import { deleteKeyword, getKeyword } from './api/data'
+import { detectLanguage } from '../shared/i18n'
+import { t } from './i18n'
 
 export const prepare: RequestHandler<IRequest> = async (
   req: IRequest,
-  _env: Env,
+  env: Env,
   _ctx: ExecutionContext
 ) => {
   req.ip = req.headers.get('cf-connecting-ip') || 'unknown'
   req.startTime = Date.now()
   req.functionPath = new URL(req.url).pathname
   req.location = `${(req as any).cf?.city}-${(req as any).cf?.country}`
+
+  // Language detection and cookie handling
+  let language = Auth.getCookie(req, 'language')
+
+  if (!language) {
+    // Detect language using environment variables, CF headers, and Accept-Language
+    language = detectLanguage(
+      env.LANGUAGE,
+      req.headers.get('Accept-Language') || undefined,
+      typeof req.cf?.country === 'string' ? req.cf.country : undefined
+    )
+
+    // Set language cookie (will be handled in the response)
+    req.setLanguageCookie = language
+  }
+
+  req.language = language
 }
 
 export const authenticate: RequestHandler<IRequest> = async (
@@ -31,7 +50,7 @@ export const authenticate: RequestHandler<IRequest> = async (
     if (!req.edit) {
       if (req.method === 'PUT' || req.method === 'POST' || req.method === 'DELETE') {
         console.error('Illegal call in view mode')
-        return error(403, 'Access denied')
+        return error(403, t('errors.accessDenied', req.language))
       }
     }
 
@@ -44,7 +63,7 @@ export const authenticate: RequestHandler<IRequest> = async (
     let keyword: Keyword | null = await getKeyword(env, req, req.word, req.view_word)
     if (!req.word && req.view_word && !keyword) {
       console.error(`Cannot find keyword info for ${req.view_word}`)
-      return error(404, 'Access error, page not found')
+      return error(404, t('errors.accessErrorPageNotFound', req.language))
     }
 
     req.word = req.word || keyword?.word || ''
@@ -64,7 +83,7 @@ export const authenticate: RequestHandler<IRequest> = async (
     }
 
     if (!c_authorization) {
-      return error(401, 'Authentication required')
+      return error(401, t('errors.authenticationRequired', req.language))
     }
 
     // Verify authorization
@@ -77,20 +96,20 @@ export const authenticate: RequestHandler<IRequest> = async (
     if (req.word !== a_word) {
       req.clearAuthCookie = true
       console.error('Authorization invalid, access denied')
-      return error(403, 'Access denied')
+      return error(403, t('errors.accessDenied', req.language))
     }
 
     // Verify timestamp (24 hours expiry)
     if (now - timestamp > 1 * 24 * 60 * 60 * 1000) {
       req.clearAuthCookie = true
       console.error('Authorization expired, re-authentication required')
-      return error(401, 'Re-authentication required')
+      return error(401, t('errors.reauthenticationRequired', req.language))
     }
     console.log('authentication success')
   } catch (err) {
     req.clearAuthCookie = true
     console.error('authorization failed', err)
-    return error(500, 'authorization failed')
+    return error(500, t('errors.authorizationFailed', req.language))
   }
 }
 
@@ -103,6 +122,16 @@ export const handle = (res: Response, req: IRequest) => {
     console.log('clear cookie')
     Auth.clearCookie(res, 'authorization')
   }
+
+    // Set language cookie if detected for the first time
+  if (req.setLanguageCookie) {
+    console.log('set language cookie', req.setLanguageCookie)
+    Auth.setCookie(res, 'language', req.setLanguageCookie, {
+      path: '/',
+      'max-age': 365 * 24 * 60 * 60 // 1 year
+    })
+  }
+
   if (res.status !== 200) {
     console.error(`response error, url=${req.functionPath}, status=${res.status}`)
   }

@@ -3,9 +3,11 @@ import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
 import type { Keyword } from '@/types'
 import { Constant } from '@/constant'
+import { useI18nComposable } from './useI18n'
 
 export function useMain() {
   const appStore = useAppStore()
+  const { t } = useI18nComposable()
 
   const fetchKeyword = async () => {
     appStore.setLoading(true)
@@ -33,7 +35,7 @@ export function useMain() {
       appStore.setShowPasswordDialog(true)
     } else {
       console.error(response)
-      ElMessage.error(response?.msg || response?.error || Constant.MESSAGES.FETCH_FAILED)
+      ElMessage.error(response?.msg || response?.error || t('messages.fetchFailed'))
     }
   }
 
@@ -74,10 +76,10 @@ export function useMain() {
       appStore.setLastSavedContent(appStore.keyword.content || '')
 
       if (!silent) {
-        ElMessage.success(Constant.MESSAGES.SAVE_SUCCESS)
+        ElMessage.success(t('messages.saveSuccess'))
       }
     } catch (error) {
-      ElMessage.error(Constant.MESSAGES.SAVE_FAILED)
+      ElMessage.error(t('messages.saveFailed'))
       throw error
     } finally {
       appStore.setLoading(false)
@@ -88,9 +90,9 @@ export function useMain() {
     try {
       await dataApi.deleteKeyword()
       appStore.resetKeyword()
-      ElMessage.success(Constant.MESSAGES.DELETE_SUCCESS)
+      ElMessage.success(t('messages.deleteSuccess'))
     } catch (error) {
-      ElMessage.error(Constant.MESSAGES.DELETE_FAILED)
+      ElMessage.error(t('messages.deleteFailed'))
       throw error
     }
   }
@@ -99,7 +101,7 @@ export function useMain() {
     try {
       const fullUrl = `${window.location.origin}${appStore.readOnlyUrl}`
       await navigator.clipboard.writeText(fullUrl)
-      ElMessage.success('Link copied to clipboard')
+      ElMessage.success(t('messages.linkCopied'))
     } catch (error) {
       // Fallback: use traditional copy method
       const textArea = document.createElement('textarea')
@@ -108,7 +110,7 @@ export function useMain() {
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
-      ElMessage.success('Link copied to clipboard')
+      ElMessage.success(t('messages.linkCopied'))
     }
   }
 
@@ -118,10 +120,10 @@ export function useMain() {
       const response = await dataApi.resetViewWord()
       if (response.view_word) {
         appStore.updateKeywordFields({ view_word: response.view_word })
-        ElMessage.success('Read-only link updated')
+        ElMessage.success(t('messages.readonlyLinkUpdated'))
       }
     } catch (error) {
-      ElMessage.error('Reset failed, please try again later')
+      ElMessage.error(t('messages.resetFailed'))
       throw error
     } finally {
       appStore.setLoading(false)

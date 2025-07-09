@@ -6,9 +6,11 @@ import type { UploadState } from '@/types'
 import { handleError } from '@/utils/errorHandler'
 import { calculateUploadStats, updateSpeedHistory } from '@/utils'
 import { Constant } from '@/constant'
+import { useI18nComposable } from './useI18n'
 
 export function useFileUpload() {
   const appStore = useAppStore()
+  const { t } = useI18nComposable()
 
   const fetchConfig = async () => {
     try {
@@ -112,7 +114,7 @@ export function useFileUpload() {
         remainingTime: 0,
       })
 
-      ElMessage.success(Constant.MESSAGES.UPLOAD_SUCCESS)
+      ElMessage.success(t('messages.uploadSuccess'))
 
       // Refresh file list
       await fetchFileList()
@@ -131,7 +133,7 @@ export function useFileUpload() {
           (error as any).code === 'ERR_CANCELED')
       ) {
         appStore.removeUploadState(file.name)
-        ElMessage.info(Constant.MESSAGES.UPLOAD_CANCELLED)
+        ElMessage.info(t('messages.uploadCancelled'))
         return
       }
 
@@ -143,19 +145,19 @@ export function useFileUpload() {
         uploadSpeed: 0,
         remainingTime: 0,
       })
-      ElMessage.error(Constant.MESSAGES.UPLOAD_FAILED)
+      ElMessage.error(t('messages.uploadFailed'))
     }
   }
 
   const deleteFile = async (fileName: string) => {
     try {
       await fileApi.delete(fileName)
-      ElMessage.success(Constant.MESSAGES.DELETE_SUCCESS)
+      ElMessage.success(t('messages.deleteSuccess'))
 
       // Refresh file list
       await fetchFileList()
     } catch (error) {
-      ElMessage.error(Constant.MESSAGES.DELETE_FAILED)
+      ElMessage.error(t('messages.deleteFailed'))
       throw error
     }
   }
@@ -163,12 +165,12 @@ export function useFileUpload() {
   const deleteAllFiles = async () => {
     try {
       const result = await fileApi.deleteAll()
-      ElMessage.success(Constant.MESSAGES.DELETE_SUCCESS)
+      ElMessage.success(t('messages.deleteSuccess'))
 
       // Clear file list
       appStore.setFileList([])
     } catch (error) {
-      ElMessage.error(Constant.MESSAGES.DELETE_FAILED)
+      ElMessage.error(t('messages.deleteFailed'))
       throw error
     }
   }

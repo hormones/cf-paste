@@ -11,7 +11,7 @@
         class="upload-dragger"
       >
         <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-        <div class="el-upload__text">Drag files here, or <em>click to upload</em></div>
+        <div class="el-upload__text">{{ t('components.fileUpload.dragText') }} <em>{{ t('components.fileUpload.clickText') }}</em></div>
       </el-upload>
     </el-card>
 
@@ -31,6 +31,7 @@ import { UploadFilled } from '@element-plus/icons-vue'
 import UploadProgress from './UploadProgress.vue'
 import { useFileUpload } from '@/composables/useFileUpload'
 import { useAppStore } from '@/stores'
+import { useI18nComposable } from '@/composables/useI18n'
 
 const emit = defineEmits<{
   (e: 'upload-success'): void
@@ -38,6 +39,7 @@ const emit = defineEmits<{
 
 const appStore = useAppStore()
 const { uploadFile } = useFileUpload()
+const { t } = useI18nComposable()
 
 // Internal upload logic handling
 const handleUpload = async (options: any) => {

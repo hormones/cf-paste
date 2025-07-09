@@ -2,11 +2,13 @@ import { computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
-import { Constant } from '@/constant'
+import { Constant, EXPIRY_VALUES } from '@/constant'
 import type { Keyword } from '@/types'
+import { useI18nComposable } from './useI18n'
 
 export function useSettings() {
   const appStore = useAppStore()
+  const { t } = useI18nComposable()
 
   const openSettings = () => {
     // Read current settings from keyword - show ****** if password exists, empty string if none
@@ -14,7 +16,7 @@ export function useSettings() {
 
     appStore.setSettingsData({
       password: passwordValue,
-      expiry: appStore.keyword.expire_value || Constant.EXPIRY_OPTIONS[2].value
+      expiry: appStore.keyword.expire_value || EXPIRY_VALUES[2].value
     })
     appStore.setShowSettings(true)
   }
@@ -48,9 +50,9 @@ export function useSettings() {
       appStore.updateKeywordFields(updatedFields)
 
       appStore.setShowSettings(false)
-      ElMessage.success(Constant.MESSAGES.SETTINGS_SAVED)
+      ElMessage.success(t('messages.settingsSaved'))
     } catch (error) {
-      ElMessage.error(Constant.MESSAGES.SETTINGS_FAILED)
+      ElMessage.error(t('messages.settingsFailed'))
       throw error
     } finally {
       appStore.setLoading(false)

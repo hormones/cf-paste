@@ -2,6 +2,7 @@ import { AutoRouter, error } from 'itty-router'
 import { newResponse } from '../utils/response'
 import { Auth } from '../utils/auth'
 import { getKeyword } from './data'
+import { t } from '../i18n'
 
 const word_router = AutoRouter({ base: '/:word/api/pass' })
 const view_router = AutoRouter({ base: '/v/:view_word/api/pass' })
@@ -17,7 +18,7 @@ const request4Verify = async (env: Env, req: IRequest) => {
 
   if (!keyword) {
     console.error(`Cannot find keyword info through ${req.word} | ${req.view_word}`)
-    return error(410, 'Access error, page not found')
+    return error(410, t('errors.accessErrorPageNotFound', req.language))
   }
   req.word = keyword.word
   req.view_word = keyword.view_word
@@ -26,7 +27,7 @@ const request4Verify = async (env: Env, req: IRequest) => {
   if (keyword?.password) {
     const isValid = await Auth.verifyPassword(password, keyword.password, keyword.word!, env)
     if (!isValid) {
-      return error(403, 'Incorrect password')
+      return error(403, t('errors.incorrectPassword', req.language))
     }
   }
 
@@ -47,6 +48,7 @@ const request4Config = async (env: Env, req: IRequest) => {
     maxFiles: parseInt(env.MAX_FILES || '10'), // 10 files
     chunkSize: parseInt(env.CHUNK_SIZE || '50') * 1024 * 1024, // 50MB chunks
     chunkThreshold: parseInt(env.CHUNK_THRESHOLD || '100') * 1024 * 1024, // 100MB threshold
+    language: req.language, // Use language from request context
   }
   return newResponse({ data: config })
 }

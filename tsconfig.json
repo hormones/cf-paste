@@ -12,6 +12,6 @@
     }
   ],
   "compilerOptions": {
-    "types": ["./paste-configuration.d.ts"]
+    "types": ["./shared/types"]
   }
 }

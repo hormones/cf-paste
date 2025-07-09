@@ -33,6 +33,8 @@ export interface PasteConfig {
   chunkSize: number
   /** Chunked upload threshold (bytes) - use chunked upload for files exceeding this size */
   chunkThreshold: number
+  /** Detected language for i18n */
+  language: string
 }
 
 /** File information structure */

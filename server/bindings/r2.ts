@@ -1,6 +1,7 @@
 import { error } from 'itty-router'
 import { Utils } from '../utils'
 import { newResponse } from '../utils/response'
+import { t } from '../i18n'
 
 export const R2 = {
   /**
@@ -18,7 +19,7 @@ export const R2 = {
     if (range) {
       const objectMeta = await env.R2.head(path)
       if (objectMeta === null) {
-        return newResponse({ msg: 'File not found', status: 404 })
+        return newResponse({ msg: t('errors.fileNotFound', req.language), status: 404 })
       }
 
       const { start, end } = Utils.parseRange(range, objectMeta.size)
@@ -33,7 +34,7 @@ export const R2 = {
       })
 
       if (object === null) {
-        return error(404, 'File not found')
+        return error(404, t('errors.fileNotFound', req.language))
       }
 
       headers.set('Content-Range', `bytes ${start}-${end}/${objectMeta.size}`)
@@ -47,7 +48,7 @@ export const R2 = {
     console.log('download file: ', path)
     const object = await env.R2.get(path)
     if (object === null) {
-      return error(404, 'File not found')
+      return error(404, t('errors.fileNotFound', req.language))
     }
 
     object.writeHttpMetadata(headers)
@@ -68,13 +69,14 @@ export const R2 = {
       name,
       length,
       stream,
-    }: { prefix: string; name: string; length: number; stream: ReadableStream<Uint8Array> | null }
+      language,
+    }: { prefix: string; name: string; length: number; stream: ReadableStream<Uint8Array> | null; language?: string }
   ) => {
     const path = `${prefix}/${name}`
     console.log(`upload file: ${path}, size: ${Utils.humanReadableSize(length)}`)
 
     if (!stream || length <= 0) {
-      return error(400, 'Stream or length is empty')
+      return error(400, t('errors.streamOrLengthEmpty', language))
     }
 
     // Direct upload to R2 (frontend handles chunking logic)
@@ -85,28 +87,28 @@ export const R2 = {
       .then(() => newResponse({}))
       .catch((err) => {
         console.error('File upload failed', err)
-        return error(500, 'File upload failed')
+        return error(500, t('errors.fileUploadFailed', language))
       })
   },
 
   /**
    * Delete file
    */
-  delete: async (env: Env, { prefix, name }: { prefix: string; name: string }) => {
+  delete: async (env: Env, { prefix, name, language }: { prefix: string; name: string; language?: string }) => {
     const path = `${prefix}/${name}`
     console.log(`delete file: ${path}`)
     return env.R2.delete(path)
       .then(() => newResponse({}))
       .catch((err) => {
         console.error('File deletion failed', err)
-        return error(500, 'File deletion failed')
+        return error(500, t('errors.fileDeletionFailed', language))
       })
   },
 
   /**
    * List all files under specified prefix
    */
-  list: async (env: Env, { prefix }: { prefix: string }) => {
+  list: async (env: Env, { prefix, language }: { prefix: string; language?: string }) => {
     try {
       const list = await env.R2.list({ prefix: prefix })
       const data = list.objects.map((obj: R2Object) => ({
@@ -118,7 +120,7 @@ export const R2 = {
       return newResponse({ data })
     } catch (err) {
       console.error('List files failed', err)
-      return error(500, 'List files failed')
+      return error(500, t('errors.listFilesFailed', language))
     }
   },
 

@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import { ElConfigProvider } from 'element-plus'
 import { useAppStore } from '@/stores'
+import ElementLocaleProvider from '@/components/ElementLocaleProvider.vue'
 
 // Initialize theme management
 const appStore = useAppStore()
@@ -9,9 +10,11 @@ appStore.initTheme()
 </script>
 
 <template>
-  <el-config-provider :size="'small'" :z-index="3000">
-    <RouterView />
-  </el-config-provider>
+  <ElementLocaleProvider>
+    <el-config-provider :size="'small'" :z-index="3000">
+      <RouterView />
+    </el-config-provider>
+  </ElementLocaleProvider>
 </template>
 
 <style scoped>

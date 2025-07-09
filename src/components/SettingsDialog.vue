@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { useAppStore } from '@/stores'
 import { useSettings } from '@/composables/useSettings'
+import { useI18nComposable } from '@/composables/useI18n'
 
 const appStore = useAppStore()
 const { closeSettings, saveSettings } = useSettings()
+const { t, getExpiryOptions } = useI18nComposable()
 </script>
 
 <template>
   <el-dialog
     v-model="appStore.showSettings"
-    title="Settings"
+    :title="t('components.settings.title')"
     width="380px"
     :append-to-body="true"
     :close-on-click-modal="false"
@@ -18,12 +20,17 @@ const { closeSettings, saveSettings } = useSettings()
   >
     <div class="setting-item">
       <div class="setting-label">
-        <span>Expiration Time</span>
-        <small>Links and files will expire after the specified time</small>
+        <span>{{ t('components.settings.expirationTime.label') }}</span>
+        <small>{{ t('components.settings.expirationTime.description') }}</small>
       </div>
-      <el-select v-model="appStore.expiry" placeholder="Select validity period" style="width: 100%" size="large">
+      <el-select
+        v-model="appStore.expiry"
+        :placeholder="t('components.settings.expirationTime.placeholder')"
+        style="width: 100%"
+        size="large"
+      >
         <el-option
-          v-for="option in appStore.getExpiryOptions()"
+          v-for="option in getExpiryOptions()"
           :key="option.value"
           :label="option.label"
           :value="option.value"
@@ -33,12 +40,12 @@ const { closeSettings, saveSettings } = useSettings()
 
     <div class="setting-item">
       <div class="setting-label">
-        <span>Access Password</span>
-        <small>Add password protection to your content</small>
+        <span>{{ t('components.settings.accessPassword.label') }}</span>
+        <small>{{ t('components.settings.accessPassword.description') }}</small>
       </div>
       <el-input
         v-model="appStore.password"
-        placeholder="Leave empty for no password"
+        :placeholder="t('components.settings.accessPassword.placeholder')"
         show-password
         clearable
         size="large"
@@ -47,8 +54,8 @@ const { closeSettings, saveSettings } = useSettings()
 
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="closeSettings" size="large">Cancel</el-button>
-        <el-button type="primary" @click="saveSettings" size="large">Save Settings</el-button>
+        <el-button @click="closeSettings" size="large">{{ t('common.buttons.cancel') }}</el-button>
+        <el-button type="primary" @click="saveSettings" size="large">{{ t('common.buttons.saveSettings') }}</el-button>
       </span>
     </template>
   </el-dialog>

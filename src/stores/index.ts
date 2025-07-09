@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import type { Keyword, FileInfo, UploadState, PasteConfig } from '@/types'
 import { Utils } from '@/utils'
 import { Constant } from '@/constant'
+import { EXPIRY_VALUES } from '../../shared/constants'
 
 export type Theme = 'light' | 'dark'
 
@@ -17,8 +18,8 @@ export const useAppStore = defineStore('app', {
       word: undefined,
       view_word: Utils.getRandomWord(6),
       content: '',
-      expire_time: Date.now() + Constant.EXPIRY_OPTIONS[2].value * 1000,
-      expire_value: Constant.EXPIRY_OPTIONS[2].value,
+      expire_time: Date.now() + EXPIRY_VALUES[2].value * 1000,
+      expire_value: EXPIRY_VALUES[2].value,
     } as Keyword,
     lastSavedContent: '',
     loading: false,
@@ -35,7 +36,7 @@ export const useAppStore = defineStore('app', {
     showSettings: false,
     showQRCodeDialog: false,
     password: '',
-    expiry: Constant.EXPIRY_OPTIONS[2].value,
+    expiry: EXPIRY_VALUES[2].value,
 
     // UI state
     theme: 'light' as Theme,
@@ -60,6 +61,7 @@ export const useAppStore = defineStore('app', {
     // File related computed properties
     fileTabLabel(): string {
       const count = this.fileList.length
+      // 这里暂时保持硬编码，将在组件中使用computed来实现国际化
       return count > 0 ? `Files (${count})` : 'Files'
     },
 
@@ -77,10 +79,7 @@ export const useAppStore = defineStore('app', {
       )
     },
 
-    // Settings related computed properties
-    getExpiryOptions() {
-      return () => Constant.EXPIRY_OPTIONS
-    },
+    // Settings related computed properties - getExpiryOptions已移除，组件直接使用useI18nComposable().getExpiryOptions()
   },
 
   actions: {
@@ -153,8 +152,8 @@ export const useAppStore = defineStore('app', {
       this.keyword.id = null
       this.keyword.view_word = Utils.getRandomWord(6)
       this.keyword.content = ''
-      this.keyword.expire_time = Date.now() + Constant.EXPIRY_OPTIONS[2].value * 1000
-      this.keyword.expire_value = Constant.EXPIRY_OPTIONS[2].value
+      this.keyword.expire_time = Date.now() + EXPIRY_VALUES[2].value * 1000
+      this.keyword.expire_value = EXPIRY_VALUES[2].value
       this.lastSavedContent = ''
       this.fileList = []
       this.password = ''
@@ -206,7 +205,7 @@ export const useAppStore = defineStore('app', {
 
     resetSettings() {
       this.password = ''
-      this.expiry = Constant.EXPIRY_OPTIONS[2].value
+      this.expiry = EXPIRY_VALUES[2].value
     },
 
     // Theme management actions

@@ -3,6 +3,7 @@ import { R2 } from '../bindings/r2'
 import { Constant } from '../constant'
 import { newResponse } from '../utils/response'
 import { error } from 'itty-router'
+import { t } from '../i18n'
 
 const word_router = AutoRouter({ base: '/:word/api/file' })
 const view_router = AutoRouter({ base: '/v/:view_word/api/file' })
@@ -14,7 +15,7 @@ word_router.get('/list', async (req: IRequest, env) => request4List(env, req))
 view_router.get('/list', async (req: IRequest, env) => request4List(env, req))
 const request4List = async (env: Env, req: IRequest) => {
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
-  return R2.list(env, { prefix })
+  return R2.list(env, { prefix, language: req.language })
 }
 
 /**
@@ -26,7 +27,7 @@ const request4Download = async (env: Env, req: IRequest) => {
   const url = new URL(req.url)
   const fileName = url.searchParams.get('name')
   if (!fileName) {
-    return error(400, 'file name is required')
+    return error(400, t('errors.fileNameRequired', req.language))
   }
 
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
@@ -43,7 +44,7 @@ const request4Upload = async (env: Env, req: IRequest) => {
   const url = new URL(req.url)
   const name = url.searchParams.get('name')
   if (!name) {
-    return error(400, 'file name is required')
+    return error(400, t('errors.fileNameRequired', req.language))
   }
   // Filename from URL parameter is encoded, needs manual decoding
   const decodedName = decodeURIComponent(name)
@@ -55,6 +56,7 @@ const request4Upload = async (env: Env, req: IRequest) => {
     name: decodedName,
     length: Number(length),
     stream: req.body as unknown as ReadableStream<Uint8Array>,
+    language: req.language,
   })
 }
 
@@ -77,7 +79,7 @@ const request4DeleteAll = async (env: Env, req: IRequest) => {
     })
   } catch (err) {
     console.error('Batch file deletion failed', err)
-    return error(500, 'Batch file deletion failed')
+    return error(500, t('errors.batchFileDeletionFailed', req.language))
   }
 }
 
@@ -89,13 +91,13 @@ const request4Delete = async (env: Env, req: IRequest) => {
   const url = new URL(req.url)
   const name = url.searchParams.get('name')
   if (!name) {
-    return error(400, 'file name is required')
+    return error(400, t('errors.fileNameRequired', req.language))
   }
   // Filename from URL parameter is encoded, needs manual decoding
   const decodedName = decodeURIComponent(name)
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
   console.log('delete file: ', decodedName, prefix)
-  return R2.delete(env, { prefix, name: decodedName })
+  return R2.delete(env, { prefix, name: decodedName, language: req.language })
 }
 
 // === Multipart upload related APIs ===
@@ -116,13 +118,13 @@ const request4MultipartInit = async (env: Env, req: IRequest) => {
 
     // Parameter validation
     if (!filename || !fileSize || !chunkSize) {
-      return error(400, 'Missing required parameters')
+      return error(400, t('errors.missingRequiredParameters', req.language))
     }
 
     // File size validation
     const maxFileSize = parseInt(env.MAX_FILE_SIZE || '300') * 1024 * 1024
     if (fileSize > maxFileSize) {
-      return error(400, `File size exceeds limit ${maxFileSize / (1024 * 1024)}MB`)
+      return error(400, t('errors.fileSizeExceedsLimit', req.language, { limit: maxFileSize / (1024 * 1024) }))
     }
 
     // Use original filename directly
@@ -150,7 +152,7 @@ const request4MultipartInit = async (env: Env, req: IRequest) => {
     })
   } catch (err) {
     console.error('Failed to initialize multipart upload', err)
-    return error(500, 'Failed to initialize multipart upload')
+    return error(500, t('errors.failedToInitializeMultipartUpload', req.language))
   }
 }
 
@@ -166,7 +168,7 @@ const request4MultipartCancel = async (env: Env, req: IRequest) => {
     const { fileKey } = await req.json<{ fileKey: string }>()
 
     if (!uploadId || !fileKey) {
-      return error(400, 'Missing required parameters')
+      return error(400, t('errors.missingRequiredParameters', req.language))
     }
 
     // Call R2's abortMultipartUpload
@@ -177,7 +179,7 @@ const request4MultipartCancel = async (env: Env, req: IRequest) => {
     })
   } catch (err) {
     console.error('Failed to cancel multipart upload', err)
-    return error(500, 'Failed to cancel multipart upload')
+    return error(500, t('errors.failedToCancelMultipartUpload', req.language))
   }
 }
 
@@ -193,20 +195,20 @@ const request4MultipartChunk = async (env: Env, req: IRequest) => {
     const partNumber = parseInt(chunkIndex) + 1 // R2 partNumber starts from 1
 
     if (!uploadId || !partNumber || partNumber < 1) {
-      return error(400, 'Invalid upload parameters')
+      return error(400, t('errors.invalidUploadParameters', req.language))
     }
 
     // Get fileKey from request header and decode
     const encodedFileKey = req.headers.get('X-File-Key')
     if (!encodedFileKey) {
-      return error(400, 'Missing fileKey parameter')
+      return error(400, t('errors.missingFileKeyParameter', req.language))
     }
     const fileKey = decodeURIComponent(encodedFileKey)
 
     // Get chunk data
     const chunkData = await req.arrayBuffer()
     if (!chunkData || chunkData.byteLength === 0) {
-      return error(400, 'Chunk data is empty')
+      return error(400, t('errors.chunkDataEmpty', req.language))
     }
 
     // Upload chunk to R2
@@ -226,7 +228,7 @@ const request4MultipartChunk = async (env: Env, req: IRequest) => {
     })
   } catch (err) {
     console.error('Chunk upload failed', err)
-    return error(500, 'Chunk upload failed')
+    return error(500, t('errors.chunkUploadFailed', req.language))
   }
 }
 
@@ -245,7 +247,7 @@ const request4MultipartComplete = async (env: Env, req: IRequest) => {
     }
 
     if (!uploadId || !fileKey || !parts || !Array.isArray(parts)) {
-      return error(400, 'Missing required parameters')
+      return error(400, t('errors.missingRequiredParameters', req.language))
     }
 
     // Validate chunk integrity
@@ -259,7 +261,7 @@ const request4MultipartComplete = async (env: Env, req: IRequest) => {
     // Check chunk sequence continuity
     for (let i = 0; i < sortedParts.length; i++) {
       if (sortedParts[i].partNumber !== i + 1) {
-        return error(400, `Chunk sequence not continuous, missing chunk ${i + 1}`)
+        return error(400, t('errors.chunkSequenceNotContinuous', req.language, { chunkNumber: i + 1 }))
       }
     }
 
@@ -286,7 +288,7 @@ const request4MultipartComplete = async (env: Env, req: IRequest) => {
     })
   } catch (err) {
     console.error('Failed to complete multipart upload', err)
-    return error(500, 'Failed to complete multipart upload')
+    return error(500, t('errors.failedToCompleteMultipartUpload', req.language))
   }
 }
 

@@ -3,8 +3,8 @@
     <!-- Top action bar -->
     <div class="tabs-header">
       <el-tabs v-model="activeTab">
-        <el-tab-pane label="Clipboard" name="clipboard" />
-        <el-tab-pane :label="appStore.fileTabLabel" name="files" />
+        <el-tab-pane :label="t('components.tabs.clipboard')" name="clipboard" />
+        <el-tab-pane :label="fileTabLabel" name="files" />
       </el-tabs>
     </div>
 
@@ -22,13 +22,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useAppStore } from '@/stores'
 import { useMain } from '@/composables/useMain'
+import { useI18nComposable } from '@/composables/useI18n'
 
 const activeTab = ref('clipboard')
 const appStore = useAppStore()
 const { saveKeyword } = useMain()
+const { t } = useI18nComposable()
+
+// 本地化的文件标签页标题
+const fileTabLabel = computed(() => {
+  const count = appStore.fileList.length
+  const baseLabel = t('components.tabs.files')
+  return count > 0 ? `${baseLabel} (${count})` : baseLabel
+})
 
 const handleAutoSave = () => {
   if (!appStore.keyword.id && !appStore.keyword.content) {

@@ -5,8 +5,10 @@ import { passApi } from '@/api/pass'
 import { useMain } from '@/composables/useMain'
 import { useFileUpload } from '@/composables/useFileUpload'
 import { ElDialog, ElForm, ElFormItem, ElInput, ElButton } from 'element-plus'
+import { useI18nComposable } from '@/composables/useI18n'
 
 const store = useAppStore()
+const { t } = useI18nComposable()
 
 const { fetchKeyword } = useMain()
 const { fetchFileList } = useFileUpload()
@@ -42,7 +44,7 @@ const submitForm = async () => {
 <template>
   <el-dialog
     :model-value="store.showPasswordDialog"
-    title="Please enter password"
+    :title="t('dialogs.passwordRequired.title')"
     width="380px"
     :append-to-body="true"
     :close-on-click-modal="false"
@@ -55,7 +57,7 @@ const submitForm = async () => {
     <el-input
       v-model="password"
       type="password"
-      placeholder="Please enter access password"
+      :placeholder="t('dialogs.passwordRequired.placeholder')"
       show-password
       clearable
       autofocus
@@ -69,7 +71,7 @@ const submitForm = async () => {
         style="width: 100%"
         size="large"
       >
-        Confirm
+        {{ t('common.buttons.confirm') }}
       </el-button>
     </template>
   </el-dialog>

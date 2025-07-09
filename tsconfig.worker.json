@@ -7,10 +7,10 @@
     "strict": true,
     "noEmit": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
-    "types": ["./server/types/worker-configuration.d.ts", "./paste-configuration.d.ts"]
+    "types": ["./server/types/worker-configuration.d.ts", "./shared/types"]
   },
   "include": [
     "server",
-    "./paste-configuration.d.ts"
+    "./shared/types"
   ]
 }

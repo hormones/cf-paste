@@ -1,0 +1,140 @@
+{
+  "common": {
+    "buttons": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "delete": "Delete",
+      "settings": "Settings",
+      "saveSettings": "Save Settings"
+    },
+    "status": {
+      "loading": "Loading...",
+      "success": "Success",
+      "failed": "Failed",
+      "warning": "Warning"
+    },
+    "time": {
+      "expiry": {
+        "1hour": "1 hour",
+        "1day": "1 day", 
+        "3days": "3 days",
+        "1week": "1 week",
+        "1month": "1 month",
+        "3months": "3 months"
+      }
+    }
+  },
+  "components": {
+    "pageHeader": {
+      "title": "Clipboard",
+      "theme": {
+        "switchToDark": "Switch to dark mode",
+        "switchToLight": "Switch to light mode"
+      }
+    },
+    "tabs": {
+      "clipboard": "Clipboard",
+      "files": "Files"
+    },
+    "settings": {
+      "title": "Settings",
+      "expirationTime": {
+        "label": "Expiration Time",
+        "description": "Links and files will expire after the specified time",
+        "placeholder": "Select validity period"
+      },
+      "accessPassword": {
+        "label": "Access Password", 
+        "description": "Add password protection to your content",
+        "placeholder": "Leave empty for no password"
+      }
+    },
+    "fileUpload": {
+      "dragText": "Drop files here or",
+      "clickText": "click to upload",
+      "selectFiles": "Select Files"
+    },
+    "fileTable": {
+      "name": "Name",
+      "size": "Size", 
+      "uploadTime": "Upload Time",
+      "actions": "Actions",
+      "download": "Download",
+      "preview": "Preview",
+      "noFiles": "No files uploaded yet"
+    }
+  },
+  "messages": {
+    "noContent": "Please enter content or upload files",
+    "saveSuccess": "Saved successfully",
+    "saveFailed": "Save failed",
+    "uploadSuccess": "Upload successful",
+    "uploadFailed": "Upload failed",
+    "uploadCancelled": "Upload cancelled",
+    "deleteSuccess": "Deleted successfully",
+    "deleteFailed": "Delete failed",
+    "settingsSaved": "Settings saved",
+    "settingsFailed": "Settings save failed",
+    "fetchFailed": "Failed to fetch content",
+    "downloadFailed": "Download failed",
+    "linkCopied": "Link copied to clipboard",
+    "readonlyLinkUpdated": "Read-only link updated",
+    "resetFailed": "Reset failed, please try again later"
+  },
+  "dialogs": {
+    "deleteConfirm": {
+      "title": "Warning",
+      "message": "Are you sure you want to delete all clipboard content and files?"
+    },
+    "passwordRequired": {
+      "title": "Password Required",
+      "placeholder": "Enter password",
+      "message": "This content is password protected"
+    }
+  },
+  "errors": {
+    "network": "Network error",
+    "serverError": "Server error",
+    "notFound": "Content not found",
+    "accessDenied": "Access denied",
+    "invalidPassword": "Invalid password",
+    "expiredContent": "Content has expired",
+    "authenticationRequired": "Authentication required",
+    "reauthenticationRequired": "Re-authentication required",
+    "authorizationFailed": "Authorization failed",
+    "accessErrorPageNotFound": "Access error, page not found",
+    "incorrectPassword": "Incorrect password",
+    "fileNotFound": "File not found",
+    "fileNameRequired": "File name is required",
+    "fileSizeExceedsLimit": "File size exceeds limit {limit}MB",
+    "fileUploadFailed": "File upload failed",
+    "fileDeletionFailed": "File deletion failed",
+    "batchFileDeletionFailed": "Batch file deletion failed",
+    "listFilesFailed": "List files failed",
+    "streamOrLengthEmpty": "Stream or length is empty",
+    "chunkDataEmpty": "Chunk data is empty",
+    "chunkUploadFailed": "Chunk upload failed",
+    "failedToInitializeMultipartUpload": "Failed to initialize multipart upload",
+    "failedToCancelMultipartUpload": "Failed to cancel multipart upload",
+    "failedToCompleteMultipartUpload": "Failed to complete multipart upload",
+    "invalidUploadParameters": "Invalid upload parameters",
+    "missingFileKeyParameter": "Missing fileKey parameter",
+    "chunkSequenceNotContinuous": "Chunk sequence not continuous, missing chunk {chunkNumber}",
+    "keywordNotFound": "Keyword not found",
+    "invalidExpiryTimeSetting": "Invalid expiry time setting",
+    "failedToSaveSettings": "Failed to save settings",
+    "failedToResetReadonlyLink": "Failed to reset readonly link",
+    "resourceNotFound": "Resource not found",
+    "missingRequiredParameters": "Missing required parameters",
+    "invalidParameters": "Invalid parameters",
+    "invalidSecretKey": "Invalid secret key",
+    "invalidKeyLength": "Invalid key length",
+    "passwordMissing": "Password is missing"
+  },
+  "validation": {
+    "required": "This field is required",
+    "tooLong": "Content is too long",
+    "invalidFormat": "Invalid format"
+  }
+} 
