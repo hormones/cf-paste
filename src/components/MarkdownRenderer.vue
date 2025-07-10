@@ -201,7 +201,8 @@ async function renderMermaidDiagram(id: string, code: string): Promise<void> {
         svgWrapper.style.position = 'relative'
         svgElement.style.position = 'absolute'
         svgElement.style.top = '0'
-        svgElement.style.left = '0'
+        svgElement.style.left = '50%'
+        svgElement.style.transform = 'translateX(-50%)'
         svgElement.style.width = '100%'
         svgElement.style.height = '100%'
       }
@@ -403,6 +404,9 @@ defineExpose({
   border: 1px solid var(--el-border-color);
   overflow: hidden; /* Prevent SVG overflow */
   position: relative;
+  display: flex; /* Add flexbox for centering */
+  justify-content: center; /* Center the SVG horizontally */
+  align-items: center; /* Center vertically if needed */
 }
 
 /* SVG wrapper for aspect ratio maintenance */
