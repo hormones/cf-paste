@@ -34,8 +34,7 @@ export function useMain() {
     if (response?.status === 401) {
       appStore.setShowPasswordDialog(true)
     } else {
-      console.error(response)
-      ElMessage.error(response?.msg || response?.error || t('clipboard.fetchFail'))
+      ElMessage.error(response?.msg || response?.error || t('errors.contentNotFound'))
     }
   }
 
@@ -79,7 +78,7 @@ export function useMain() {
         ElMessage.success(t('clipboard.saveOk'))
       }
     } catch (error) {
-      ElMessage.error(t('clipboard.saveFail'))
+      ElMessage.error(t('errors.contentSaveError'))
       throw error
     } finally {
       appStore.setLoading(false)
@@ -92,7 +91,7 @@ export function useMain() {
       appStore.resetKeyword()
       ElMessage.success(t('clipboard.deleteOk'))
     } catch (error) {
-      ElMessage.error(t('clipboard.deleteFail'))
+      ElMessage.error(t('errors.operationFailed'))
       throw error
     }
   }
@@ -123,7 +122,7 @@ export function useMain() {
         ElMessage.success(t('clipboard.linkUpdated'))
       }
     } catch (error) {
-      ElMessage.error(t('settings.resetFail'))
+      ElMessage.error(t('errors.settingsSaveError'))
       throw error
     } finally {
       appStore.setLoading(false)

@@ -19,7 +19,7 @@ export const R2 = {
     if (range) {
       const objectMeta = await env.R2.head(path)
       if (objectMeta === null) {
-        return newResponse({ msg: t('errors.fileNotFound', req.language), status: 404 })
+        return newResponse({ msg: req.t('errors.fileNotFound'), status: 404 })
       }
 
       const { start, end } = Utils.parseRange(range, objectMeta.size)
@@ -34,7 +34,7 @@ export const R2 = {
       })
 
       if (object === null) {
-        return error(404, t('errors.fileNotFound', req.language))
+        return error(404, req.t('errors.fileNotFound'))
       }
 
       headers.set('Content-Range', `bytes ${start}-${end}/${objectMeta.size}`)
@@ -48,7 +48,7 @@ export const R2 = {
     console.log('download file: ', path)
     const object = await env.R2.get(path)
     if (object === null) {
-      return error(404, t('errors.fileNotFound', req.language))
+      return error(404, req.t('errors.fileNotFound'))
     }
 
     object.writeHttpMetadata(headers)
@@ -76,7 +76,13 @@ export const R2 = {
     console.log(`upload file: ${path}, size: ${Utils.humanReadableSize(length)}`)
 
     if (!stream || length <= 0) {
-      return error(400, t('errors.streamOrLengthEmpty', language))
+      console.error('File upload failed: stream or length empty', {
+        hasStream: !!stream,
+        length,
+        path,
+        timestamp: new Date().toISOString()
+      })
+      return error(400, t('errors.fileDataError', language))
     }
 
     // Direct upload to R2 (frontend handles chunking logic)
@@ -86,8 +92,13 @@ export const R2 = {
     })
       .then(() => newResponse({}))
       .catch((err) => {
-        console.error('File upload failed', err)
-        return error(500, t('errors.fileUploadFailed', language))
+        console.error('File upload to R2 failed:', {
+          path,
+          size: Utils.humanReadableSize(length),
+          error: err.message,
+          timestamp: new Date().toISOString()
+        })
+        return error(500, t('errors.fileUploadError', language))
       })
   },
 
@@ -100,8 +111,12 @@ export const R2 = {
     return env.R2.delete(path)
       .then(() => newResponse({}))
       .catch((err) => {
-        console.error('File deletion failed', err)
-        return error(500, t('errors.fileDeletionFailed', language))
+        console.error('File deletion from R2 failed:', {
+          path,
+          error: err.message,
+          timestamp: new Date().toISOString()
+        })
+        return error(500, t('errors.fileDeleteError', language))
       })
   },
 
@@ -118,9 +133,13 @@ export const R2 = {
         etag: obj.etag,
       }))
       return newResponse({ data })
-    } catch (err) {
-      console.error('List files failed', err)
-      return error(500, t('errors.listFilesFailed', language))
+        } catch (err: any) {
+      console.error('List files from R2 failed:', {
+        prefix,
+        error: err?.message || err,
+        timestamp: new Date().toISOString()
+      })
+      return error(500, t('errors.fileListError', language))
     }
   },
 

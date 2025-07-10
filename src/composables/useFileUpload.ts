@@ -35,7 +35,7 @@ export function useFileUpload() {
   const uploadFile = async (file: File) => {
     // Check upload conditions
     if (!appStore.uploadFileCheck(file)) {
-      ElMessage.error(t('file.uploadLimitReached'))
+      ElMessage.error(t('errors.fileTooLarge'))
       return
     }
 
@@ -145,7 +145,7 @@ export function useFileUpload() {
         uploadSpeed: 0,
         remainingTime: 0,
       })
-      ElMessage.error(t('file.uploadFail'))
+      ElMessage.error(t('errors.fileUploadError'))
     }
   }
 
@@ -157,7 +157,7 @@ export function useFileUpload() {
       // Refresh file list
       await fetchFileList()
     } catch (error) {
-      ElMessage.error(t('file.deleteFail'))
+      ElMessage.error(t('errors.fileDeleteError'))
       throw error
     }
   }
@@ -170,7 +170,7 @@ export function useFileUpload() {
       // Clear file list
       appStore.setFileList([])
     } catch (error) {
-      ElMessage.error(t('file.deleteFail'))
+      ElMessage.error(t('errors.fileDeleteError'))
       throw error
     }
   }

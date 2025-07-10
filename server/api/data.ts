@@ -5,7 +5,6 @@ import { newResponse } from '../utils/response'
 import { Auth } from '../utils/auth'
 import { Constant } from '../constant'
 import { Utils } from '../utils'
-import { t } from '../i18n'
 
 const key = 'word'
 
@@ -35,7 +34,7 @@ const request4GetData = async (env: Env, req: IRequest) => {
 
   // Throw 404 error in view mode if data not found
   if (!data && !req.edit) {
-    return error(404, t('errors.keywordNotFound', req.language))
+    return error(404, req.t('errors.contentNotFound'))
   }
 
   return newResponse({ data: data })
@@ -101,14 +100,14 @@ view_router.patch('/settings', async (req: IRequest, env: Env) => request4PatchS
 const request4PatchSettings = async (env: Env, req: IRequest) => {
   const keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
   if (!keyword) {
-    return error(404, t('errors.keywordNotFound', req.language))
+    return error(404, req.t('errors.contentNotFound'))
   }
 
   const settings = (await req.json()) as { expire_value: number; password?: string | null }
 
   // 1. Validate expire_value is within allowed range
   if (!Constant.ALLOWED_EXPIRE_VALUES.includes(settings.expire_value)) {
-    return error(400, t('errors.invalidExpiryTimeSetting', req.language))
+    return error(400, req.t('errors.invalidSettings'))
   }
 
   // 2. Build update data
@@ -145,7 +144,7 @@ const request4PatchSettings = async (env: Env, req: IRequest) => {
   try {
     await D1.update(env, 'keyword', updateData, [{ key: 'word', value: req.word }])
 
-    const responseData: { message: string; view_word?: string } = { message: t('messages.settingsSaved', req.language) }
+    const responseData: { message: string; view_word?: string } = { message: req.t('messages.settingsSaved') }
     if (passwordChanged && updateData.view_word) {
       responseData.view_word = updateData.view_word
     }
@@ -158,7 +157,7 @@ const request4PatchSettings = async (env: Env, req: IRequest) => {
     return newResponse({ data: responseData })
   } catch (err) {
     console.error('Settings update failed:', err)
-    return error(500, t('errors.failedToSaveSettings', req.language))
+    return error(500, req.t('errors.settingsSaveError'))
   }
 }
 
@@ -170,7 +169,7 @@ view_router.patch('/view-word', async (req: IRequest, env: Env) => request4Patch
 const request4PatchViewWord = async (env: Env, req: IRequest) => {
   const keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
   if (!keyword) {
-    return error(404, t('errors.keywordNotFound', req.language))
+    return error(404, req.t('errors.contentNotFound'))
   }
 
   const newViewWord = Utils.getRandomWord(6)
@@ -180,7 +179,7 @@ const request4PatchViewWord = async (env: Env, req: IRequest) => {
     return newResponse({ data: { view_word: newViewWord } })
   } catch (err) {
     console.error('View word reset failed:', err)
-    return error(500, t('errors.failedToResetReadonlyLink', req.language))
+    return error(500, req.t('errors.settingsSaveError'))
   }
 }
 

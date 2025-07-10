@@ -52,7 +52,7 @@ export function useSettings() {
       appStore.setShowSettings(false)
       ElMessage.success(t('settings.saveOk'))
     } catch (error) {
-      ElMessage.error(t('settings.saveFail'))
+      ElMessage.error(t('errors.settingsSaveError'))
       throw error
     } finally {
       appStore.setLoading(false)

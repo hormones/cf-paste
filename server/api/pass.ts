@@ -2,7 +2,6 @@ import { AutoRouter, error } from 'itty-router'
 import { newResponse } from '../utils/response'
 import { Auth } from '../utils/auth'
 import { getKeyword } from './data'
-import { t } from '../i18n'
 
 const word_router = AutoRouter({ base: '/:word/api/pass' })
 const view_router = AutoRouter({ base: '/v/:view_word/api/pass' })
@@ -18,7 +17,7 @@ const request4Verify = async (env: Env, req: IRequest) => {
 
   if (!keyword) {
     console.error(`Cannot find keyword info through ${req.word} | ${req.view_word}`)
-    return error(410, t('errors.accessErrorPageNotFound', req.language))
+    return error(410, req.t('errors.contentNotFound'))
   }
   req.word = keyword.word
   req.view_word = keyword.view_word
@@ -27,7 +26,7 @@ const request4Verify = async (env: Env, req: IRequest) => {
   if (keyword?.password) {
     const isValid = await Auth.verifyPassword(password, keyword.password, keyword.word!, env)
     if (!isValid) {
-      return error(403, t('errors.incorrectPassword', req.language))
+      return error(403, req.t('errors.incorrectPassword'))
     }
   }
 

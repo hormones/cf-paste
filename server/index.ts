@@ -5,7 +5,6 @@ import { word_router as word_file, view_router as view_file } from './api/file'
 import { word_router as word_pass, view_router as view_pass } from './api/pass'
 import { prepare, authenticate, handle } from './authentication'
 import schedule from './schedule'
-import { t } from './i18n'
 
 const router = AutoRouter({
   before: [prepare, authenticate],
@@ -20,7 +19,7 @@ router.all('/:word/api/file/*', word_file.fetch) // File operation routes (inclu
 router.all('/v/:view_word/api/pass/*', view_pass.fetch) // Authentication routes
 router.all('/:word/api/pass/*', word_pass.fetch) // Authentication routes
 // 404 handler
-router.all('/*', (req: IRequest) => error(404, t('errors.resourceNotFound', req.language)))
+router.all('/*', (req: IRequest) => error(404, req.t('errors.resourceNotFound')))
 
 export default {
   async fetch(req: IRequest, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -31,7 +30,16 @@ export default {
     const executeRouter = () =>
       router.fetch(req, env, ctx).catch((err: any) => {
         console.log('api execute error', err)
-        return newResponse({ code: 500, msg: t('errors.apiExecuteError', req.language || 'en') }, req.language)
+        console.error('API execution error:', {
+          path: req.url,
+          method: req.method,
+          error: err.message,
+          timestamp: new Date().toISOString(),
+        })
+        return newResponse(
+          { code: 500, msg: req.t('errors.systemError') },
+          req.language
+        )
       })
 
     // Match /:word/api/ requests

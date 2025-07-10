@@ -45,6 +45,7 @@ declare global {
     view_word: string
     startTime: number
     language: string
+    t: (key: string, params?: Record<string, string | number>) => string
   }
 
   type IRequest = {

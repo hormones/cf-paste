@@ -82,25 +82,39 @@ const transform: InterceptorHooks = {
     const { t } = useI18nComposable()
     const mapErrorStatus = new Map([
       [400, t('errors.requestMethod')],
-      [401, t('errors.relogin')],
+      [401, t('errors.sessionExpired')],
       [403, t('errors.accessDenied')],
       [404, t('errors.requestAddress')],
       [500, t('errors.server')],
       [502, t('errors.server')],
       [503, t('errors.serviceUnavailable')],
-      [504, t('errors.requestTimeout')],
+      [504, t('errors.timeout')],
     ])
     // Network error or server didn't return response
     if (!err.response) {
-      console.error(t('errors.network'))
+      console.error('Network error details:', {
+        name: err.name,
+        message: err.message,
+        code: err.code,
+        config: err.config,
+        timestamp: new Date().toISOString()
+      })
       ElMessage.error(t('errors.network'))
       return Promise.reject(err)
     }
     const message =
-      err.response.data?.error || mapErrorStatus.get(err.response.status) || t('errors.requestGeneral')
+      err.response.data?.error || mapErrorStatus.get(err.response.status) || t('errors.operationFailed')
+    // Log detailed error information for debugging
+    console.error('HTTP error details:', {
+      status: err.response.status,
+      statusText: err.response.statusText,
+      data: err.response.data,
+      url: err.config?.url,
+      method: err.config?.method,
+      timestamp: new Date().toISOString()
+    })
     // Global error notification here
     ElMessage.error(message)
-    console.error('Request exception', err)
     return Promise.reject(err)
   },
 }

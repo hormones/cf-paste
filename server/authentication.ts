@@ -31,6 +31,7 @@ export const prepare: RequestHandler<IRequest> = async (
 
   console.log('language: ', language)
   req.language = language
+  req.t = (key: string, params?: Record<string, string | number>) => t(key, req.language, params)
 }
 
 export const authenticate: RequestHandler<IRequest> = async (
@@ -51,7 +52,7 @@ export const authenticate: RequestHandler<IRequest> = async (
     if (!req.edit) {
       if (req.method === 'PUT' || req.method === 'POST' || req.method === 'DELETE') {
         console.error('Illegal call in view mode')
-        return error(403, t('errors.accessDenied', req.language))
+        return error(403, req.t('errors.accessDenied'))
       }
     }
 
@@ -64,7 +65,7 @@ export const authenticate: RequestHandler<IRequest> = async (
     let keyword: Keyword | null = await getKeyword(env, req, req.word, req.view_word)
     if (!req.word && req.view_word && !keyword) {
       console.error(`Cannot find keyword info for ${req.view_word}`)
-      return error(404, t('errors.accessErrorPageNotFound', req.language))
+      return error(404, req.t('errors.contentNotFound'))
     }
 
     req.word = req.word || keyword?.word || ''
@@ -84,7 +85,12 @@ export const authenticate: RequestHandler<IRequest> = async (
     }
 
     if (!c_authorization) {
-      return error(401, t('errors.authenticationRequired', req.language))
+      console.error('Authentication required:', {
+        path: req.url,
+        method: req.method,
+        timestamp: new Date().toISOString()
+      })
+      return error(401, req.t('errors.authRequired'))
     }
 
     // Verify authorization
@@ -97,20 +103,25 @@ export const authenticate: RequestHandler<IRequest> = async (
     if (req.word !== a_word) {
       req.clearAuthCookie = true
       console.error('Authorization invalid, access denied')
-      return error(403, t('errors.accessDenied', req.language))
+      return error(403, req.t('errors.accessDenied'))
     }
 
     // Verify timestamp (24 hours expiry)
     if (now - timestamp > 1 * 24 * 60 * 60 * 1000) {
       req.clearAuthCookie = true
       console.error('Authorization expired, re-authentication required')
-      return error(401, t('errors.reauthenticationRequired', req.language))
+      console.error('Reauthentication required:', {
+        path: req.url,
+        word: req.word,
+        timestamp: new Date().toISOString()
+      })
+      return error(401, req.t('errors.sessionExpired'))
     }
     console.log('authentication success')
   } catch (err) {
     req.clearAuthCookie = true
     console.error('authorization failed', err)
-    return error(500, t('errors.authorizationFailed', req.language))
+    return error(500, req.t('errors.authorizationFailed'))
   }
 }
 
