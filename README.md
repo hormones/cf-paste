@@ -22,7 +22,7 @@
 - [x] **Password Protection**: Set access passwords for shared content.
 - [x] **Custom Expiration**: Automatic deletion after expiration, options from 1 hour to 2 years.
 - [x] **Multi-language Support**: Support Chinese and English.
-- [x] **Markdown Support**: Support Markdown.
+- [x] **Markdown Support**: Support Markdown, support code syntax highlighting, flowchart rendering, etc.
 - [ ] **File Preview**: Support file preview.
 
 ## 🚀 Live Demo
