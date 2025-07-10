@@ -24,20 +24,18 @@
       <!-- Toggle Edit/Preview Button -->
       <el-button
         v-if="appStore.markdownMode === 'edit'"
-        type="primary"
         :icon="View"
         size="small"
-        circle
+        text
         :title="t('markdown.buttons.preview')"
         @click="switchToPreview"
         class="action-btn"
       />
       <el-button
         v-else-if="appStore.markdownMode === 'preview'"
-        type="primary"
         :icon="Edit"
         size="small"
-        circle
+        text
         :title="t('markdown.buttons.edit')"
         @click="switchToEdit"
         class="action-btn"
@@ -45,10 +43,9 @@
 
       <!-- Fullscreen Button -->
       <el-button
-        type="info"
         :icon="FullScreen"
         size="small"
-        circle
+        text
         :title="t('markdown.buttons.fullscreen')"
         @click="enterFullscreen"
         class="action-btn"
@@ -63,20 +60,18 @@
       <!-- View Mode Preview Toggle -->
       <el-button
         v-if="appStore.markdownMode === 'edit'"
-        type="primary"
         :icon="View"
         size="small"
-        circle
+        text
         :title="t('markdown.buttons.preview')"
         @click="switchToPreview"
         class="action-btn"
       />
       <el-button
         v-else-if="appStore.markdownMode === 'preview'"
-        type="primary"
         :icon="Document"
         size="small"
-        circle
+        text
         :title="t('markdown.buttons.edit')"
         @click="switchToEdit"
         class="action-btn"
@@ -84,10 +79,9 @@
 
       <!-- View Mode Fullscreen -->
       <el-button
-        type="info"
         :icon="FullScreen"
         size="small"
-        circle
+        text
         :title="t('markdown.buttons.fullscreen')"
         @click="enterFullscreen"
         class="action-btn"
@@ -165,6 +159,7 @@ syncFromParent
 .clipboard-panel {
   position: relative;
   width: 100%;
+  height: 100%;
   min-height: 192px; /* Maintain minimum height like original textarea */
 }
 
@@ -172,7 +167,7 @@ syncFromParent
 .floating-actions {
   position: absolute;
   top: 8px;
-  right: 8px;
+  right: 24px;
   display: flex;
   gap: 4px;
   z-index: 10;
@@ -185,47 +180,7 @@ syncFromParent
 }
 
 .action-btn {
-  width: 28px !important;
-  height: 28px !important;
-  font-size: 14px;
-  backdrop-filter: blur(8px);
-  background-color: var(--el-color-primary);
-  border: 1px solid var(--el-border-color-light);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.action-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Mobile responsive adjustments */
-@media (max-width: 768px) {
-  .floating-actions {
-    top: 6px;
-    right: 6px;
-    gap: 6px;
-  }
-
-  .action-btn {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 16px;
-  }
-}
-
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  .action-btn {
-    backdrop-filter: blur(8px);
-    background-color: rgba(0, 0, 0, 0.6);
-    border-color: var(--el-border-color-darker);
-  }
-
-  .floating-actions:hover {
-    opacity: 0.95;
-  }
+  background-color: var(--color-surface);
 }
 
 /* Ensure child components fill the container */

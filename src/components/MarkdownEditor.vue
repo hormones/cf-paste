@@ -51,21 +51,9 @@ const content = computed({
 // Calculate content statistics
 const stats = computed(() => calculateStats(content.value))
 
-// Auto-resize textarea height
+// Auto-resize textarea height - 现在不需要自动调整高度，因为使用flex布局
 const adjustHeight = () => {
-  nextTick(() => {
-    if (textareaRef.value) {
-      // Reset height to auto to get the correct scrollHeight
-      textareaRef.value.style.height = 'auto'
-
-      // Calculate new height with min/max constraints
-      const minHeight = 12 * 1.6 * 16 // 12 lines * line-height * font-size
-      const maxHeight = 20 * 1.6 * 16 // 20 lines * line-height * font-size
-      const newHeight = Math.min(Math.max(textareaRef.value.scrollHeight, minHeight), maxHeight)
-
-      textareaRef.value.style.height = `${newHeight}px`
-    }
-  })
+  // 保留函数但不执行任何操作，以保持组件接口兼容性
 }
 
 // Handle blur event for auto-save
@@ -99,18 +87,22 @@ defineExpose({
 .markdown-editor {
   position: relative;
   width: 100%;
+  height: 100%; /* 占满父容器高度 */
+  display: flex;
+  flex-direction: column;
 }
 
 .markdown-editor__textarea {
   width: 100%;
+  flex: 1; /* 占满剩余空间 */
   min-height: 192px; /* 12 lines * 16px */
-  max-height: 512px; /* 20 lines * 16px */
   padding: 12px 16px;
   border: 1px solid var(--el-border-color);
   border-radius: var(--el-border-radius-base);
   background-color: var(--color-surface);
   color: var(--color-text);
-  resize: vertical;
+  resize: none; /* 禁用手动调整大小，因为使用flex自动调整 */
+  overflow-y: auto; /* 内容超长时显示滚动条 */
 
   /* Typography system - monospace for code editing */
   font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;

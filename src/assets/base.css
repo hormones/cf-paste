@@ -92,6 +92,12 @@ body {
   scroll-behavior: smooth;
 }
 
+#app,
+main {
+  width: 100vw;
+  height: 100vh;
+}
+
 /* Element Plus dialog backdrop blur transition effects */
 
 /* Overlay transitions for both opacity and backdrop-filter */

@@ -48,23 +48,15 @@ onMounted(async () => {
   <div class="paste-container">
     <PageHeader />
 
-    <!-- Use el-row/el-col to replace custom layout -->
-    <el-row :gutter="20" class="main-layout">
-      <el-col
-        :span="appStore.viewMode ? 24 : 16"
-        :xs="24"
-        :sm="24"
-        :md="appStore.viewMode ? 24 : 16"
-      >
+    <div class="main-layout">
+      <div class="content-area">
         <TabsContainer />
-      </el-col>
-      <el-col :span="8" :xs="0" :sm="0" :md="8" v-if="!appStore.viewMode">
-        <div class="side-panel">
-          <InfoPanel />
-          <QRCodePanel />
-        </div>
-      </el-col>
-    </el-row>
+      </div>
+      <div v-if="!appStore.viewMode" class="side-panel">
+        <InfoPanel />
+        <QRCodePanel />
+      </div>
+    </div>
 
     <PasswordDialog v-model:visible="appStore.showPasswordDialog" />
 
@@ -86,24 +78,37 @@ onMounted(async () => {
 
 <style scoped>
 .paste-container {
-  /* Container styles */
+  display: flex;
+  flex-direction: column;
   padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  /* Use body background color, no need to set additional background here */
-}
-
-/* Main layout uses Element Plus el-row/el-col, no need for custom styles */
-.main-layout {
   max-width: 1400px;
+  height: 100vh;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
-/* Sidebar styles - add spacing between basic info and read-only link */
+.main-layout {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* 内容区域 */
+.content-area {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .side-panel {
+  flex: 0 0 320px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-height: 0;
 }
 
 .setting-item {
@@ -127,6 +132,12 @@ onMounted(async () => {
 .setting-label small {
   font-size: 12px;
   color: var(--el-text-color-secondary);
+}
+
+@media (max-width: 992px) {
+  .side-panel {
+    display: none;
+  }
 }
 </style>
 

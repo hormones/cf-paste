@@ -138,8 +138,31 @@ export function useClipboard() {
 
       if (sourceScrollHeight <= 0 || targetScrollHeight <= 0) return
 
-      const scrollRatio = sourceScrollTop / sourceScrollHeight
-      const targetScrollTop = scrollRatio * targetScrollHeight
+      // Improved scroll mapping algorithm
+      let targetScrollTop: number
+
+      if (isSourceEditor) {
+        // Editor to preview: use enhanced ratio with smoothing
+        const scrollRatio = sourceScrollTop / sourceScrollHeight
+
+        // Apply smoothing for better accuracy at the edges
+        const smoothedRatio = Math.pow(scrollRatio, 0.95)
+        targetScrollTop = smoothedRatio * targetScrollHeight
+
+        // Fine-tune for common markdown elements
+        if (scrollRatio < 0.1) {
+          // Near top: more linear mapping
+          targetScrollTop = scrollRatio * targetScrollHeight
+        } else if (scrollRatio > 0.9) {
+          // Near bottom: ensure we reach the bottom
+          targetScrollTop = targetScrollHeight * Math.min(1, scrollRatio + 0.05)
+        }
+      } else {
+        // Preview to editor: reverse mapping with compensation
+        const scrollRatio = sourceScrollTop / sourceScrollHeight
+        const compensatedRatio = Math.pow(scrollRatio, 1.05)
+        targetScrollTop = compensatedRatio * targetScrollHeight
+      }
 
       // Set scroll flags to prevent infinite loop
       if (isSourceEditor) {
@@ -148,16 +171,17 @@ export function useClipboard() {
         isPreviewScrolling = true
       }
 
-      target.scrollTop = targetScrollTop
+      target.scrollTop = Math.max(0, Math.min(targetScrollTop, targetScrollHeight))
       debouncedResetScrollFlags()
     }
 
     // Helper function to get actual DOM element from element or ref
     const getElement = (elementOrRef: HTMLElement | Ref<HTMLElement | null>): HTMLElement | null => {
-      if ('value' in elementOrRef) {
+      // Check if it's a Vue ref by checking if it has both 'value' property and is not a DOM element
+      if (elementOrRef && typeof elementOrRef === 'object' && 'value' in elementOrRef && !(elementOrRef instanceof HTMLElement)) {
         return elementOrRef.value
       }
-      return elementOrRef
+      return elementOrRef as HTMLElement
     }
 
     const editorEl = getElement(editorElement)

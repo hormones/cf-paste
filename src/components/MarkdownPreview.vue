@@ -89,14 +89,14 @@ defineExpose({
 <style scoped>
 .markdown-preview {
   width: 100%;
+  height: 100%; /* 占满父容器高度 */
   min-height: 192px;
-  max-height: 512px;
   padding: 12px 16px;
   border: 1px solid var(--el-border-color);
   border-radius: var(--el-border-radius-base);
   background-color: var(--color-surface);
   color: var(--color-text);
-  overflow-y: auto;
+  overflow-y: auto; /* 内容超长时显示滚动条 */
   transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 

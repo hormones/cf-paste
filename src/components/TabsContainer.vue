@@ -56,6 +56,7 @@ const handleAutoSave = () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  height: 100%;
   transition: border-color 0.5s, background-color 0.5s;
   overflow: hidden; /* Prevent child elements from overflowing rounded corners */
 }
@@ -81,7 +82,9 @@ const handleAutoSave = () => {
 }
 
 .tab-content {
-  flex-grow: 1;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .tab-pane {
@@ -92,7 +95,7 @@ const handleAutoSave = () => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 /* Mobile styles */

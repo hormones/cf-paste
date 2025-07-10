@@ -1,34 +1,29 @@
 <template>
-  <el-dialog
-    v-model="isVisible"
-    class="markdown-fullscreen-dialog"
-    :fullscreen="true"
-    :destroy-on-close="true"
-    :show-close="false"
-    :close-on-click-modal="false"
-    :close-on-press-escape="true"
-    @close="handleClose"
+  <!-- Simple fullscreen overlay -->
+  <div
+    v-if="isVisible"
+    class="markdown-fullscreen"
+    @keydown.esc="handleClose"
+    tabindex="0"
   >
-    <!-- Custom header with stats and close button -->
-    <template #header>
-      <div class="markdown-fullscreen-header">
-        <div class="markdown-fullscreen-stats">
-          {{ t('markdown.stats', {
-            characters: stats.characters,
-            words: stats.words
-          }) }}
-        </div>
-        <el-button
-          type="primary"
-          :icon="Close"
-          circle
-          @click="handleClose"
-          :title="t('markdown.buttons.exit')"
-        />
+    <!-- Header with stats and close button -->
+    <div class="markdown-fullscreen-header">
+      <div class="markdown-fullscreen-stats">
+        {{ t('markdown.stats', {
+          characters: stats.characters,
+          words: stats.words
+        }) }}
       </div>
-    </template>
+      <el-button
+        size="small"
+        :icon="Close"
+        text
+        @click="handleClose"
+        :title="t('markdown.buttons.exit')"
+      />
+    </div>
 
-    <!-- Fullscreen content area -->
+    <!-- Main content area with flex layout -->
     <div class="markdown-fullscreen-content">
       <!-- Editor panel - hidden in view mode -->
       <div
@@ -50,7 +45,7 @@
         <MarkdownPreview ref="previewRef" />
       </div>
     </div>
-  </el-dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -71,15 +66,8 @@ const { calculateStats, setupScrollSync, debounce } = useClipboard()
 const editorRef = ref<InstanceType<typeof MarkdownEditor> | null>(null)
 const previewRef = ref<InstanceType<typeof MarkdownPreview> | null>(null)
 
-// Control dialog visibility based on store state
-const isVisible = computed({
-  get: () => appStore.markdownMode === 'fullscreen',
-  set: (value: boolean) => {
-    if (!value) {
-      handleClose()
-    }
-  }
-})
+// Control visibility based on store state
+const isVisible = computed(() => appStore.markdownMode === 'fullscreen')
 
 // Calculate content statistics
 const stats = computed(() => {
@@ -97,27 +85,28 @@ const setupScrollSynchronization = debounce(() => {
     scrollSyncCleanup()
   }
 
-  // Only setup sync if both refs are available and not in view mode
-  if (editorRef.value?.textareaRef && previewRef.value?.previewRef && !appStore.viewMode) {
-    // Create temporary refs that point to the exposed refs from child components
-    const editorScrollRef = editorRef.value.textareaRef
-    const previewScrollRef = previewRef.value.previewRef
+      // Only setup sync if both refs are available and not in view mode
+  if (!appStore.viewMode && editorRef.value?.textareaRef && previewRef.value?.previewRef) {
+    const editorElement = editorRef.value.textareaRef
+    const previewElement = previewRef.value.previewRef
 
-    scrollSyncCleanup = setupScrollSync(
-      editorScrollRef,
-      previewScrollRef
-    )
+        // Check if elements are valid DOM nodes
+    if (editorElement && previewElement) {
+      scrollSyncCleanup = setupScrollSync(
+        editorElement,
+        previewElement
+      )
+    }
   }
-}, 16) // 16ms debounce for smooth performance
+}, 16)
 
 // Handle auto-save from editor
 const handleAutoSave = () => {
   emit('auto-save')
 }
 
-// Handle dialog close
+// Handle close
 const handleClose = () => {
-  // Return to previous mode based on viewMode
   if (appStore.viewMode) {
     appStore.setMarkdownMode('preview')
   } else {
@@ -125,38 +114,45 @@ const handleClose = () => {
   }
 }
 
-// Handle ESC key press
-const handleEscKey = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && isVisible.value) {
-    event.preventDefault()
-    handleClose()
-  }
-}
-
-// Watch for dialog visibility changes to setup/cleanup scroll sync
+// Watch for visibility changes to setup/cleanup scroll sync
 watch(isVisible, (visible) => {
   if (visible) {
-    // Setup scroll sync when dialog opens
-    setTimeout(setupScrollSynchronization, 100)
+    // Setup scroll sync when fullscreen opens
+    // Use longer delay to ensure DOM is ready
+    setTimeout(() => {
+      setupScrollSynchronization()
+    }, 200)
 
-    // Add ESC key listener
-    document.addEventListener('keydown', handleEscKey)
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden'
   } else {
-    // Cleanup when dialog closes
+    // Cleanup when fullscreen closes
     if (scrollSyncCleanup) {
       scrollSyncCleanup()
       scrollSyncCleanup = null
     }
 
-    // Remove ESC key listener
-    document.removeEventListener('keydown', handleEscKey)
+    // Restore body scroll
+    document.body.style.overflow = ''
   }
 })
 
 // Watch for viewMode changes to update scroll sync
 watch(() => appStore.viewMode, () => {
   if (isVisible.value) {
-    setupScrollSynchronization()
+    setTimeout(() => {
+      setupScrollSynchronization()
+    }, 100)
+  }
+})
+
+// Watch for content changes to re-setup scroll sync
+watch(() => appStore.keyword.content, () => {
+  if (isVisible.value && !appStore.viewMode) {
+    // Re-setup scroll sync when content changes to ensure proper height calculations
+    setTimeout(() => {
+      setupScrollSynchronization()
+    }, 100)
   }
 })
 
@@ -165,38 +161,35 @@ onUnmounted(() => {
   if (scrollSyncCleanup) {
     scrollSyncCleanup()
   }
-  document.removeEventListener('keydown', handleEscKey)
+  // Restore body scroll
+  document.body.style.overflow = ''
 })
 </script>
 
 <style scoped>
-/* Override Element Plus dialog styles for fullscreen */
-:deep(.el-dialog) {
-  margin: 0;
-  border-radius: 0;
-  height: 100vh;
-  max-height: 100vh;
-  overflow: hidden;
+/* Simple fullscreen overlay */
+.markdown-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3000;
+  background: var(--color-background);
+  display: flex;
+  flex-direction: column;
+  outline: none;
 }
 
-:deep(.el-dialog__header) {
-  padding: 12px 16px;
-  margin: 0;
-  border-bottom: 1px solid var(--el-border-color);
-  background: var(--color-surface);
-}
-
-:deep(.el-dialog__body) {
-  padding: 0;
-  height: calc(100vh - 60px); /* Subtract header height */
-  overflow: hidden;
-}
-
+/* Header styling */
 .markdown-fullscreen-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--el-border-color);
+  background: var(--color-surface);
+  flex-shrink: 0;
 }
 
 .markdown-fullscreen-stats {
@@ -205,16 +198,20 @@ onUnmounted(() => {
   font-weight: 500;
 }
 
+/* Content area with flex=1 */
 .markdown-fullscreen-content {
   display: flex;
-  height: 100%;
+  flex: 1;
   overflow: hidden;
 }
 
+/* Panel styling for left-right layout */
 .markdown-fullscreen-panel {
   flex: 1;
   height: 100%;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .markdown-fullscreen-editor {
@@ -225,27 +222,28 @@ onUnmounted(() => {
   flex: 1;
 }
 
-/* Remove borders from child components in fullscreen */
-:deep(.markdown-editor),
-:deep(.markdown-preview) {
+/* Ensure child components fill the panel */
+.markdown-fullscreen :deep(.markdown-editor),
+.markdown-fullscreen :deep(.markdown-preview) {
   height: 100%;
+  flex: 1;
   border: none;
   border-radius: 0;
 }
 
-:deep(.markdown-editor__textarea),
-:deep(.markdown-preview) {
+.markdown-fullscreen :deep(.markdown-editor__textarea),
+.markdown-fullscreen :deep(.markdown-preview) {
   max-height: none;
   height: 100%;
   border-radius: 0;
 }
 
 /* Hide stats in editor when in fullscreen */
-:deep(.markdown-editor__stats) {
+.markdown-fullscreen :deep(.markdown-editor__stats) {
   display: none;
 }
 
-/* Responsive design */
+/* Responsive design for mobile */
 @media (max-width: 768px) {
   .markdown-fullscreen-content {
     flex-direction: column;
@@ -254,21 +252,24 @@ onUnmounted(() => {
   .markdown-fullscreen-editor {
     border-right: none;
     border-bottom: 1px solid var(--el-border-color);
+    flex: 1;
     max-height: 50%;
   }
 
   .markdown-fullscreen-preview {
+    flex: 1;
     max-height: 50%;
   }
 
   .markdown-fullscreen-preview.is-full-width {
     max-height: 100%;
+    flex: 1;
   }
 }
 
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
-  :deep(.el-dialog__header) {
+  .markdown-fullscreen-header {
     border-bottom-color: var(--el-border-color-darker);
   }
 
@@ -281,5 +282,14 @@ onUnmounted(() => {
       border-bottom-color: var(--el-border-color-darker);
     }
   }
+}
+
+/* Smooth transitions */
+.markdown-fullscreen {
+  transition: opacity 0.3s ease;
+}
+
+.markdown-fullscreen-panel {
+  transition: flex 0.3s ease;
 }
 </style>
