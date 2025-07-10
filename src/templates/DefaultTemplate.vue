@@ -49,9 +49,7 @@ onMounted(async () => {
     <PageHeader />
 
     <div class="main-layout">
-      <div class="content-area">
-        <TabsContainer />
-      </div>
+      <TabsContainer class="content-area" />
       <div v-if="!appStore.viewMode" class="side-panel">
         <InfoPanel />
         <QRCodePanel />
@@ -101,6 +99,7 @@ onMounted(async () => {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  height: 95%;
 }
 
 .side-panel {

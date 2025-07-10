@@ -57,6 +57,10 @@
     "linkCopied": "Link copied to clipboard",
     "linkUpdated": "Read-only link updated",
     "deleteConfirm": "Are you sure you want to delete clipboard and all files?",
+    "copyContent": "Copy content",
+    "contentCopied": "Content copied to clipboard",
+    "emptyContent": "Content is empty, unable to copy",
+    "copyFailed": "Copy failed, please try again",
     "info": {
       "title": "Basic Information",
       "created": "Created",

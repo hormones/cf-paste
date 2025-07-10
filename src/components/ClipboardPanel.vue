@@ -1,158 +1,81 @@
 <template>
   <div class="clipboard-panel">
-    <!-- Markdown Editor - visible in edit mode -->
     <MarkdownEditor
-      v-show="appStore.markdownMode === 'edit'"
-      @auto-save="handleAutoSave"
+      ref="markdownEditorRef"
+      v-model="appStore.keyword.content"
+      :mode="editorMode"
+      :is-fullscreen="isFullscreen"
+      :keyword="appStore.keyword.word"
+      @blur="handleBlur"
+      @rendered="handleRendered"
+      @error="handleRenderError"
+      @exit-fullscreen="exitFullscreen"
+      @save="saveKeyword"
     />
-
-    <!-- Markdown Preview - visible in preview mode -->
-    <MarkdownPreview
-      v-show="appStore.markdownMode === 'preview'"
-    />
-
-    <!-- Markdown Fullscreen - globally managed -->
-    <MarkdownFullscreen
-      @auto-save="handleAutoSave"
-    />
-
-    <!-- Floating Action Buttons - only visible when not in fullscreen mode -->
-    <div
-      v-if="appStore.markdownMode !== 'fullscreen' && !appStore.viewMode"
-      class="floating-actions"
-    >
-      <!-- Toggle Edit/Preview Button -->
-      <el-button
-        v-if="appStore.markdownMode === 'edit'"
-        :icon="View"
-        size="small"
-        text
-        :title="t('markdown.buttons.preview')"
-        @click="switchToPreview"
-        class="action-btn"
-      />
-      <el-button
-        v-else-if="appStore.markdownMode === 'preview'"
-        :icon="Edit"
-        size="small"
-        text
-        :title="t('markdown.buttons.edit')"
-        @click="switchToEdit"
-        class="action-btn"
-      />
-
-      <!-- Fullscreen Button -->
-      <el-button
-        :icon="FullScreen"
-        size="small"
-        text
-        :title="t('markdown.buttons.fullscreen')"
-        @click="enterFullscreen"
-        class="action-btn"
-      />
-    </div>
-
-    <!-- View-only mode floating actions - show preview toggle only -->
-    <div
-      v-if="appStore.markdownMode !== 'fullscreen' && appStore.viewMode"
-      class="floating-actions"
-    >
-      <!-- View Mode Preview Toggle -->
-      <el-button
-        v-if="appStore.markdownMode === 'edit'"
-        :icon="View"
-        size="small"
-        text
-        :title="t('markdown.buttons.preview')"
-        @click="switchToPreview"
-        class="action-btn"
-      />
-      <el-button
-        v-else-if="appStore.markdownMode === 'preview'"
-        :icon="Document"
-        size="small"
-        text
-        :title="t('markdown.buttons.edit')"
-        @click="switchToEdit"
-        class="action-btn"
-      />
-
-      <!-- View Mode Fullscreen -->
-      <el-button
-        :icon="FullScreen"
-        size="small"
-        text
-        :title="t('markdown.buttons.fullscreen')"
-        @click="enterFullscreen"
-        class="action-btn"
-      />
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { View, Edit, FullScreen, Document } from '@element-plus/icons-vue'
+import { ref, computed } from 'vue'
 import { useAppStore } from '@/stores'
 import { useI18nComposable } from '@/composables/useI18n'
+import { useMain } from '@/composables/useMain'
+import { MARKDOWN_MODE } from '@/constant'
 import MarkdownEditor from './MarkdownEditor.vue'
-import MarkdownPreview from './MarkdownPreview.vue'
-import MarkdownFullscreen from './MarkdownFullscreen.vue'
 
-// Maintain compatibility with parent component interface
-const modelValue = defineModel<string>()
-const emit = defineEmits(['auto-save'])
-
+// Store and composables
 const appStore = useAppStore()
 const { t } = useI18nComposable()
+const { saveKeyword } = useMain()
 
-// Sync modelValue with store content for backward compatibility
-const syncedContent = computed({
-  get: () => appStore.keyword.content || '',
-  set: (value: string) => {
-    appStore.updateKeywordFields({ content: value })
-    // Update modelValue to maintain v-model compatibility
-    if (modelValue.value !== value) {
-      modelValue.value = value
-    }
+// Component ref
+const markdownEditorRef = ref<InstanceType<typeof MarkdownEditor>>()
+
+// Computed properties
+const isFullscreen = computed(() => appStore.markdownMode === MARKDOWN_MODE.FULLSCREEN)
+
+const editorMode = computed(() => {
+  switch (appStore.markdownMode) {
+    case MARKDOWN_MODE.PREVIEW:
+      return 'preview'
+    case MARKDOWN_MODE.FULLSCREEN:
+      return 'split' // Fullscreen uses split mode
+    default:
+      return 'edit'
   }
 })
 
-// Watch modelValue changes from parent and sync to store
-const syncFromParent = computed(() => {
-  if (modelValue.value !== undefined && modelValue.value !== syncedContent.value) {
-    appStore.updateKeywordFields({ content: modelValue.value })
-  }
-  return modelValue.value
+// Event handlers
+function handleBlur(): void {
+  // Auto-save on blur if content has changed
+  if (appStore.viewMode) return
+  if (appStore.lastSavedContent === appStore.keyword.content) return
+  saveKeyword()
+}
+
+function handleRendered(html: string): void {
+  console.log('✅ Content rendered successfully')
+}
+
+function handleRenderError(error: Error): void {
+  console.error('❌ Markdown rendering error:', error)
+  // Optional: Show user notification
+}
+
+function exitFullscreen(): void {
+  // When exiting fullscreen, revert to the previous mode or a default.
+  // 'edit' is a safe default.
+  appStore.setMarkdownMode(MARKDOWN_MODE.EDIT)
+}
+
+
+// Expose methods for external access
+defineExpose({
+  markdownEditorRef,
+  focus: () => markdownEditorRef.value?.focus(),
+  refresh: () => markdownEditorRef.value?.refresh(),
+  reprocessDiagrams: () => markdownEditorRef.value?.reprocessDiagrams()
 })
-
-// Mode switching functions
-const switchToEdit = () => {
-  appStore.setMarkdownMode('edit')
-}
-
-const switchToPreview = () => {
-  appStore.setMarkdownMode('preview')
-}
-
-const enterFullscreen = () => {
-  appStore.setMarkdownMode('fullscreen')
-}
-
-// Handle auto-save events from child components
-const handleAutoSave = () => {
-  // Maintain compatibility with existing auto-save logic
-  if (appStore.viewMode) {
-    return
-  }
-  if (appStore.lastSavedContent === syncedContent.value) {
-    return
-  }
-  emit('auto-save')
-}
-
-// Initialize sync on mount - ensure store and modelValue are in sync
-syncFromParent
 </script>
 
 <style scoped>
@@ -160,42 +83,13 @@ syncFromParent
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 192px; /* Maintain minimum height like original textarea */
-}
-
-/* Floating action buttons */
-.floating-actions {
-  position: absolute;
-  top: 8px;
-  right: 24px;
   display: flex;
-  gap: 4px;
-  z-index: 10;
-  opacity: 0.7;
-  transition: opacity 0.3s ease;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.floating-actions:hover {
-  opacity: 1;
-}
-
-.action-btn {
-  background-color: var(--color-surface);
-}
-
-/* Ensure child components fill the container */
-:deep(.markdown-editor),
-:deep(.markdown-preview) {
-  width: 100%;
-  min-height: 192px;
-}
-
-/* Remove extra borders when nested in TabsContainer */
-:deep(.markdown-editor),
-:deep(.markdown-preview) {
-  border: 1px solid var(--el-border-color);
-  border-radius: var(--el-border-radius-base);
-  background-color: var(--color-surface);
-  transition: background-color 0.5s, border-color 0.5s;
+:deep(.markdown-editor) {
+  border: none;
+  border-radius: 0;
 }
 </style>

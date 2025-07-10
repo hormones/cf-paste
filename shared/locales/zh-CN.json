@@ -57,6 +57,10 @@
     "linkCopied": "链接已复制到剪贴板",
     "linkUpdated": "只读链接已更新",
     "deleteConfirm": "确定要删除剪贴板内容和所有文件吗？",
+    "copyContent": "复制内容",
+    "contentCopied": "内容已复制到剪贴板",
+    "emptyContent": "内容为空，无法复制",
+    "copyFailed": "复制失败，请重试",
     "info": {
       "title": "基本信息",
       "created": "创建时间",

@@ -73,7 +73,7 @@ export const R2 = {
     }: { prefix: string; name: string; length: number; stream: ReadableStream<Uint8Array> | null; language?: string }
   ) => {
     const path = `${prefix}/${name}`
-    console.log(`upload file: ${path}, size: ${Utils.humanReadableSize(length)}`)
+    console.log(`upload file: ${decodeURIComponent(path)}, size: ${Utils.humanReadableSize(length)}`)
 
     if (!stream || length <= 0) {
       console.error('File upload failed: stream or length empty', {

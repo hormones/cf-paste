@@ -2,7 +2,7 @@ import { ElMessage } from 'element-plus'
 import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
 import type { Keyword } from '@/types'
-import { Constant } from '@/constant'
+import { Constant, MARKDOWN_MODE } from '@/constant'
 import { useI18nComposable } from './useI18n'
 
 export function useMain() {
@@ -19,6 +19,7 @@ export function useMain() {
       } else {
         appStore.viewMode = false
       }
+      appStore.setMarkdownMode(appStore.viewMode ? MARKDOWN_MODE.PREVIEW : MARKDOWN_MODE.EDIT)
       appStore.setLastSavedContent(appStore.keyword.content || '')
       return data
     } catch (response: any) {

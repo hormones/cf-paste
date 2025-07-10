@@ -10,7 +10,7 @@ export interface Keyword {
   id?: number | null
   word?: string
   view_word: string
-  content?: string
+  content: string
   password?: string
   expire_time: number
   /** User-selected expiration duration (seconds), default 3 days */

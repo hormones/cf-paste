@@ -16,7 +16,6 @@ export const prepare: RequestHandler<IRequest> = async (
 
   // Language detection and cookie handling
   let language = Auth.getCookie(req, 'language')
-  console.log('language: ', language)
   if (!language) {
     // Detect language using environment variables, CF headers, and Accept-Language
     language = detectLanguage(
@@ -29,7 +28,6 @@ export const prepare: RequestHandler<IRequest> = async (
     req.setLanguageCookie = language
   }
 
-  console.log('language: ', language)
   req.language = language
   req.t = (key: string, params?: Record<string, string | number>) => t(key, req.language, params)
 }

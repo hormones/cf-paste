@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import type { Keyword, FileInfo, UploadState, PasteConfig } from '@/types'
 import { Utils } from '@/utils'
-import { EXPIRY_VALUES } from '../../shared/constants'
+import { EXPIRY_VALUES, MARKDOWN_MODE } from '../../shared/constants'
 
 export type Theme = 'light' | 'dark'
 export type MarkdownMode = 'edit' | 'preview' | 'fullscreen'
@@ -44,7 +44,7 @@ export const useAppStore = defineStore('app', {
     urlPrefix: null as string | null,
 
     // Markdown state
-    markdownMode: 'edit' as MarkdownMode,
+    markdownMode: MARKDOWN_MODE.EDIT as MarkdownMode,
   }),
 
   getters: {
@@ -256,17 +256,17 @@ export const useAppStore = defineStore('app', {
 
     // Toggle between edit and preview modes
     toggleMarkdownMode() {
-      this.markdownMode = this.markdownMode === 'edit' ? 'preview' : 'edit'
+      this.markdownMode = this.markdownMode === MARKDOWN_MODE.EDIT ? MARKDOWN_MODE.PREVIEW : MARKDOWN_MODE.EDIT
     },
 
     // Enter fullscreen mode
     enterFullscreen() {
-      this.markdownMode = 'fullscreen'
+      this.markdownMode = MARKDOWN_MODE.FULLSCREEN
     },
 
     // Exit fullscreen mode
     exitFullscreen() {
-      this.markdownMode = this.viewMode ? 'preview' : 'edit'
+      this.markdownMode = this.viewMode ? MARKDOWN_MODE.PREVIEW : MARKDOWN_MODE.EDIT
     }
   },
 })

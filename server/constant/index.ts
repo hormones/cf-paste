@@ -5,7 +5,8 @@ export {
   EXPIRY_VALUES,
   STORAGE_CONSTANTS,
   RESERVED_WORDS,
-  BASE_CONSTANTS
+  BASE_CONSTANTS,
+  MARKDOWN_MODE
 } from '../../shared/constants'
 
 // Server-specific: export only allowed expiry time values for validation

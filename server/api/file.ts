@@ -49,7 +49,6 @@ const request4Upload = async (env: Env, req: IRequest) => {
   const decodedName = decodeURIComponent(name)
   const length = req.headers.get('content-length')
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
-  console.log('upload file: ', decodedName, prefix)
   return R2.upload(env, {
     prefix,
     name: decodedName,

@@ -17,7 +17,7 @@ const isDev = process.env.NODE_ENV === 'development'
 export default defineConfig({
 	plugins: [
 		vue(),
-		vueDevTools(),
+		isDev && vueDevTools(),
 		cloudflare(),
 		AutoImport({
 			resolvers: [ElementPlusResolver()],

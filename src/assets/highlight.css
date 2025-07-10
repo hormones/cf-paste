@@ -1,0 +1,196 @@
+/* 
+ * Code Syntax Highlighting Styles
+ * Works in coordination with markdown.css for unified code styling
+ */
+
+/* Theme Variables */
+:root {
+  --hljs-bg: #f8f9fa;
+  --hljs-color: #24292e;
+  --hljs-keyword: #d73a49;
+  --hljs-string: #032f62;
+  --hljs-comment: #6a737d;
+  --hljs-number: #005cc5;
+  --hljs-function: #6f42c1;
+  --hljs-class: #6f42c1;
+  --hljs-variable: #e36209;
+  --hljs-builtin: #005cc5;
+  --hljs-attr: #6f42c1;
+  --hljs-tag: #22863a;
+}
+
+/* Dark Theme Variables */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hljs-bg: #161b22;
+    --hljs-color: #e6edf3;
+    --hljs-keyword: #ff7b72;
+    --hljs-string: #a5d6ff;
+    --hljs-comment: #8b949e;
+    --hljs-number: #79c0ff;
+    --hljs-function: #d2a8ff;
+    --hljs-class: #d2a8ff;
+    --hljs-variable: #ffa657;
+    --hljs-builtin: #79c0ff;
+    --hljs-attr: #d2a8ff;
+    --hljs-tag: #7ee787;
+  }
+}
+
+/* Manual dark theme override */
+[data-theme="dark"] :root,
+.dark :root {
+  --hljs-bg: #161b22;
+  --hljs-color: #e6edf3;
+  --hljs-keyword: #ff7b72;
+  --hljs-string: #a5d6ff;
+  --hljs-comment: #8b949e;
+  --hljs-number: #79c0ff;
+  --hljs-function: #d2a8ff;
+  --hljs-class: #d2a8ff;
+  --hljs-variable: #ffa657;
+  --hljs-builtin: #79c0ff;
+  --hljs-attr: #d2a8ff;
+  --hljs-tag: #7ee787;
+}
+
+/* Core hljs styling */
+.hljs {
+  background: var(--hljs-bg) !important;
+  color: var(--hljs-color) !important;
+  font-family: 'Fira Code', 'SF Mono', Monaco, 'Inconsolata', 'Roboto Mono', 'Source Code Pro', Menlo, Consolas, monospace !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  tab-size: 2;
+}
+
+/* Syntax highlighting colors */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-section,
+.hljs-link,
+.hljs-subst {
+  color: var(--hljs-keyword);
+}
+
+.hljs-string,
+.hljs-title,
+.hljs-name,
+.hljs-type,
+.hljs-attribute,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition,
+.hljs-variable,
+.hljs-template-tag,
+.hljs-template-variable {
+  color: var(--hljs-string);
+}
+
+.hljs-comment,
+.hljs-quote,
+.hljs-deletion,
+.hljs-meta {
+  color: var(--hljs-comment);
+  font-style: italic;
+}
+
+.hljs-number,
+.hljs-regexp,
+.hljs-literal,
+.hljs-type,
+.hljs-built_in,
+.hljs-builtin-name {
+  color: var(--hljs-number);
+}
+
+.hljs-function,
+.hljs-class,
+.hljs-title.class_,
+.hljs-title.function_ {
+  color: var(--hljs-function);
+  font-weight: 600;
+}
+
+.hljs-variable {
+  color: var(--hljs-variable);
+}
+
+.hljs-tag {
+  color: var(--hljs-tag);
+}
+
+.hljs-attr {
+  color: var(--hljs-attr);
+}
+
+/* Special language elements */
+.hljs-doctag,
+.hljs-formula {
+  color: var(--hljs-builtin);
+}
+
+.hljs-section,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class {
+  color: var(--hljs-function);
+  font-weight: 600;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
+}
+
+/* Language-specific optimizations */
+.language-json .hljs-attr {
+  color: var(--hljs-keyword);
+}
+
+.language-markdown .hljs-section {
+  color: var(--hljs-function);
+  font-weight: 700;
+}
+
+.language-markdown .hljs-bullet {
+  color: var(--hljs-keyword);
+}
+
+/* Scrollbar styling for code blocks */
+.hljs::-webkit-scrollbar {
+  height: 8px;
+}
+
+.hljs::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.hljs::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.hljs::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Dark mode scrollbar adjustments */
+@media (prefers-color-scheme: dark) {
+  .hljs::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .hljs::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  .hljs::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+  }
+} 

@@ -29,11 +29,19 @@ export const BASE_CONSTANTS = {
   PASSWORD_DISPLAY: '******',
 } as const
 
+// Markdown mode constants
+export const MARKDOWN_MODE = {
+  EDIT: 'edit',
+  PREVIEW: 'preview',
+  FULLSCREEN: 'fullscreen',
+} as const
+
 // MESSAGES constants removed, now using Vue I18n translation functions
 
 export const Constant = {
   ...BASE_CONSTANTS,
   ...STORAGE_CONSTANTS,
+  MARKDOWN_MODE,
   REVERSED_WORDS: RESERVED_WORDS,
   EXPIRY_VALUES,
   ALLOWED_EXPIRE_VALUES: EXPIRY_VALUES.map(opt => opt.value),

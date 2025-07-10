@@ -6,12 +6,54 @@
         <el-tab-pane :label="t('clipboard.tab')" name="clipboard" />
         <el-tab-pane :label="fileTabLabel" name="files" />
       </el-tabs>
+
+      <!-- Markdown control buttons - only show when clipboard tab is active -->
+      <div
+        v-if="activeTab === 'clipboard' && appStore.markdownMode !== FULLSCREEN"
+        class="markdown-controls"
+      >
+        <!-- Toggle Edit/Preview Button -->
+        <el-button
+          v-if="appStore.markdownMode === EDIT"
+          :icon="View"
+          size="small"
+          text
+          :title="t('markdown.buttons.preview')"
+          @click="switchToPreview"
+        />
+        <el-button
+          v-else-if="appStore.markdownMode === PREVIEW && !appStore.viewMode"
+          :icon="Edit"
+          size="small"
+          text
+          :title="t('markdown.buttons.edit')"
+          @click="switchToEdit"
+        />
+
+        <!-- Fullscreen Button -->
+        <el-button
+          :icon="FullScreen"
+          size="small"
+          text
+          :title="t('markdown.buttons.fullscreen')"
+          @click="enterFullscreen"
+        />
+
+        <!-- Copy Content Button -->
+        <el-button
+          :icon="CopyDocument"
+          size="small"
+          text
+          :title="t('clipboard.copyContent')"
+          @click="copyContent"
+        />
+      </div>
     </div>
 
     <!-- Content area -->
     <div class="tab-content">
       <div v-show="activeTab === 'clipboard'" class="tab-pane clipboard-panel-wrapper">
-        <ClipboardPanel v-model="appStore.keyword.content" @auto-save="handleAutoSave" />
+        <ClipboardPanel />
       </div>
       <div v-show="activeTab === 'files'" class="layout-flex">
         <FileUploadPanel v-if="!appStore.viewMode" />
@@ -23,14 +65,20 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { View, Edit, FullScreen, CopyDocument } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores'
 import { useMain } from '@/composables/useMain'
 import { useI18nComposable } from '@/composables/useI18n'
+import { MARKDOWN_MODE } from '@/constant'
 
 const activeTab = ref('clipboard')
 const appStore = useAppStore()
 const { saveKeyword } = useMain()
 const { t } = useI18nComposable()
+
+// Expose constants for template use
+const { EDIT, PREVIEW, FULLSCREEN } = MARKDOWN_MODE
 
 // Localized file tab title
 const fileTabLabel = computed(() => {
@@ -39,11 +87,34 @@ const fileTabLabel = computed(() => {
   return count > 0 ? `${baseLabel} (${count})` : baseLabel
 })
 
-const handleAutoSave = () => {
-  if (!appStore.keyword.id && !appStore.keyword.content) {
+// Copy clipboard content
+const copyContent = async () => {
+  const content = appStore.keyword.content || ''
+  if (!content.trim()) {
+    ElMessage.warning(t('clipboard.emptyContent'))
     return
   }
-  saveKeyword()
+
+  try {
+    await navigator.clipboard.writeText(content)
+    ElMessage.success(t('clipboard.contentCopied'))
+  } catch (error) {
+    console.error('Failed to copy content:', error)
+    ElMessage.error(t('clipboard.copyFailed'))
+  }
+}
+
+// Markdown mode switching functions
+const switchToEdit = () => {
+  appStore.setMarkdownMode(MARKDOWN_MODE.EDIT)
+}
+
+const switchToPreview = () => {
+  appStore.setMarkdownMode(MARKDOWN_MODE.PREVIEW)
+}
+
+const enterFullscreen = () => {
+  appStore.setMarkdownMode(MARKDOWN_MODE.FULLSCREEN)
 }
 </script>
 
@@ -58,29 +129,58 @@ const handleAutoSave = () => {
   gap: 1rem;
   height: 100%;
   transition: border-color 0.5s, background-color 0.5s;
-  overflow: hidden; /* Prevent child elements from overflowing rounded corners */
+  overflow: hidden;
 }
 
-/* Override Element Plus styles */
+/* Header with tabs and control buttons */
+.tabs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Markdown control buttons */
+.markdown-controls {
+  display: flex;
+  gap: 4px;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+  flex-shrink: 0;
+}
+
+.markdown-controls:hover {
+  opacity: 1;
+}
+
+/* Override Element Plus tab styles */
 :deep(.el-tabs__header) {
   margin-bottom: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
+
 :deep(.el-tabs__nav-wrap::after) {
-  display: none; /* Remove bottom divider */
+  display: none;
 }
+
 :deep(.el-tabs__item) {
-  padding: 0 16px; /* Reduce padding */
+  padding: 0 10px;
+  font-size: 14px;
 }
+
 :deep(.el-tabs__item.is-active) {
-  color: var(--el-color-primary); /* Maintain brand color for active state */
+  color: var(--el-color-primary);
 }
 
-.tab-actions {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0; /* Prevent button group from being compressed */
+/* Compact button styling */
+.markdown-controls :deep(.el-button) {
+  padding: 4px 8px;
+  min-height: 28px;
+  font-size: 13px;
 }
 
+/* Content area */
 .tab-content {
   flex: 1;
   overflow: hidden;
@@ -98,23 +198,15 @@ const handleAutoSave = () => {
   overflow: hidden;
 }
 
-/* Mobile styles */
-@media (max-width: 768px) {
-  .tabs-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-}
-
-.mobile-info-btn {
-  display: none;
-}
-
 .layout-flex {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* Utility classes */
+.mobile-info-btn {
+  display: none;
 }
 
 @media (max-width: 992px) {
