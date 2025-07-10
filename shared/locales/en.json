@@ -98,6 +98,17 @@
       "placeholder": "Leave empty for no password"
     }
   },
+  "markdown": {
+    "stats": "{characters} characters, {words} words",
+    "previewPlaceholder": "Preview your markdown content here...",
+    "renderError": "Render failed",
+    "buttons": {
+      "edit": "Edit",
+      "preview": "Preview",
+      "fullscreen": "Fullscreen",
+      "exit": "Exit"
+    }
+  },
   "errors": {
     "network": "Network connection failed, please check your connection and try again",
     "server": "Server error, please try again later",

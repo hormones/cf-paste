@@ -30,6 +30,9 @@ declare module 'vue' {
     FileTable: typeof import('./src/components/FileTable.vue')['default']
     FileUploadPanel: typeof import('./src/components/FileUploadPanel.vue')['default']
     InfoPanel: typeof import('./src/components/InfoPanel.vue')['default']
+    MarkdownEditor: typeof import('./src/components/MarkdownEditor.vue')['default']
+    MarkdownFullscreen: typeof import('./src/components/MarkdownFullscreen.vue')['default']
+    MarkdownPreview: typeof import('./src/components/MarkdownPreview.vue')['default']
     PageHeader: typeof import('./src/components/PageHeader.vue')['default']
     PasswordDialog: typeof import('./src/components/PasswordDialog.vue')['default']
     QRCodePanel: typeof import('./src/components/QRCodePanel.vue')['default']
@@ -38,5 +41,8 @@ declare module 'vue' {
     SettingsDialog: typeof import('./src/components/SettingsDialog.vue')['default']
     TabsContainer: typeof import('./src/components/TabsContainer.vue')['default']
     UploadProgress: typeof import('./src/components/UploadProgress.vue')['default']
+  }
+  export interface GlobalDirectives {
+    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
   }
 }

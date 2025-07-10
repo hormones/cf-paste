@@ -98,6 +98,17 @@
       "placeholder": "留空则不设密码"
     }
   },
+  "markdown": {
+    "stats": "{characters} 字符, {words} 字",
+    "previewPlaceholder": "在此处预览您的markdown内容...",
+    "renderError": "渲染失败",
+    "buttons": {
+      "edit": "编辑",
+      "preview": "预览",
+      "fullscreen": "全屏",
+      "exit": "退出"
+    }
+  },
   "errors": {
     "network": "网络连接异常，请检查网络后重试",
     "server": "服务器出现问题，请稍后重试",

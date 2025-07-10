@@ -22,8 +22,8 @@
 - [x] **Password Protection**: Set access passwords for shared content.
 - [x] **Custom Expiration**: Automatic deletion after expiration, options from 1 hour to 2 years.
 - [x] **Multi-language Support**: Support Chinese and English.
-- [ ] **Markdown Support**: Planned feature.
-- [ ] **File Preview**: Planned feature.
+- [x] **Markdown Support**: Support Markdown.
+- [ ] **File Preview**: Support file preview.
 
 ## 🚀 Live Demo
 

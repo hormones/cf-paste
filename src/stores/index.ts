@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
 import type { Keyword, FileInfo, UploadState, PasteConfig } from '@/types'
 import { Utils } from '@/utils'
-import { Constant } from '@/constant'
 import { EXPIRY_VALUES } from '../../shared/constants'
 
 export type Theme = 'light' | 'dark'
+export type MarkdownMode = 'edit' | 'preview' | 'fullscreen'
 
 // Default dark mode time range: 8 PM to 6 AM
 const DARK_MODE_START_HOUR = 20
@@ -42,6 +42,9 @@ export const useAppStore = defineStore('app', {
     theme: 'light' as Theme,
     viewMode: true,
     urlPrefix: null as string | null,
+
+    // Markdown state
+    markdownMode: 'edit' as MarkdownMode,
   }),
 
   getters: {
@@ -242,23 +245,28 @@ export const useAppStore = defineStore('app', {
         }
       }
       this._applyTheme()
+    },
+
+    // Markdown mode management actions
+
+    // Set markdown mode directly
+    setMarkdownMode(mode: MarkdownMode) {
+      this.markdownMode = mode
+    },
+
+    // Toggle between edit and preview modes
+    toggleMarkdownMode() {
+      this.markdownMode = this.markdownMode === 'edit' ? 'preview' : 'edit'
+    },
+
+    // Enter fullscreen mode
+    enterFullscreen() {
+      this.markdownMode = 'fullscreen'
+    },
+
+    // Exit fullscreen mode
+    exitFullscreen() {
+      this.markdownMode = this.viewMode ? 'preview' : 'edit'
     }
   },
 })
-
-// export const useMainStore = defineStore('main', {
-//   state: () => ({
-//     // Whether dark mode is enabled
-//     isDark: false,
-//     // Whether in owner mode
-//     isOwnerMode: true,
-//     // Download session token (only used in viewer mode)
-//     sessionToken: '',
-//   }),
-//   getters: {
-//     // ...
-//   },
-//   actions: {
-//     // ...
-//   }
-// })
