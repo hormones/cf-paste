@@ -4,8 +4,8 @@ import { Constant } from '../constant'
 import { newResponse } from '../utils/response'
 import { error } from 'itty-router'
 
-const word_router = AutoRouter({ base: '/:word/api/file' })
-const view_router = AutoRouter({ base: '/v/:view_word/api/file' })
+const word_router = AutoRouter({ base: '/api/:word/file' })
+const view_router = AutoRouter({ base: '/api/v/:view_word/file' })
 
 /**
  * List all files under specified prefix

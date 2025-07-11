@@ -12,38 +12,36 @@ const router = AutoRouter({
 })
 
 // Register API routes
-router.all('/v/:view_word/api/data/*', view_data.fetch) // Data operation routes
-router.all('/:word/api/data/*', word_data.fetch) // Data operation routes
-router.all('/v/:view_word/api/file/*', view_file.fetch) // File operation routes (including multipart upload)
-router.all('/:word/api/file/*', word_file.fetch) // File operation routes (including multipart upload)
-router.all('/v/:view_word/api/pass/*', view_pass.fetch) // Authentication routes
-router.all('/:word/api/pass/*', word_pass.fetch) // Authentication routes
+router.all('/api/v/:view_word/data/*', view_data.fetch) // Data operation routes
+router.all('/api/:word/data/*', word_data.fetch) // Data operation routes
+router.all('/api/v/:view_word/file/*', view_file.fetch) // File operation routes (including multipart upload)
+router.all('/api/:word/file/*', word_file.fetch) // File operation routes (including multipart upload)
+router.all('/api/v/:view_word/pass/*', view_pass.fetch) // Authentication routes
+router.all('/api/:word/pass/*', word_pass.fetch) // Authentication routes
 // 404 handler
 router.all('/*', (req: IRequest) => error(404, req.t('errors.resourceNotFound')))
 
+const executeRouter = (req: IRequest, env: Env, ctx: ExecutionContext) => {
+  console.log('route request', req.url)
+  return router.fetch(req, env, ctx).catch((err: any) => {
+    console.log('api execute error', err)
+    console.error('API execution error:', {
+      path: req.url,
+      method: req.method,
+      error: err.message,
+      timestamp: new Date().toISOString(),
+    })
+    return newResponse({ code: 500, msg: req.t('errors.systemError') }, req.language)
+  })
+}
+
 export default {
   async fetch(req: IRequest, env: Env, ctx: ExecutionContext): Promise<Response> {
-    console.log(`fetch [${req.method}]${req.url}`)
     const url = new URL(req.url)
     const path = url.pathname
 
-    const executeRouter = () =>
-      router.fetch(req, env, ctx).catch((err: any) => {
-        console.log('api execute error', err)
-        console.error('API execution error:', {
-          path: req.url,
-          method: req.method,
-          error: err.message,
-          timestamp: new Date().toISOString(),
-        })
-        return newResponse(
-          { code: 500, msg: req.t('errors.systemError') },
-          req.language
-        )
-      })
-
-    // Match /:word/api/ requests
-    const wordMatch = path.match(/^\/([a-zA-Z0-9_]+)\/api\//)
+    // Match /api/:word/api/ requests
+    const wordMatch = path.match(/^\/api\/([a-zA-Z0-9_]+)\//)
     if (wordMatch) {
       // Paths starting with /v/ should be caught by viewMatch, if matched here as /v/api/ then the path is invalid
       if (wordMatch[1] === 'v') {
@@ -52,19 +50,20 @@ export default {
       req.word = wordMatch[1] || ''
       req.view_word = ''
       req.edit = 1
-      return executeRouter()
+      return executeRouter(req, env, ctx)
     }
 
-    // Match /v/:view_word/api/ requests
-    const viewMatch = path.match(/^\/v\/([a-zA-Z0-9_]+)\/api\//)
+    // Match /api/v/:view_word/ requests
+    const viewMatch = path.match(/^\/api\/v\/([a-zA-Z0-9_]+)\//)
     if (viewMatch) {
       req.word = ''
       req.view_word = viewMatch[1] || ''
       req.edit = 0
-      return executeRouter()
+      return executeRouter(req, env, ctx)
     }
 
     // If no API path matches, serve static assets
+    console.log('route static', req.url)
     return env.ASSETS.fetch(req)
   },
 

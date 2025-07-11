@@ -8,8 +8,8 @@ import { Utils } from '../utils'
 
 const key = 'word'
 
-const word_router = AutoRouter({ base: '/:word/api/data' })
-const view_router = AutoRouter({ base: '/v/:view_word/api/data' })
+const word_router = AutoRouter({ base: '/api/:word/data' })
+const view_router = AutoRouter({ base: '/api/v/:view_word/data' })
 
 /**
  * Get keyword metadata details

@@ -41,7 +41,7 @@ export const authenticate: RequestHandler<IRequest> = async (
     // Allow pass requests without authentication
     const url = new URL(req.url)
     const urlPrefix = req.edit ? req.word : 'v/' + req.view_word
-    if (url.pathname.startsWith(`/${urlPrefix}/api/pass/`)) {
+    if (url.pathname.startsWith(`/api/${urlPrefix}/pass/`)) {
       console.log('pass request', url.pathname)
       return
     }
@@ -57,7 +57,7 @@ export const authenticate: RequestHandler<IRequest> = async (
     // Authorization format: Basic crypt(word:timestamp)
     const now = Date.now()
     let c_authorization = Auth.getCookie(req, 'authorization')
-    console.log('authentication start', req.word, req.view_word, c_authorization)
+    console.log('authentication', req.word, req.view_word, c_authorization)
 
     // Get keyword information
     let keyword: Keyword | null = await getKeyword(env, req, req.word, req.view_word)
@@ -86,7 +86,7 @@ export const authenticate: RequestHandler<IRequest> = async (
       console.error('Authentication required:', {
         path: req.url,
         method: req.method,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       })
       return error(401, req.t('errors.authRequired'))
     }
@@ -111,7 +111,7 @@ export const authenticate: RequestHandler<IRequest> = async (
       console.error('Reauthentication required:', {
         path: req.url,
         word: req.word,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       })
       return error(401, req.t('errors.sessionExpired'))
     }

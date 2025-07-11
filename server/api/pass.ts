@@ -3,8 +3,8 @@ import { newResponse } from '../utils/response'
 import { Auth } from '../utils/auth'
 import { getKeyword } from './data'
 
-const word_router = AutoRouter({ base: '/:word/api/pass' })
-const view_router = AutoRouter({ base: '/v/:view_word/api/pass' })
+const word_router = AutoRouter({ base: '/api/:word/pass' })
+const view_router = AutoRouter({ base: '/api/v/:view_word/pass' })
 
 /**
  * Verify password
