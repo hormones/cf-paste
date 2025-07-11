@@ -124,7 +124,7 @@ export const authenticate: RequestHandler<IRequest> = async (
 }
 
 export const handle = (res: Response, req: IRequest) => {
-  const path = req.edit ? `/${req.word}` : `/v/${req.view_word}`
+  const path = req.edit ? `/api/${req.word}` : `/api/v/${req.view_word}`
   if (req.authorization) {
     console.log('set cookie', req.authorization)
     Auth.setCookie(res, 'authorization', req.authorization, { path })

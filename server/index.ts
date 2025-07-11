@@ -22,7 +22,6 @@ router.all('/api/:word/pass/*', word_pass.fetch) // Authentication routes
 router.all('/*', (req: IRequest) => error(404, req.t('errors.resourceNotFound')))
 
 const executeRouter = (req: IRequest, env: Env, ctx: ExecutionContext) => {
-  console.log('route request', req.url)
   return router.fetch(req, env, ctx).catch((err: any) => {
     console.log('api execute error', err)
     console.error('API execution error:', {
@@ -39,6 +38,16 @@ export default {
   async fetch(req: IRequest, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url)
     const path = url.pathname
+    console.log('route request', req.url)
+
+    // Match /api/v/:view_word/ requests
+    const viewMatch = path.match(/^\/api\/v\/([a-zA-Z0-9_]+)\//)
+    if (viewMatch) {
+      req.word = ''
+      req.view_word = viewMatch[1] || ''
+      req.edit = 0
+      return executeRouter(req, env, ctx)
+    }
 
     // Match /api/:word/api/ requests
     const wordMatch = path.match(/^\/api\/([a-zA-Z0-9_]+)\//)
@@ -50,15 +59,6 @@ export default {
       req.word = wordMatch[1] || ''
       req.view_word = ''
       req.edit = 1
-      return executeRouter(req, env, ctx)
-    }
-
-    // Match /api/v/:view_word/ requests
-    const viewMatch = path.match(/^\/api\/v\/([a-zA-Z0-9_]+)\//)
-    if (viewMatch) {
-      req.word = ''
-      req.view_word = viewMatch[1] || ''
-      req.edit = 0
       return executeRouter(req, env, ctx)
     }
 
