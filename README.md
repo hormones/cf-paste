@@ -90,6 +90,7 @@
 
 ## 🙏 Reference Documentation
 
-- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
 - [Vue 3 Documentation](https://vuejs.org/)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
+- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
+- [MD-EDITOR-V3 Documentation](https://github.com/imzbf/md-editor-v3)

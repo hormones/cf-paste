@@ -15,12 +15,10 @@
 	},
 	"dependencies": {
 		"@noble/hashes": "^1.8.0",
-		"aws4fetch": "^1.0.20",
 		"axios": "^1.9.0",
 		"crypto-js": "^4.2.0",
 		"element-plus": "^2.10.2",
 		"itty-router": "^5.0.18",
-		"js-cookie": "^3.0.5",
 		"md-editor-v3": "^5.7.1",
 		"pinia": "^3.0.3",
 		"qrcode": "^1.5.4",
@@ -29,17 +27,15 @@
 		"vue-router": "^4.5.0"
 	},
 	"devDependencies": {
-		"@cloudflare/vite-plugin": "^1.5.1",
+		"@cloudflare/vite-plugin": "^1.9.4",
 		"@tsconfig/node22": "^22.0.1",
 		"@types/crypto-js": "^4.2.2",
-		"@types/js-cookie": "^3.0.6",
 		"@types/node": "^22.14.0",
 		"@types/qrcode": "^1.5.5",
 		"@vitejs/plugin-vue": "^5.2.3",
 		"@vue/tsconfig": "^0.7.0",
 		"cross-env": "^7.0.3",
 		"npm-run-all2": "^7.0.2",
-		"rollup-plugin-visualizer": "^6.0.3",
 		"sass": "^1.89.2",
 		"typescript": "~5.8.0",
 		"unplugin-auto-import": "^19.3.0",
@@ -48,6 +44,6 @@
 		"vite": "^6.2.4",
 		"vite-plugin-vue-devtools": "^7.7.2",
 		"vue-tsc": "^2.2.8",
-		"wrangler": "^4.19.2"
+		"wrangler": "^4.24.3"
 	}
 }

@@ -111,6 +111,7 @@ const copyContent = async () => {
   flex-direction: column;
   gap: 1rem;
   height: 100%;
+  box-sizing: border-box;
   transition: border-color 0.5s, background-color 0.5s;
   overflow: hidden;
 }

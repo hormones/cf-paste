@@ -9,6 +9,7 @@
       :toolbars="toolbars"
       :preview-theme="'github'"
       :footers="[]"
+      :preview="false"
       @blur="handleBlur"
       @onSave="handleSave"
       noUploadImg
@@ -107,5 +108,13 @@ const handleSave = () => {
 
 :deep(.md-editor-fullscreen) {
   z-index: 1000;
+}
+
+:deep(.md-editor-code-head) {
+  z-index: 1000 !important;
+}
+
+:deep(.md-editor-catalog-editor) {
+  z-index: 1001;
 }
 </style>

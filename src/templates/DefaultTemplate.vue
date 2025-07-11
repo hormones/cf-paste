@@ -96,7 +96,6 @@ onMounted(async () => {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  height: 95%;
 }
 
 .side-panel {

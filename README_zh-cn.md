@@ -90,6 +90,7 @@
 
 ## 🙏 参考文档
 
-- [Cloudflare Workers 文档](https://developers.cloudflare.com/workers/)
 - [Vue 3 文档](https://vuejs.org/)
 - [TypeScript 文档](https://www.typescriptlang.org/docs/)
+- [Cloudflare Workers 文档](https://developers.cloudflare.com/workers/)
+- [MD-EDITOR-V3 文档](https://github.com/imzbf/md-editor-v3)
