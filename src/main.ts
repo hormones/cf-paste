@@ -1,6 +1,4 @@
 import './assets/main.css'
-import './assets/highlight.css'
-import './assets/github-markdown.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 
 import { createApp } from 'vue'

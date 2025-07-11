@@ -29,7 +29,6 @@ declare module 'vue' {
     FileUploadPanel: typeof import('./src/components/FileUploadPanel.vue')['default']
     InfoPanel: typeof import('./src/components/InfoPanel.vue')['default']
     MarkdownEditor: typeof import('./src/components/MarkdownEditor.vue')['default']
-    MarkdownRenderer: typeof import('./src/components/MarkdownRenderer.vue')['default']
     PageHeader: typeof import('./src/components/PageHeader.vue')['default']
     PasswordDialog: typeof import('./src/components/PasswordDialog.vue')['default']
     QRCodePanel: typeof import('./src/components/QRCodePanel.vue')['default']

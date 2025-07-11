@@ -38,9 +38,6 @@ onMounted(async () => {
   if (keywordData) {
     await fetchFileList()
   }
-
-  // Set global viewMode
-  appStore.viewMode = !appStore.keyword.word
 })
 </script>
 

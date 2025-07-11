@@ -7,11 +7,8 @@
         <el-tab-pane :label="fileTabLabel" name="files" />
       </el-tabs>
 
-      <!-- Markdown control buttons - only show when clipboard tab is active -->
-      <div
-        v-if="activeTab === 'clipboard' && appStore.markdownMode !== FULLSCREEN"
-        class="markdown-controls"
-      >
+      <!-- Markdown control buttons - only show when clipboard tab is active and not in viewMode -->
+      <div v-if="activeTab === 'clipboard'" class="markdown-controls">
         <!-- Toggle Edit/Preview Button -->
         <el-button
           v-if="appStore.markdownMode === EDIT"
@@ -19,24 +16,25 @@
           size="small"
           text
           :title="t('markdown.buttons.preview')"
-          @click="switchToPreview"
+          @click="appStore.setMarkdownMode(MARKDOWN_MODE.PREVIEW)"
         />
         <el-button
-          v-else-if="appStore.markdownMode === PREVIEW && !appStore.viewMode"
+          v-else-if="!appStore.viewMode"
           :icon="Edit"
           size="small"
           text
           :title="t('markdown.buttons.edit')"
-          @click="switchToEdit"
+          @click="appStore.setMarkdownMode(MARKDOWN_MODE.EDIT)"
         />
 
         <!-- Fullscreen Button -->
         <el-button
+          v-if="!appStore.viewMode"
           :icon="FullScreen"
           size="small"
           text
           :title="t('markdown.buttons.fullscreen')"
-          @click="enterFullscreen"
+          @click="appStore.setMarkdownMode(MARKDOWN_MODE.FULLSCREEN)"
         />
 
         <!-- Copy Content Button -->
@@ -68,13 +66,11 @@ import { ref, computed } from 'vue'
 import { View, Edit, FullScreen, CopyDocument } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores'
-import { useMain } from '@/composables/useMain'
 import { useI18nComposable } from '@/composables/useI18n'
 import { MARKDOWN_MODE } from '@/constant'
 
 const activeTab = ref('clipboard')
 const appStore = useAppStore()
-const { saveKeyword } = useMain()
 const { t } = useI18nComposable()
 
 // Expose constants for template use
@@ -102,19 +98,6 @@ const copyContent = async () => {
     console.error('Failed to copy content:', error)
     ElMessage.error(t('clipboard.copyFailed'))
   }
-}
-
-// Markdown mode switching functions
-const switchToEdit = () => {
-  appStore.setMarkdownMode(MARKDOWN_MODE.EDIT)
-}
-
-const switchToPreview = () => {
-  appStore.setMarkdownMode(MARKDOWN_MODE.PREVIEW)
-}
-
-const enterFullscreen = () => {
-  appStore.setMarkdownMode(MARKDOWN_MODE.FULLSCREEN)
 }
 </script>
 

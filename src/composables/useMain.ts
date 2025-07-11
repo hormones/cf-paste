@@ -15,11 +15,7 @@ export function useMain() {
       const data = await dataApi.getKeyword()
       if (data) {
         appStore.setKeyword(data)
-        appStore.viewMode = !data.word
-      } else {
-        appStore.viewMode = false
       }
-      appStore.setMarkdownMode(appStore.viewMode ? MARKDOWN_MODE.PREVIEW : MARKDOWN_MODE.EDIT)
       appStore.setLastSavedContent(appStore.keyword.content || '')
       return data
     } catch (response: any) {

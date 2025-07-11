@@ -14,6 +14,7 @@ const DARK_MODE_END_HOUR = 6
 export const useAppStore = defineStore('app', {
   state: () => ({
     // Clipboard state
+    viewMode: true,
     keyword: {
       word: undefined,
       view_word: Utils.getRandomWord(6),
@@ -40,8 +41,6 @@ export const useAppStore = defineStore('app', {
 
     // UI state
     theme: 'light' as Theme,
-    viewMode: true,
-    urlPrefix: null as string | null,
 
     // Markdown state
     markdownMode: MARKDOWN_MODE.EDIT as MarkdownMode,
@@ -82,29 +81,17 @@ export const useAppStore = defineStore('app', {
       )
     },
 
+    urlPrefix(): string {
+      return this.viewMode ? `/v/${this.keyword.view_word}` : `/${this.keyword.word}`
+    },
+
     // Settings related computed properties - getExpiryOptions removed, components use useI18nComposable().getExpiryOptions() directly
   },
 
   actions: {
-    calculateUrlPrefix(): string {
-      if (this.urlPrefix !== null) {
-        return this.urlPrefix
-      }
-      const path = window.location.pathname
-      // First match /v/xxx
-      const viewMatch = path.match(/^\/v\/[a-zA-Z0-9_]+/)
-      if (viewMatch) {
-        this.urlPrefix = viewMatch[0]
-        return this.urlPrefix
-      }
-      // Then match /xxx
-      const wordMatch = path.match(/^\/[a-zA-Z0-9_]+/)
-      if (wordMatch) {
-        this.urlPrefix = wordMatch[0]
-        return this.urlPrefix
-      }
-      this.urlPrefix = ''
-      return this.urlPrefix
+    // UI state updates
+    setViewMode(isViewMode: boolean) {
+      this.viewMode = isViewMode
     },
 
     // Clipboard state updates
@@ -256,7 +243,8 @@ export const useAppStore = defineStore('app', {
 
     // Toggle between edit and preview modes
     toggleMarkdownMode() {
-      this.markdownMode = this.markdownMode === MARKDOWN_MODE.EDIT ? MARKDOWN_MODE.PREVIEW : MARKDOWN_MODE.EDIT
+      this.markdownMode =
+        this.markdownMode === MARKDOWN_MODE.EDIT ? MARKDOWN_MODE.PREVIEW : MARKDOWN_MODE.EDIT
     },
 
     // Enter fullscreen mode
@@ -267,6 +255,6 @@ export const useAppStore = defineStore('app', {
     // Exit fullscreen mode
     exitFullscreen() {
       this.markdownMode = this.viewMode ? MARKDOWN_MODE.PREVIEW : MARKDOWN_MODE.EDIT
-    }
+    },
   },
 })

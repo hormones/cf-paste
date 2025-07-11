@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import { Utils } from '@/utils'
 import { useAppStore } from '@/stores'
+import { MARKDOWN_MODE } from '@/constant'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +22,8 @@ const router = createRouter({
       beforeEnter: (to, from, next) => {
         const store = useAppStore()
         store.updateKeywordFields({ view_word: to.params.view_word as string })
+        store.setViewMode(true)
+        store.setMarkdownMode(MARKDOWN_MODE.PREVIEW)
         next()
       },
     },
@@ -39,6 +42,8 @@ const router = createRouter({
         }
         // Set new word
         store.updateKeywordFields({ word: word })
+        store.setViewMode(false)
+        store.setMarkdownMode(MARKDOWN_MODE.EDIT)
         next()
       },
     },
