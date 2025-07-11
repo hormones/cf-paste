@@ -286,7 +286,6 @@ defineExpose({
   border: 1px solid var(--color-border);
   border-radius: 8px;
   position: relative;
-  background-color: var(--color-surface);
 }
 
 /* Fullscreen mode adjustments */
@@ -307,10 +306,10 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 1rem;
-  background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
   height: 50px;
+  background-color: var(--color-surface);
 }
 
 .header-keyword {
@@ -387,8 +386,6 @@ defineExpose({
   flex: 1;
   padding: 1rem;
   border: none;
-  background-color: transparent;
-  color: var(--color-text);
   font-family: var(--font-family-mono);
   font-size: 1rem;
   line-height: 1.6;
@@ -396,6 +393,8 @@ defineExpose({
   outline: none;
   white-space: pre-wrap; /* Ensure text wraps */
   word-break: break-all; /* Break long words/strings */
+  background-color: var(--color-surface);
+  transition: background-color 0.5s ease, color 0.5s ease;
 
   /* Optimize scrolling performance */
   -webkit-overflow-scrolling: touch;
@@ -422,8 +421,12 @@ defineExpose({
 }
 
 /* THE SCROLLERS - Preview renderer */
-.preview-panel :deep(.markdown-renderer) {
+.preview-panel :deep(.markdown-body) {
   height: 100%;
+  color: var(--color-text);
+  font-family: var(--font-family-mono);
+  font-size: 1rem;
+  line-height: 1.6;
   /* The renderer itself will handle its y-overflow */
 }
 
@@ -434,7 +437,6 @@ defineExpose({
   right: 12px;
   font-size: 0.75rem;
   color: var(--color-text-secondary);
-  background-color: var(--color-background-mute);
   padding: 2px 6px;
   border-radius: 4px;
   opacity: 0.7;

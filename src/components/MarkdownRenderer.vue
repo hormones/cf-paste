@@ -1,7 +1,7 @@
 <template>
   <div
     ref="rendererRef"
-    class="markdown-renderer"
+    class="markdown-body"
     :class="{ 'is-rendering': isRendering, 'has-error': renderError }"
     v-html="renderedHtml"
   />
@@ -334,217 +334,37 @@ defineExpose({
 </script>
 
 <style scoped>
-.markdown-renderer {
+.markdown-body {
   height: 100%;
   overflow-y: auto;
   padding: 1rem;
 }
 
 /* Custom scrollbar for the renderer */
-.markdown-renderer::-webkit-scrollbar {
+.markdown-body::-webkit-scrollbar {
   width: 6px;
 }
 
-.markdown-renderer::-webkit-scrollbar-track {
+.markdown-body::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.markdown-renderer::-webkit-scrollbar-thumb {
+.markdown-body::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-thumb-color);
   border-radius: 3px;
 }
 
-.markdown-renderer::-webkit-scrollbar-thumb:hover {
+.markdown-body::-webkit-scrollbar-thumb:hover {
   background-color: var(--scrollbar-thumb-hover-color);
 }
 
-.markdown-renderer.is-rendering {
+.markdown-body.is-rendering {
   opacity: 0.6;
   pointer-events: none;
 }
 
-.markdown-renderer.has-error {
+.markdown-body.has-error {
   border: 1px solid var(--el-color-danger);
   background-color: var(--el-color-danger-light-9);
-}
-
-/* Mermaid diagram styles */
-:deep(.mermaid-container) {
-  margin: 1rem 0;
-  padding: 1rem;
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-  background-color: var(--el-bg-color-page);
-  text-align: center;
-  min-height: 120px; /* Fixed minimum height to prevent layout shift */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden; /* Prevent content from breaking container */
-}
-
-:deep(.mermaid-loading) {
-  color: var(--el-text-color-secondary);
-  font-style: italic;
-  padding: 2rem;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  white-space: nowrap;
-}
-
-:deep(.mermaid-rendered) {
-  margin: 1rem 0;
-  text-align: center;
-  background-color: var(--el-bg-color-page);
-  border-radius: 8px;
-  padding: 1rem;
-  border: 1px solid var(--el-border-color);
-  overflow: hidden; /* Prevent SVG overflow */
-  position: relative;
-  display: flex; /* Add flexbox for centering */
-  justify-content: center; /* Center the SVG horizontally */
-  align-items: center; /* Center vertically if needed */
-}
-
-/* SVG wrapper for aspect ratio maintenance */
-:deep(.mermaid-svg-wrapper) {
-  width: 100%;
-  height: 0;
-  position: relative;
-  overflow: hidden;
-}
-
-:deep(.mermaid-rendered svg) {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-}
-
-:deep(.mermaid-error) {
-  padding: 1rem;
-  border: 1px solid var(--el-color-danger);
-  border-radius: 8px;
-  background-color: var(--el-color-danger-light-9);
-  text-align: left;
-  min-height: 120px; /* Same as container to prevent shift */
-}
-
-:deep(.mermaid-error .error-icon) {
-  font-size: 1.2em;
-  margin-bottom: 0.5rem;
-}
-
-:deep(.mermaid-error .error-message) {
-  font-weight: 600;
-  color: var(--el-color-danger);
-  margin-bottom: 0.5rem;
-}
-
-:deep(.mermaid-error .error-details) {
-  margin-top: 0.5rem;
-}
-
-:deep(.mermaid-error .error-details pre) {
-  background-color: var(--el-color-danger-light-8);
-  padding: 0.5rem;
-  border-radius: 4px;
-  font-size: 0.85em;
-  overflow-x: auto;
-}
-
-/* Standard markdown styles */
-:deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-:deep(h1) { font-size: 2rem; border-bottom: 1px solid var(--el-border-color); padding-bottom: 0.5rem; }
-:deep(h2) { font-size: 1.75rem; }
-:deep(h3) { font-size: 1.5rem; }
-:deep(h4) { font-size: 1.25rem; }
-:deep(h5) { font-size: 1.1rem; }
-:deep(h6) { font-size: 1rem; }
-
-:deep(p) {
-  margin-bottom: 1rem;
-}
-
-:deep(ul), :deep(ol) {
-  margin-bottom: 1rem;
-  padding-left: 2rem;
-}
-
-:deep(blockquote) {
-  margin: 1rem 0;
-  padding: 0.5rem 1rem;
-  border-left: 4px solid var(--el-color-primary);
-  background-color: var(--el-bg-color-page);
-  border-radius: 0 4px 4px 0;
-}
-
-:deep(code) {
-  background-color: var(--el-bg-color-page);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 0.9em;
-}
-
-:deep(pre) {
-  margin: 1rem 0;
-  padding: 1rem;
-  background-color: var(--el-bg-color-page);
-  border-radius: 8px;
-  overflow-x: auto;
-  border: 1px solid var(--el-border-color);
-}
-
-:deep(pre code) {
-  background: none;
-  padding: 0;
-}
-
-:deep(table) {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-}
-
-:deep(th), :deep(td) {
-  padding: 0.75rem;
-  border: 1px solid var(--el-border-color);
-  text-align: left;
-}
-
-:deep(th) {
-  background-color: var(--el-bg-color-page);
-  font-weight: 600;
-}
-
-:deep(hr) {
-  margin: 2rem 0;
-  border: none;
-  border-top: 1px solid var(--el-border-color);
-}
-
-:deep(a) {
-  color: var(--el-color-primary);
-  text-decoration: none;
-}
-
-:deep(a:hover) {
-  text-decoration: underline;
-}
-
-:deep(img) {
-  max-width: 100%;
-  height: auto;
-  border-radius: 4px;
 }
 </style>

@@ -12,7 +12,6 @@
   <img src="https://img.shields.io/github/license/hormones/cf-paste" alt="License">
 </p>
 
-
 ## ✨ Features
 
 - [x] **Large File Upload**: Bypass Cloudflare Workers' 100MB upload limit.
@@ -22,7 +21,7 @@
 - [x] **Password Protection**: Set access passwords for shared content.
 - [x] **Custom Expiration**: Automatic deletion after expiration, options from 1 hour to 2 years.
 - [x] **Multi-language Support**: Support Chinese and English.
-- [x] **Markdown Support**: Support Markdown, support code syntax highlighting, flowchart rendering, etc.
+- [x] **Markdown Support**: Support Markdown, support **real-time preview**, code syntax highlighting, flowchart rendering, etc.
 - [ ] **File Preview**: Support file preview.
 
 ## 🚀 Live Demo
