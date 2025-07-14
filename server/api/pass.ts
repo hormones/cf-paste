@@ -9,14 +9,14 @@ const view_router = AutoRouter({ base: '/api/v/:view_word/pass' })
 /**
  * Verify password
  */
-word_router.post('/verify', async (req: IRequest, env: Env) => request4Verify(env, req))
-view_router.post('/verify', async (req: IRequest, env: Env) => request4Verify(env, req))
-const request4Verify = async (env: Env, req: IRequest) => {
+word_router.post('/verify', async (req: IRequest, env: Env) => request4Verify(req, env))
+view_router.post('/verify', async (req: IRequest, env: Env) => request4Verify(req, env))
+const request4Verify = async (req: IRequest, env: Env) => {
   const { password } = (await req.json()) as { password: string }
-  const keyword: Keyword | null = await getKeyword(env, req, req.word, req.view_word)
+  const keyword = await getKeyword(req, env)
 
   if (!keyword) {
-    console.error(`Cannot find keyword info through ${req.word} | ${req.view_word}`)
+    console.error(`cannot find keyword by ${req.word} | ${req.view_word}`)
     return error(410, req.t('errors.contentNotFound'))
   }
   req.word = keyword.word
@@ -24,23 +24,23 @@ const request4Verify = async (env: Env, req: IRequest) => {
 
   // If password exists and verification fails, return 403
   if (keyword?.password) {
-    const isValid = await Auth.verifyPassword(password, keyword.password, keyword.word!, env)
+    const isValid = await Auth.verifyPassword(env, password, keyword.password, keyword.word)
     if (!isValid) {
       return error(403, req.t('errors.incorrectPassword'))
     }
   }
 
   // If password doesn't exist or verification succeeds, set cookie and return 200
-  req.authorization = await Auth.encrypt(env, `${keyword!.word!}:${Date.now()}`)
+  req.cookie4auth = await Auth.encrypt(env, `${keyword!.word!}:${Date.now()}`)
   return newResponse({})
 }
 
 /**
  * Get PASTE configuration
  */
-word_router.get('/config', async (req: IRequest, env: Env) => request4Config(env, req))
-view_router.get('/config', async (req: IRequest, env: Env) => request4Config(env, req))
-const request4Config = async (env: Env, req: IRequest) => {
+word_router.get('/config', async (req: IRequest, env: Env) => request4Config(req, env))
+view_router.get('/config', async (req: IRequest, env: Env) => request4Config(req, env))
+const request4Config = async (req: IRequest, env: Env) => {
   const config = {
     maxFileSize: parseInt(env.MAX_FILE_SIZE || '300') * 1024 * 1024, // 300MB
     maxTotalSize: parseInt(env.MAX_TOTAL_SIZE || '300') * 1024 * 1024, // 300MB

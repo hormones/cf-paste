@@ -19,7 +19,7 @@ export function t(
   params?: Record<string, string | number>
 ): string {
   // Ensure valid language, fallback to English
-  const lang = (language === 'zh-CN' || language === 'en') ? language : 'en'
+  const lang = language === 'zh-CN' || language === 'en' ? language : 'en'
 
   // Get message object for corresponding language
   const langMessages = messages[lang as keyof typeof messages] as MessageSchema

@@ -1,17 +1,15 @@
-import { t } from '../i18n'
-
 export function newResponse<T>({
   code = 0,
   data = null,
-  msg,
+  msg = null,
   status = 200,
 }: {
   status?: number
-} & ApiResponse<T>, language?: string): Response {
+} & ApiResponse<T>): Response {
   const json: ApiResponse<T> = {
     code,
     data,
-    msg: msg || t('messages.success', language || 'en')
+    msg,
   }
   return new Response(JSON.stringify(json), { status })
 }

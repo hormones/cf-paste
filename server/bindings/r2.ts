@@ -7,7 +7,7 @@ export const R2 = {
   /**
    * Download file with range support
    */
-  download: async (env: Env, req: IRequest, { prefix, name }: { prefix: string; name: string }) => {
+  download: async (req: IRequest, env: Env, { prefix, name }: { prefix: string; name: string }) => {
     const path = `${prefix}/${name}`
 
     const headers = new Headers()
@@ -70,17 +70,25 @@ export const R2 = {
       length,
       stream,
       language,
-    }: { prefix: string; name: string; length: number; stream: ReadableStream<Uint8Array> | null; language?: string }
+    }: {
+      prefix: string
+      name: string
+      length: number
+      stream: ReadableStream<Uint8Array> | null
+      language?: string
+    }
   ) => {
     const path = `${prefix}/${name}`
-    console.log(`upload file: ${decodeURIComponent(path)}, size: ${Utils.humanReadableSize(length)}`)
+    console.log(
+      `upload file: ${decodeURIComponent(path)}, size: ${Utils.humanReadableSize(length)}`
+    )
 
     if (!stream || length <= 0) {
       console.error('File upload failed: stream or length empty', {
         hasStream: !!stream,
         length,
         path,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       })
       return error(400, t('errors.fileDataError', language))
     }
@@ -96,7 +104,7 @@ export const R2 = {
           path,
           size: Utils.humanReadableSize(length),
           error: err.message,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         })
         return error(500, t('errors.fileUploadError', language))
       })
@@ -105,7 +113,10 @@ export const R2 = {
   /**
    * Delete file
    */
-  delete: async (env: Env, { prefix, name, language }: { prefix: string; name: string; language?: string }) => {
+  delete: async (
+    env: Env,
+    { prefix, name, language }: { prefix: string; name: string; language?: string }
+  ) => {
     const path = `${prefix}/${name}`
     console.log(`delete file: ${path}`)
     return env.R2.delete(path)
@@ -114,7 +125,7 @@ export const R2 = {
         console.error('File deletion from R2 failed:', {
           path,
           error: err.message,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         })
         return error(500, t('errors.fileDeleteError', language))
       })
@@ -133,11 +144,11 @@ export const R2 = {
         etag: obj.etag,
       }))
       return newResponse({ data })
-        } catch (err: any) {
+    } catch (err: any) {
       console.error('List files from R2 failed:', {
         prefix,
         error: err?.message || err,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       })
       return error(500, t('errors.fileListError', language))
     }

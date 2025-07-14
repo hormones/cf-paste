@@ -18,13 +18,13 @@ const cookieOptions: CookieOptions = {
 }
 
 export const Auth = {
-  getCookie(request: Request, name: string): string | null {
-    const cookies = request.headers.get('Cookie')
+  getCookie(req: Request, name: string): string | null {
+    const cookies = req.headers.get('Cookie')
     if (!cookies) return null
     const cookie = cookies.split(';').find((c) => c.trim().startsWith(`${name}=`))
     return cookie ? cookie.split('=')[1] : null
   },
-  setCookie(response: Response, name: string, value: string, options?: Partial<CookieOptions>) {
+  setCookie(res: Response, name: string, value: string, options?: Partial<CookieOptions>) {
     let cookie = `${name}=${value}`
     const finalOptions = { ...cookieOptions, ...options }
     if (finalOptions) {
@@ -33,7 +33,7 @@ export const Auth = {
       }
     }
 
-    response.headers.append('Set-Cookie', cookie)
+    res.headers.append('Set-Cookie', cookie)
   },
   clearCookie(response: Response, ...names: string[]) {
     names.forEach((name) => {
@@ -52,7 +52,7 @@ export const Auth = {
   /**
    * Hash password using Argon2id algorithm
    */
-  hashPassword: async (password: string, word: string, env: Env): Promise<string> => {
+  hashPassword: async (env: Env,password: string, word: string): Promise<string> => {
     const startTime = Date.now()
     // Build salt: AUTH_KEY + word to ensure uniqueness and security
     const saltInput = `${env.AUTH_KEY}:${word}`
@@ -75,13 +75,13 @@ export const Auth = {
    * Verify password against hashed password
    */
   verifyPassword: async (
+    env: Env,
     password: string,
     hashedPassword: string,
-    word: string,
-    env: Env
+    word: string
   ): Promise<boolean> => {
     try {
-      const computedHash = await Auth.hashPassword(password, word, env)
+      const computedHash = await Auth.hashPassword(env, password, word)
       return computedHash === hashedPassword
     } catch (error) {
       console.error('Password verification failed:', error)

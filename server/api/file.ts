@@ -10,9 +10,9 @@ const view_router = AutoRouter({ base: '/api/v/:view_word/file' })
 /**
  * List all files under specified prefix
  */
-word_router.get('/list', async (req: IRequest, env) => request4List(env, req))
-view_router.get('/list', async (req: IRequest, env) => request4List(env, req))
-const request4List = async (env: Env, req: IRequest) => {
+word_router.get('/list', async (req: IRequest, env) => request4List(req, env))
+view_router.get('/list', async (req: IRequest, env) => request4List(req, env))
+const request4List = async (req: IRequest, env: Env) => {
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
   return R2.list(env, { prefix, language: req.language })
 }
@@ -20,9 +20,9 @@ const request4List = async (env: Env, req: IRequest) => {
 /**
  * Download specified file
  */
-word_router.get('/download', async (req: IRequest, env: Env) => request4Download(env, req))
-view_router.get('/download', async (req: IRequest, env: Env) => request4Download(env, req))
-const request4Download = async (env: Env, req: IRequest) => {
+word_router.get('/download', async (req: IRequest, env: Env) => request4Download(req, env))
+view_router.get('/download', async (req: IRequest, env: Env) => request4Download(req, env))
+const request4Download = async (req: IRequest, env: Env) => {
   const url = new URL(req.url)
   const fileName = url.searchParams.get('name')
   if (!fileName) {
@@ -32,14 +32,14 @@ const request4Download = async (env: Env, req: IRequest) => {
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
 
   // Call R2.download with resumable download support
-  return R2.download(env, req, { prefix, name: fileName })
+  return R2.download(req, env, { prefix, name: fileName })
 }
 
 /**
  * Upload file
  */
-word_router.post('', async (req: IRequest, env) => request4Upload(env, req))
-const request4Upload = async (env: Env, req: IRequest) => {
+word_router.post('', async (req: IRequest, env) => request4Upload(req, env))
+const request4Upload = async (req: IRequest, env: Env) => {
   const url = new URL(req.url)
   const name = url.searchParams.get('name')
   if (!name) {
@@ -61,8 +61,8 @@ const request4Upload = async (env: Env, req: IRequest) => {
 /**
  * Delete all files (one-click delete)
  */
-word_router.delete('/all', async (req: IRequest, env) => request4DeleteAll(env, req))
-const request4DeleteAll = async (env: Env, req: IRequest) => {
+word_router.delete('/all', async (req: IRequest, env) => request4DeleteAll(req, env))
+const request4DeleteAll = async (req: IRequest, env: Env) => {
   try {
     const prefix = `${req.word}/${Constant.FILE_FOLDER}`
 
@@ -84,8 +84,8 @@ const request4DeleteAll = async (env: Env, req: IRequest) => {
 /**
  * Delete specified file
  */
-word_router.delete('', async (req: IRequest, env) => request4Delete(env, req))
-const request4Delete = async (env: Env, req: IRequest) => {
+word_router.delete('', async (req: IRequest, env) => request4Delete(req, env))
+const request4Delete = async (req: IRequest, env: Env) => {
   const url = new URL(req.url)
   const name = url.searchParams.get('name')
   if (!name) {
@@ -104,9 +104,9 @@ const request4Delete = async (env: Env, req: IRequest) => {
  * Initialize multipart upload
  */
 word_router.post('/multipart/init', async (req: IRequest, env: Env) =>
-  request4MultipartInit(env, req)
+  request4MultipartInit(req, env)
 )
-const request4MultipartInit = async (env: Env, req: IRequest) => {
+const request4MultipartInit = async (req: IRequest, env: Env) => {
   try {
     const { filename, fileSize, chunkSize } = (await req.json()) as {
       filename: string
@@ -158,9 +158,9 @@ const request4MultipartInit = async (env: Env, req: IRequest) => {
  * Cancel multipart upload
  */
 word_router.delete('/multipart/cancel/:uploadId', async (req: IRequest, env: Env) =>
-  request4MultipartCancel(env, req)
+  request4MultipartCancel(req, env)
 )
-const request4MultipartCancel = async (env: Env, req: IRequest) => {
+const request4MultipartCancel = async (req: IRequest, env: Env) => {
   try {
     const { uploadId } = req.params
     const { fileKey } = await req.json<{ fileKey: string }>()
@@ -185,9 +185,9 @@ const request4MultipartCancel = async (env: Env, req: IRequest) => {
  * Upload single chunk
  */
 word_router.post('/multipart/chunk/:uploadId/:chunkIndex', async (req: IRequest, env: Env) =>
-  request4MultipartChunk(env, req)
+  request4MultipartChunk(req, env)
 )
-const request4MultipartChunk = async (env: Env, req: IRequest) => {
+const request4MultipartChunk = async (req: IRequest, env: Env) => {
   try {
     const { uploadId, chunkIndex } = req.params
     const partNumber = parseInt(chunkIndex) + 1 // R2 partNumber starts from 1
@@ -234,9 +234,9 @@ const request4MultipartChunk = async (env: Env, req: IRequest) => {
  * Complete multipart upload
  */
 word_router.post('/multipart/complete/:uploadId', async (req: IRequest, env: Env) =>
-  request4MultipartComplete(env, req)
+  request4MultipartComplete(req, env)
 )
-const request4MultipartComplete = async (env: Env, req: IRequest) => {
+const request4MultipartComplete = async (req: IRequest, env: Env) => {
   try {
     const { uploadId } = req.params
     const { fileKey, parts } = (await req.json()) as {

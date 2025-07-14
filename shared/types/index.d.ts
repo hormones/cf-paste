@@ -4,7 +4,7 @@ declare global {
   interface ApiResponse<T = never> {
     code?: number
     data?: T | null
-    msg?: string
+    msg?: string | null
   }
 
   interface Keyword {
@@ -50,12 +50,11 @@ declare global {
 
   type IRequest = {
     ip: string
-    functionPath: string
     location: string
     edit: number
-    authorization: string
-    clearAuthCookie: boolean
-    setLanguageCookie?: string
+    cookie4auth?: string
+    clearCookie4auth?: boolean
+    cookie4language?: string
   } & IContext & IRequestStrict
 }
 

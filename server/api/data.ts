@@ -14,38 +14,37 @@ const view_router = AutoRouter({ base: '/api/v/:view_word/data' })
 /**
  * Get keyword metadata details
  */
-word_router.get('', async (req: IRequest, env: Env) => request4GetData(env, req))
-view_router.get('', async (req: IRequest, env: Env) => request4GetData(env, req))
-const request4GetData = async (env: Env, req: IRequest) => {
-  console.log('data get', req.word)
-  // First get keyword info from database
-  const data = await D1.first<Keyword>(env, 'keyword', [{ key, value: req.word }])
+word_router.get('', async (req: IRequest, env: Env) => request4GetData(req, env))
+view_router.get('', async (req: IRequest, env: Env) => request4GetData(req, env))
+const request4GetData = async (req: IRequest, env: Env) => {
+  const keyword = await getKeyword(req, env)
 
-  // If data found, get corresponding content
-  if (data) {
-    if (data.password) {
-      data.password = Constant.PASSWORD_DISPLAY
+  if (keyword) {
+    // If password exists, display it as *******
+    if (keyword.password) {
+      keyword.password = Constant.PASSWORD_DISPLAY
     }
+    // If view mode, hide word
     if (!req.edit) {
-      data.word = ''
+      keyword.word = ''
     }
-    data.content = await downloadContent(env, req)
+    keyword.content = await downloadContent(req, env)
   }
 
   // Throw 404 error in view mode if data not found
-  if (!data && !req.edit) {
+  if (!req.edit && !keyword) {
     return error(404, req.t('errors.contentNotFound'))
   }
 
-  return newResponse({ data: data })
+  return newResponse({ data: keyword })
 }
 
 /**
  * Create new keyword
  */
-word_router.post('', async (req: IRequest, env: Env) => request4PostData(env, req))
-view_router.post('', async (req: IRequest, env: Env) => request4PostData(env, req))
-const request4PostData = async (env: Env, req: IRequest) => {
+word_router.post('', async (req: IRequest, env: Env) => request4PostData(req, env))
+view_router.post('', async (req: IRequest, env: Env) => request4PostData(req, env))
+const request4PostData = async (req: IRequest, env: Env) => {
   console.log('data post', req.word)
   const data: Keyword = (await req.json()) as Keyword
   const { content, ...keywordDB } = data
@@ -53,11 +52,11 @@ const request4PostData = async (env: Env, req: IRequest) => {
 
   // Hash password if set
   if (keywordDB.password) {
-    keywordDB.password = await Auth.hashPassword(keywordDB.password, req.word!, env)
+    keywordDB.password = await Auth.hashPassword(env, keywordDB.password, req.word)
   }
 
   // Upload content to R2
-  await uploadContent(env, req, content)
+  await uploadContent(req, env, content)
   // Insert word info to database
   return D1.insert(env, 'keyword', keywordDB).then((data) => newResponse({ data }))
 }
@@ -65,14 +64,14 @@ const request4PostData = async (env: Env, req: IRequest) => {
 /**
  * Update keyword info (content-related fields only)
  */
-word_router.put('', async (req: IRequest, env: Env) => request4PutData(env, req))
-view_router.put('', async (req: IRequest, env: Env) => request4PutData(env, req))
-const request4PutData = async (env: Env, req: IRequest) => {
+word_router.put('', async (req: IRequest, env: Env) => request4PutData(req, env))
+view_router.put('', async (req: IRequest, env: Env) => request4PutData(req, env))
+const request4PutData = async (req: IRequest, env: Env) => {
   console.log('data put', req.word)
   const data: Keyword = (await req.json()) as Keyword
 
   // Upload content to R2
-  await uploadContent(env, req, data.content)
+  await uploadContent(req, env, data.content)
   // Update timestamp in database
   return D1.update(env, 'keyword', { word: req.word }, [{ key, value: req.word }]).then((data) =>
     newResponse({ data })
@@ -82,22 +81,22 @@ const request4PutData = async (env: Env, req: IRequest) => {
 /**
  * Delete keyword
  */
-word_router.delete('', async (req: IRequest, env: Env) => request4DeleteData(env, req))
-view_router.delete('', async (req: IRequest, env: Env) => request4DeleteData(env, req))
-const request4DeleteData = async (env: Env, req: IRequest) => {
+word_router.delete('', async (req: IRequest, env: Env) => request4DeleteData(req, env))
+view_router.delete('', async (req: IRequest, env: Env) => request4DeleteData(req, env))
+const request4DeleteData = async (req: IRequest, env: Env) => {
   await deleteKeyword(env, req.word)
   // Clear cookie
   const response = newResponse({ data: null })
-  req.clearAuthCookie = true
+  req.clearCookie4auth = true
   return response
 }
 
 /**
  * Save settings (expiry time and password)
  */
-word_router.patch('/settings', async (req: IRequest, env: Env) => request4PatchSettings(env, req))
-view_router.patch('/settings', async (req: IRequest, env: Env) => request4PatchSettings(env, req))
-const request4PatchSettings = async (env: Env, req: IRequest) => {
+word_router.patch('/settings', async (req: IRequest, env: Env) => request4PatchSettings(req, env))
+view_router.patch('/settings', async (req: IRequest, env: Env) => request4PatchSettings(req, env))
+const request4PatchSettings = async (req: IRequest, env: Env) => {
   const keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
   if (!keyword) {
     return error(404, req.t('errors.contentNotFound'))
@@ -128,7 +127,7 @@ const request4PatchSettings = async (env: Env, req: IRequest) => {
     }
   } else if (newPassword !== Constant.PASSWORD_DISPLAY) {
     // Intent: set or modify password
-    const hashPassword = await Auth.hashPassword(newPassword, req.word!, env)
+    const hashPassword = await Auth.hashPassword(env, newPassword, keyword.word)
     if (hashPassword !== keyword.password) {
       passwordChanged = true
       updateData.password = hashPassword
@@ -144,14 +143,16 @@ const request4PatchSettings = async (env: Env, req: IRequest) => {
   try {
     await D1.update(env, 'keyword', updateData, [{ key: 'word', value: req.word }])
 
-    const responseData: { message: string; view_word?: string } = { message: req.t('messages.settingsSaved') }
+    const responseData: { message: string; view_word?: string } = {
+      message: req.t('messages.settingsSaved'),
+    }
     if (passwordChanged && updateData.view_word) {
       responseData.view_word = updateData.view_word
     }
 
     // Set authorization cookie if password changed
     if (passwordChanged && updateData.password) {
-      req.authorization = await Auth.encrypt(env, `${keyword.word}:${Date.now()}`)
+      req.cookie4auth = await Auth.encrypt(env, `${keyword.word}:${Date.now()}`)
     }
 
     return newResponse({ data: responseData })
@@ -164,9 +165,9 @@ const request4PatchSettings = async (env: Env, req: IRequest) => {
 /**
  * Reset view_word for readonly link
  */
-word_router.patch('/view-word', async (req: IRequest, env: Env) => request4PatchViewWord(env, req))
-view_router.patch('/view-word', async (req: IRequest, env: Env) => request4PatchViewWord(env, req))
-const request4PatchViewWord = async (env: Env, req: IRequest) => {
+word_router.patch('/view-word', async (req: IRequest, env: Env) => request4PatchViewWord(req, env))
+view_router.patch('/view-word', async (req: IRequest, env: Env) => request4PatchViewWord(req, env))
+const request4PatchViewWord = async (req: IRequest, env: Env) => {
   const keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: req.word }])
   if (!keyword) {
     return error(404, req.t('errors.contentNotFound'))
@@ -183,10 +184,29 @@ const request4PatchViewWord = async (env: Env, req: IRequest) => {
   }
 }
 
+const deleteKeyword = async (env: Env, word: string) => {
+  // Delete index.txt file in R2
+  await R2.delete(env, { prefix: word, name: Constant.PASTE_FILE })
+  // Delete files folder in R2
+  await R2.deleteFolder(env, { prefix: word + '/' + Constant.FILE_FOLDER })
+  // Delete keyword info in database
+  await D1.delete(env, 'keyword', [{ key, value: word }])
+}
+
+const getKeyword = async (req: IRequest, env: Env) => {
+  let keyword: Keyword | null = null
+  if (req.edit) {
+    keyword = await D1.first<Keyword>(env, 'keyword', [{ key, value: req.word }])
+  } else {
+    keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'view_word', value: req.view_word }])
+  }
+  return keyword
+}
+
 /**
  * Upload clipboard content to R2
  */
-const uploadContent = async (env: Env, req: IRequest, content: string) => {
+const uploadContent = async (req: IRequest, env: Env, content: string) => {
   // Delete file in R2 if content is empty
   if (!content) {
     return R2.delete(env, { prefix: req.word, name: Constant.PASTE_FILE, language: req.language })
@@ -203,8 +223,8 @@ const uploadContent = async (env: Env, req: IRequest, content: string) => {
   })
 }
 
-const downloadContent = async (env: Env, req: IRequest) => {
-  return await R2.download(env, req, { prefix: req.word, name: Constant.PASTE_FILE })
+const downloadContent = async (req: IRequest, env: Env) => {
+  return await R2.download(req, env, { prefix: req.word, name: Constant.PASTE_FILE })
     .then((res) => (res.status === 404 ? '' : res.text()))
     .catch((err) => {
       console.error(err)
@@ -212,28 +232,4 @@ const downloadContent = async (env: Env, req: IRequest) => {
     })
 }
 
-export const deleteKeyword = async (env: Env, word: string) => {
-  // Delete index.txt file in R2
-  await R2.delete(env, { prefix: word, name: Constant.PASTE_FILE })
-  // Delete files folder in R2
-  await R2.deleteFolder(env, { prefix: word + '/' + Constant.FILE_FOLDER })
-  // Delete keyword info in database
-  await D1.delete(env, 'keyword', [{ key, value: word }])
-}
-
-export const getKeyword = async (
-  env: Env,
-  req: IRequest,
-  c_word: string | null,
-  c_view_word: string | null
-) => {
-  let keyword: Keyword | null = null
-  if (c_word) {
-    keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'word', value: c_word }])
-  } else if (c_view_word) {
-    keyword = await D1.first<Keyword>(env, 'keyword', [{ key: 'view_word', value: c_view_word }])
-  }
-  return keyword
-}
-
-export { word_router, view_router }
+export { word_router, view_router, getKeyword, deleteKeyword }
