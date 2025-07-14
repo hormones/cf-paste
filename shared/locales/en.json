@@ -10,7 +10,8 @@
       "close": "Close",
       "edit": "Edit",
       "preview": "Preview",
-      "fullscreen": "Fullscreen"
+      "fullscreen": "Fullscreen",
+      "info": "Info"
     },
     "states": {
       "loading": "Loading...",

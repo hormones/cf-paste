@@ -10,7 +10,8 @@
       "close": "关闭",
       "edit": "编辑",
       "preview": "预览",
-      "fullscreen": "全屏"
+      "fullscreen": "全屏",
+      "info": "信息"
     },
     "states": {
       "loading": "加载中...",

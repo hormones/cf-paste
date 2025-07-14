@@ -15,7 +15,7 @@
           :icon="View"
           size="small"
           text
-          :title="t('markdown.buttons.preview')"
+          :title="t('common.buttons.preview')"
           @click="appStore.setMarkdownMode(MARKDOWN_MODE.PREVIEW)"
         />
         <el-button
@@ -23,7 +23,7 @@
           :icon="Edit"
           size="small"
           text
-          :title="t('markdown.buttons.edit')"
+          :title="t('common.buttons.edit')"
           @click="appStore.setMarkdownMode(MARKDOWN_MODE.EDIT)"
         />
 
@@ -33,7 +33,7 @@
           :icon="FullScreen"
           size="small"
           text
-          :title="t('markdown.buttons.fullscreen')"
+          :title="t('common.buttons.fullscreen')"
           @click="appStore.setMarkdownMode(MARKDOWN_MODE.FULLSCREEN)"
         />
 

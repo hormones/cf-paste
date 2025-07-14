@@ -60,6 +60,7 @@ const handleDelete = async () => {
         v-if="!appStore.viewMode"
         @click="handleDelete"
         :icon="Delete"
+        :title="t('common.buttons.delete')"
         text
       />
       <el-button
@@ -67,6 +68,7 @@ const handleDelete = async () => {
         type="primary"
         @click="appStore.setShowQRCodeDialog(true)"
         :icon="InfoFilled"
+        :title="t('common.buttons.info')"
         text
         v-show="!appStore.viewMode && appStore.keyword.id"
         class="mobile-info-btn"

@@ -73,11 +73,11 @@ const formatDate = (timestamp?: number): string => {
 }
 
 .info-label {
-  color: var(--el-text-color-secondary);
+  color: var(--color-text-secondary);
 }
 
 .info-value {
-  color: var(--el-text-color-secondary);
+  color: var(--color-text-secondary);
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 }
 </style>
