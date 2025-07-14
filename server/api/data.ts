@@ -144,7 +144,7 @@ const request4PatchSettings = async (req: IRequest, env: Env) => {
     await D1.update(env, 'keyword', updateData, [{ key: 'word', value: req.word }])
 
     const responseData: { message: string; view_word?: string } = {
-      message: req.t('messages.settingsSaved'),
+      message: req.t('common.msg.saveSuccess'),
     }
     if (passwordChanged && updateData.view_word) {
       responseData.view_word = updateData.view_word

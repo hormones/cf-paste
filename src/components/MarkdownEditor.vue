@@ -10,6 +10,7 @@
       :preview-theme="'github'"
       :footers="[]"
       :preview="false"
+      :placeholder="t('clipboard.placeholder')"
       @blur="handleBlur"
       @onSave="handleSave"
       noUploadImg
@@ -20,6 +21,7 @@
       :model-value="localContent"
       :theme="appStore.theme"
       :preview-theme="'github'"
+      :placeholder="t('clipboard.placeholder4view')"
     />
   </div>
 </template>
@@ -40,7 +42,7 @@ const emit = defineEmits<{
 }>()
 
 const appStore = useAppStore()
-const { locale } = useI18nComposable()
+const { locale, t } = useI18nComposable()
 
 const language = computed(() => (locale.value === 'zh-CN' ? 'zh-CN' : 'en-US'))
 

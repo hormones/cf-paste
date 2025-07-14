@@ -72,10 +72,10 @@ export function useMain() {
       appStore.setLastSavedContent(appStore.keyword.content || '')
 
       if (!silent) {
-        ElMessage.success(t('clipboard.saveOk'))
+        ElMessage.success(t('common.msg.saveSuccess'))
       }
     } catch (error) {
-      ElMessage.error(t('errors.contentSaveError'))
+      ElMessage.error(t('common.msg.saveFailed'))
       throw error
     } finally {
       appStore.setLoading(false)
@@ -86,9 +86,9 @@ export function useMain() {
     try {
       await dataApi.deleteKeyword()
       appStore.resetKeyword()
-      ElMessage.success(t('clipboard.deleteOk'))
+      ElMessage.success(t('common.msg.deleteSuccess'))
     } catch (error) {
-      ElMessage.error(t('errors.operationFailed'))
+      ElMessage.error(t('common.msg.deleteFailed'))
       throw error
     }
   }
@@ -119,7 +119,7 @@ export function useMain() {
         ElMessage.success(t('clipboard.linkUpdated'))
       }
     } catch (error) {
-      ElMessage.error(t('errors.settingsSaveError'))
+      ElMessage.error(t('common.msg.saveFailed'))
       throw error
     } finally {
       appStore.setLoading(false)

@@ -7,7 +7,10 @@
       "delete": "Delete",
       "settings": "Settings",
       "retry": "Retry",
-      "close": "Close"
+      "close": "Close",
+      "edit": "Edit",
+      "preview": "Preview",
+      "fullscreen": "Fullscreen"
     },
     "states": {
       "loading": "Loading...",
@@ -40,6 +43,15 @@
     "tooltips": {
       "clickToCopy": "Click to copy link",
       "refresh": "Refresh link"
+    },
+    "msg": {
+      "saveSuccess": "Save successful",
+      "saveFailed": "Save failed",
+      "deleteSuccess": "Delete successful",
+      "deleteFailed": "Delete failed",
+      "uploadSuccess": "Upload successful",
+      "uploadFailed": "Upload failed",
+      "uploadCancel": "Upload cancelled"
     }
   },
   "app": {
@@ -51,9 +63,8 @@
   },
   "clipboard": {
     "tab": "Clipboard",
-    "placeholder": "Paste any content here",
-    "saveOk": "Saved successfully",
-    "deleteOk": "Deleted successfully",
+    "placeholder": "Please enter clipboard content here",
+    "placeholder4view": "Clipboard content is empty",
     "linkCopied": "Link copied to clipboard",
     "linkUpdated": "Read-only link updated",
     "deleteConfirm": "Are you sure you want to delete clipboard and all files?",
@@ -74,10 +85,6 @@
   },
   "file": {
     "tab": "Files",
-    "uploadOk": "Upload successful",
-    "uploadFail": "Upload failed",
-    "uploadCancel": "Upload cancelled",
-    "deleteOk": "Deleted successfully",
     "deleteConfirm": "Are you sure you want to delete the file \"{filename}\"?",
     "dragHint": "Drop files here or click to upload",
     "noFiles": "No files uploaded yet",
@@ -85,12 +92,10 @@
   },
   "auth": {
     "passwordRequired": "Password Required",
-    "enterPassword": "Enter password",
-    "accessDenied": "Access denied"
+    "enterPassword": "Enter password"
   },
   "settings": {
     "title": "Settings",
-    "saveOk": "Settings saved",
     "expiry": {
       "label": "Expiration Time",
       "desc": "Links and files will expire after the specified time",
@@ -100,17 +105,6 @@
       "label": "Access Password",
       "desc": "Add password protection to your content",
       "placeholder": "Leave empty for no password"
-    }
-  },
-  "markdown": {
-    "stats": "{characters} characters, {words} words",
-    "previewPlaceholder": "Preview your markdown content here...",
-    "renderError": "Render failed",
-    "buttons": {
-      "edit": "Edit",
-      "preview": "Preview",
-      "fullscreen": "Fullscreen",
-      "exit": "Exit"
     }
   },
   "errors": {
@@ -129,7 +123,6 @@
     "fileListError": "Failed to load file list, please refresh the page",
     "fileDataError": "File data error, please select file again",
     "contentNotFound": "Content not found or expired",
-    "contentSaveError": "Save failed, please try again",
     "settingsSaveError": "Failed to save settings, please try again",
     "invalidSettings": "Invalid settings, please check and try again",
     "operationFailed": "Operation failed, please try again",
@@ -138,14 +131,7 @@
     "resourceNotFound": "Resource not found",
     "requestMethod": "Request method error",
     "requestAddress": "Request address error",
-    "requestGeneral": "Request error, please try again later",
     "accessDeniedWithPassword": "Access denied, please check password or permissions",
-    "accessErrorPageNotFound": "Access error: Page not found",
-    "operationCancelled": "Operation cancelled",
-    "apiExecuteError": "API execution error"
-  },
-  "messages": {
-    "success": "Success",
-    "settingsSaved": "Settings saved"
+    "operationCancelled": "Operation cancelled"
   }
-} 
+}

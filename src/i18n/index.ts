@@ -1,7 +1,6 @@
 import { createI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
 import { messages } from '../../shared/locales'
-import type { MessageSchema } from '../../shared/locales'
 import { EXPIRY_VALUES, type ExpiryOption } from '../../shared/constants'
 
 // Create i18n instance

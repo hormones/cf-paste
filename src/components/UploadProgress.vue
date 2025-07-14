@@ -32,7 +32,7 @@
                 {{ getStatusText(state.status) }}
               </el-tag>
                         <el-text v-if="state.status === 'error'" size="small" type="danger">
-            {{ state.error || t('file.uploadFail') }}
+            {{ state.error || t('common.msg.uploadFailed') }}
           </el-text>
             </div>
 

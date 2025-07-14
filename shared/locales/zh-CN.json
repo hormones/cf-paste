@@ -7,7 +7,10 @@
       "delete": "删除",
       "settings": "设置",
       "retry": "重试",
-      "close": "关闭"
+      "close": "关闭",
+      "edit": "编辑",
+      "preview": "预览",
+      "fullscreen": "全屏"
     },
     "states": {
       "loading": "加载中...",
@@ -40,6 +43,15 @@
     "tooltips": {
       "clickToCopy": "点击复制链接",
       "refresh": "刷新链接"
+    },
+    "msg": {
+      "saveSuccess": "保存成功",
+      "saveFailed": "保存失败",
+      "deleteSuccess": "删除成功",
+      "deleteFailed": "删除失败",
+      "uploadSuccess": "上传成功",
+      "uploadFailed": "上传失败",
+      "uploadCancel": "上传已取消"
     }
   },
   "app": {
@@ -51,9 +63,8 @@
   },
   "clipboard": {
     "tab": "剪贴板",
-    "placeholder": "在此粘贴任何内容",
-    "saveOk": "保存成功",
-    "deleteOk": "删除成功",
+    "placeholder": "请输入剪贴板内容",
+    "placeholder4view": "剪贴板内容为空",
     "linkCopied": "链接已复制到剪贴板",
     "linkUpdated": "只读链接已更新",
     "deleteConfirm": "确定要删除剪贴板内容和所有文件吗？",
@@ -74,10 +85,6 @@
   },
   "file": {
     "tab": "文件",
-    "uploadOk": "上传成功",
-    "uploadFail": "上传失败",
-    "uploadCancel": "已取消上传",
-    "deleteOk": "删除成功",
     "deleteConfirm": "确定要删除文件 \"{filename}\" 吗？",
     "dragHint": "拖拽文件到这里，或点击上传",
     "noFiles": "暂无上传文件",
@@ -85,12 +92,10 @@
   },
   "auth": {
     "passwordRequired": "需要密码",
-    "enterPassword": "请输入密码",
-    "accessDenied": "访问被拒绝"
+    "enterPassword": "请输入密码"
   },
   "settings": {
     "title": "设置",
-    "saveOk": "设置已保存",
     "expiry": {
       "label": "过期时间",
       "desc": "链接和文件将在指定时间后过期",
@@ -100,17 +105,6 @@
       "label": "访问密码",
       "desc": "为您的内容添加密码保护",
       "placeholder": "留空则不设密码"
-    }
-  },
-  "markdown": {
-    "stats": "{characters} 字符, {words} 字",
-    "previewPlaceholder": "在此处预览您的markdown内容...",
-    "renderError": "渲染失败",
-    "buttons": {
-      "edit": "编辑",
-      "preview": "预览",
-      "fullscreen": "全屏",
-      "exit": "退出"
     }
   },
   "errors": {
@@ -129,7 +123,6 @@
     "fileListError": "获取文件列表失败，请刷新页面",
     "fileDataError": "文件数据异常，请重新选择文件",
     "contentNotFound": "内容不存在或已过期",
-    "contentSaveError": "保存失败，请重试",
     "settingsSaveError": "保存设置失败，请重试",
     "invalidSettings": "设置参数无效，请检查后重试",
     "operationFailed": "操作失败，请重试",
@@ -138,14 +131,7 @@
     "resourceNotFound": "资源不存在",
     "requestMethod": "请求方法错误",
     "requestAddress": "请求地址错误",
-    "requestGeneral": "请求错误，请稍后重试",
     "accessDeniedWithPassword": "访问被拒绝，请检查密码或权限",
-    "accessErrorPageNotFound": "访问错误：页面未找到",
-    "operationCancelled": "操作已取消",
-    "apiExecuteError": "API执行错误"
-  },
-  "messages": {
-    "success": "成功",
-    "settingsSaved": "设置已保存"
+    "operationCancelled": "操作已取消"
   }
-} 
+}
