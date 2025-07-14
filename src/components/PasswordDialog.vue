@@ -79,14 +79,13 @@ const submitForm = async () => {
 
 <style scoped>
 /* Modern dialog styling */
-:deep(.modern-dialog) {
+.modern-dialog {
   border-radius: 12px; /* Larger rounded corners */
 }
 
 :deep(.modern-dialog .el-dialog__header) {
   text-align: center;
   padding-bottom: 12px;
-  /* Remove divider between header and body */
   border-bottom: none;
   margin-right: 0;
 }
@@ -94,7 +93,6 @@ const submitForm = async () => {
 :deep(.modern-dialog .el-dialog__title) {
   font-size: 20px;
   font-weight: 600;
-  color: var(--el-text-color-primary);
 }
 
 :deep(.modern-dialog .el-dialog__body) {

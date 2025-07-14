@@ -47,11 +47,9 @@ const formatDate = (timestamp?: number): string => {
 
 <style scoped>
 .card-style {
-  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  padding: 1.25rem; /* 20px */
-  transition: border-color 0.5s, background-color 0.5s;
+  padding: 1.25rem;
 }
 
 .panel-header {
@@ -69,15 +67,11 @@ const formatDate = (timestamp?: number): string => {
 .info-item {
   display: flex;
   justify-content: space-between;
-  font-size: 0.875rem; /* 14px */
-}
-
-.info-label {
+  font-size: 0.875rem;
   color: var(--color-text-secondary);
 }
 
 .info-value {
-  color: var(--color-text-secondary);
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 }
 </style>

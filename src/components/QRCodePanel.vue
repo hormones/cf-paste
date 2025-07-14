@@ -7,11 +7,19 @@
       </el-icon>
     </div>
 
-    <div class="qrcode-wrapper" :title="t('common.tooltips.clickToCopy')" @click="handleCopy(appStore.readOnlyLink)">
+    <div
+      class="qrcode-wrapper"
+      :title="t('common.tooltips.clickToCopy')"
+      @click="handleCopy(appStore.readOnlyLink)"
+    >
       <img v-if="qrCodeUrl" :src="qrCodeUrl" :alt="t('clipboard.qrcode.title')" />
     </div>
 
-    <p class="link-text" :title="t('common.tooltips.clickToCopy')" @click="handleCopy(appStore.readOnlyLink)">
+    <p
+      class="link-text"
+      :title="t('common.tooltips.clickToCopy')"
+      @click="handleCopy(appStore.readOnlyLink)"
+    >
       {{ appStore.readOnlyLink }}
     </p>
   </div>
@@ -40,10 +48,6 @@ const generateQRCode = async () => {
       qrCodeUrl.value = await QRCodeGenerator.toDataURL(appStore.readOnlyLink, {
         width: 150,
         margin: 1,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF',
-        },
       })
     } catch (err) {
       console.error(err)
@@ -64,11 +68,9 @@ const handleCopy = (text: string) => {
 
 <style scoped>
 .card-style {
-  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 1.25rem;
-  transition: border-color 0.5s, background-color 0.5s;
 }
 
 .qrcode-panel {
@@ -101,7 +103,6 @@ const handleCopy = (text: string) => {
 .qrcode-wrapper {
   cursor: pointer;
   padding: 10px;
-  background-color: white; /* Always white for optimal scanning */
   border-radius: 8px;
   transition: transform 0.2s ease-out;
 }
@@ -118,7 +119,6 @@ const handleCopy = (text: string) => {
   font-family: var(--font-family-mono);
   font-size: 0.875rem;
   color: var(--color-text-secondary);
-  background-color: var(--color-background-soft);
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   width: 100%;

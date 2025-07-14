@@ -89,12 +89,10 @@ const handleCancelUpload = (fileName: string) => {
 
 .upload-card {
   border: none;
-  background: transparent;
   box-shadow: none;
   width: 100%; /* Ensure card fills container */
 }
 
-/* Override Element Plus default card styles */
 .upload-card :deep(.el-card__body) {
   padding: 0;
   height: 100%;
@@ -111,8 +109,8 @@ const handleCancelUpload = (fileName: string) => {
   justify-content: center;
   align-items: center;
   height: 100%;
-  border: none; /* Remove internal border */
-  background: transparent; /* Remove internal background */
+  border: none;
+  background-color: var(--color-background);
 }
 
 .upload-progress-overlay {
@@ -121,7 +119,6 @@ const handleCancelUpload = (fileName: string) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--color-surface); /* Use theme surface color overlay */
   z-index: 10;
   border-radius: 8px;
   overflow-y: auto; /* Scroll if content is too much */

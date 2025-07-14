@@ -103,7 +103,6 @@ const copyContent = async () => {
 
 <style scoped>
 .tabs-container {
-  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 1rem;
@@ -112,7 +111,6 @@ const copyContent = async () => {
   gap: 1rem;
   height: 100%;
   box-sizing: border-box;
-  transition: border-color 0.5s, background-color 0.5s;
   overflow: hidden;
 }
 

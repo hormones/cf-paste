@@ -5,7 +5,7 @@
   --color-heading: #1f2328;             /* 标题 */
 
   /* 背景 */
-  --color-background: #f6f8fa;          /* 主背景 */
+  --color-background: #ffffff;          /* 主背景 */
   --color-background-mute: #ffffff;     /* 柔和背景（如卡片、表单） */
   --color-background-soft: #f6f8fa;     /* 更柔和的背景（如分割区块） */
 
@@ -29,7 +29,7 @@ html.dark {
   --color-heading: #ffffff;
 
   /* 背景 */
-  --color-background: #0d1117;
+  --color-background: #000000;
   --color-background-mute: #161b22;
   --color-background-soft: #161b22;
 

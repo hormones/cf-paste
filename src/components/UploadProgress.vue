@@ -141,7 +141,6 @@ const getStatusText = (status: string) => {
 .upload-progress-card {
   /* Remove borders and background, use container's dashed border */
   border: none;
-  background: transparent;
   box-shadow: none;
 }
 

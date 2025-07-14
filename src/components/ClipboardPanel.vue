@@ -32,11 +32,5 @@ function handleBlur(): void {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: var(--color-surface);
-}
-
-:deep(.markdown-editor) {
-  border: none;
-  border-radius: 0;
 }
 </style>

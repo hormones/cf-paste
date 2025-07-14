@@ -29,6 +29,5 @@ const currentTemplate = shallowRef<Component>(Template)
   align-items: center;
   min-height: 100vh;
   font-size: 1.2em;
-  color: #666;
 }
 </style>

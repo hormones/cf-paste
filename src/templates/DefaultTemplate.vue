@@ -142,7 +142,6 @@ onMounted(async () => {
   padding: 0;
 }
 .qr-code-dialog {
-  background: transparent;
   box-shadow: none;
 }
 </style>
