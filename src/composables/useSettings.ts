@@ -4,11 +4,11 @@ import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
 import { Constant, EXPIRY_VALUES } from '@/constant'
 import type { Keyword } from '@/types'
-import { useI18nComposable } from './useI18n'
+import { useI18n } from './useI18n'
 
 export function useSettings() {
   const appStore = useAppStore()
-  const { t } = useI18nComposable()
+  const { t } = useI18n()
 
   const openSettings = () => {
     // Read current settings from keyword - show ****** if password exists, empty string if none

@@ -3,11 +3,11 @@ import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
 import type { Keyword } from '@/types'
 import { Constant, MARKDOWN_MODE } from '@/constant'
-import { useI18nComposable } from './useI18n'
+import { useI18n } from './useI18n'
 
 export function useMain() {
   const appStore = useAppStore()
-  const { t } = useI18nComposable()
+  const { t } = useI18n()
 
   const fetchKeyword = async () => {
     appStore.setLoading(true)

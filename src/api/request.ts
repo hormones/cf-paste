@@ -8,7 +8,7 @@ import type {
 import type { ApiResponse } from '@/types'
 import api from './index'
 import { ElMessage } from 'element-plus'
-import { useI18nComposable } from '@/composables/useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 // Success code agreed with backend
 const SUCCESS_CODE = 0
@@ -79,7 +79,7 @@ const transform: InterceptorHooks = {
       return Promise.reject(err)
     }
     // Handle common HTTP errors with global notifications
-    const { t } = useI18nComposable()
+    const { t } = useI18n()
     const mapErrorStatus = new Map([
       [400, t('errors.requestMethod')],
       [401, t('errors.sessionExpired')],

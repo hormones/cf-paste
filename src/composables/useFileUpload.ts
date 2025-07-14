@@ -6,11 +6,11 @@ import type { UploadState } from '@/types'
 import { handleError } from '@/utils/errorHandler'
 import { calculateUploadStats, updateSpeedHistory } from '@/utils'
 import { Constant } from '@/constant'
-import { useI18nComposable } from './useI18n'
+import { useI18n } from './useI18n'
 
 export function useFileUpload() {
   const appStore = useAppStore()
-  const { t } = useI18nComposable()
+  const { t } = useI18n()
 
   const fetchConfig = async () => {
     try {

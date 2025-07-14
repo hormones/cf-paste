@@ -85,7 +85,7 @@ export const useAppStore = defineStore('app', {
       return this.viewMode ? `/v/${this.keyword.view_word}` : `/${this.keyword.word}`
     },
 
-    // Settings related computed properties - getExpiryOptions removed, components use useI18nComposable().getExpiryOptions() directly
+    // Settings related computed properties - getExpiryOptions removed, components use useI18n().getExpiryOptions() directly
   },
 
   actions: {

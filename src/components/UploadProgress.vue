@@ -91,7 +91,7 @@
 import { Document } from '@element-plus/icons-vue'
 import { Utils, formatUploadSpeed, formatRemainingTime } from '@/utils'
 import { useAppStore } from '@/stores'
-import { useI18nComposable } from '@/composables/useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 interface Emits {
   (e: 'retry', fileName: string): void
@@ -100,7 +100,7 @@ interface Emits {
 }
 
 const appStore = useAppStore()
-const { t } = useI18nComposable()
+const { t } = useI18n()
 
 defineEmits<Emits>()
 

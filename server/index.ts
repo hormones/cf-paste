@@ -52,7 +52,7 @@ const preprocess = (req: IRequest, env: Env, _ctx: ExecutionContext): boolean =>
   const path = new URL(req.url).pathname
   let flag = false
 
-  // Match /api/v/:view_word
+  // Match /api/v/:view_word/*
   const viewMatch = path.match(/^\/api\/v\/([a-zA-Z0-9_]+)/)
   if (viewMatch) {
     req.word = ''
@@ -61,13 +61,15 @@ const preprocess = (req: IRequest, env: Env, _ctx: ExecutionContext): boolean =>
     flag = true
   }
 
-  // Match /api/:word
-  const wordMatch = path.match(/^\/api\/([a-zA-Z0-9_]+)/)
-  if (wordMatch) {
-    req.word = wordMatch[1] || ''
-    req.view_word = ''
-    req.edit = 1
-    flag = true
+  // Match /api/:word/*
+  if (!flag) {
+    const wordMatch = path.match(/^\/api\/([a-zA-Z0-9_]+)/)
+    if (wordMatch) {
+      req.word = wordMatch[1] || ''
+      req.view_word = ''
+      req.edit = 1
+      flag = true
+    }
   }
 
   if (flag) {

@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { ElConfigProvider } from 'element-plus'
-import { useI18n } from '../i18n'
+import { useI18n } from '@/composables/useI18n'
 import enLocale from 'element-plus/es/locale/lang/en'
 import zhCnLocale from 'element-plus/es/locale/lang/zh-cn'
 

@@ -32,10 +32,10 @@
 
 <script setup lang="ts">
 import { useAppStore } from '@/stores'
-import { useI18nComposable } from '@/composables/useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 const appStore = useAppStore()
-const { t } = useI18nComposable()
+const { t } = useI18n()
 
 const formatDate = (timestamp?: number): string => {
   if (!timestamp) {

@@ -5,10 +5,10 @@ import { passApi } from '@/api/pass'
 import { useMain } from '@/composables/useMain'
 import { useFileUpload } from '@/composables/useFileUpload'
 import { ElDialog, ElForm, ElFormItem, ElInput, ElButton } from 'element-plus'
-import { useI18nComposable } from '@/composables/useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 const store = useAppStore()
-const { t } = useI18nComposable()
+const { t } = useI18n()
 
 const { fetchKeyword } = useMain()
 const { fetchFileList } = useFileUpload()

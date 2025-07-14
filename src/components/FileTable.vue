@@ -55,13 +55,13 @@ import type { FileInfo } from '@/types'
 import { fileApi } from '@/api/file'
 import { useAppStore } from '@/stores'
 import { Utils } from '@/utils'
-import { useI18nComposable } from '@/composables/useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 const emit = defineEmits(['delete-success'])
 
 const { deleteFile } = useFileUpload()
 const appStore = useAppStore()
-const { t } = useI18nComposable()
+const { t } = useI18n()
 
 const handleFileDownload = async (file: FileInfo) => {
   fileApi.download(file.name)

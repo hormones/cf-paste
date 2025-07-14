@@ -22,7 +22,7 @@ import { useClipboard } from '@vueuse/core'
 import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores'
 import { useMain } from '@/composables/useMain'
-import { useI18nComposable } from '@/composables/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { Refresh } from '@element-plus/icons-vue'
 import { ref, watch } from 'vue'
 import QRCodeGenerator from 'qrcode'
@@ -30,7 +30,7 @@ import QRCodeGenerator from 'qrcode'
 const appStore = useAppStore()
 const { copy } = useClipboard()
 const { resetViewWord } = useMain()
-const { t } = useI18nComposable()
+const { t } = useI18n()
 
 const qrCodeUrl = ref('')
 

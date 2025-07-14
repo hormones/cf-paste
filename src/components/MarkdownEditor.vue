@@ -32,7 +32,7 @@ import { MdEditor, MdPreview, type ExposeParam } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import 'md-editor-v3/lib/preview.css'
 import { useAppStore } from '@/stores'
-import { useI18nComposable } from '@/composables/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { MARKDOWN_MODE } from '@/constant'
 
 const localContent = defineModel<string>({ required: true })
@@ -42,7 +42,7 @@ const emit = defineEmits<{
 }>()
 
 const appStore = useAppStore()
-const { locale, t } = useI18nComposable()
+const { locale, t } = useI18n()
 
 const language = computed(() => (locale.value === 'zh-CN' ? 'zh-CN' : 'en-US'))
 

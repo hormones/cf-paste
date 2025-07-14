@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useAppStore } from '@/stores'
 import { useSettings } from '@/composables/useSettings'
-import { useI18nComposable } from '@/composables/useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 const appStore = useAppStore()
 const { closeSettings, saveSettings } = useSettings()
-const { t, getExpiryOptions } = useI18nComposable()
+const { t, getExpiryOptions } = useI18n()
 </script>
 
 <template>

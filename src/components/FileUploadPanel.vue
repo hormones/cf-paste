@@ -31,7 +31,7 @@ import { UploadFilled } from '@element-plus/icons-vue'
 import UploadProgress from './UploadProgress.vue'
 import { useFileUpload } from '@/composables/useFileUpload'
 import { useAppStore } from '@/stores'
-import { useI18nComposable } from '@/composables/useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 const emit = defineEmits<{
   (e: 'upload-success'): void
@@ -39,7 +39,7 @@ const emit = defineEmits<{
 
 const appStore = useAppStore()
 const { uploadFile } = useFileUpload()
-const { t } = useI18nComposable()
+const { t } = useI18n()
 
 // Internal upload logic handling
 const handleUpload = async (options: any) => {

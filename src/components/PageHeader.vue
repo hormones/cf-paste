@@ -5,13 +5,13 @@ import { useAppStore } from '@/stores'
 import { ElButton, ElMessageBox } from 'element-plus'
 import { Setting, Moon, Sunny, InfoFilled, Delete } from '@element-plus/icons-vue'
 import { useMain } from '@/composables/useMain'
-import { useI18nComposable } from '@/composables/useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 const appStore = useAppStore()
 const { deleteKeyword } = useMain()
 const { theme: currentTheme } = storeToRefs(appStore)
 const { toggleTheme } = appStore
-const { t } = useI18nComposable()
+const { t } = useI18n()
 
 const openSettings = () => {
   appStore.showSettings = true

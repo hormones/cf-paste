@@ -13,7 +13,7 @@ import SettingsDialog from '@/components/SettingsDialog.vue'
 import { useAppStore } from '@/stores'
 import { useMain } from '@/composables/useMain'
 import { useFileUpload } from '@/composables/useFileUpload'
-import { useI18n } from '@/i18n'
+import { useI18n } from '@/composables/useI18n'
 
 // Store and Composables
 const appStore = useAppStore()

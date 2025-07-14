@@ -26,8 +26,8 @@ export const authenticate: RequestHandler<IRequest> = async (
 
     // Authorization format: Basic crypt(word:timestamp)
     const now = Date.now()
-    let c_authorization = Auth.getCookie(req, 'authorization')
-    console.log('authentication', req.word, req.view_word, c_authorization)
+    let c_authorization = Auth.getCookie(req, 'authorization') || ''
+    console.log('authentication', req.edit, req.word, req.view_word, c_authorization)
 
     // Get keyword information
     let keyword: Keyword | null = await getKeyword(req, env)
@@ -44,7 +44,7 @@ export const authenticate: RequestHandler<IRequest> = async (
       req.clearCookie4auth = true
       await deleteKeyword(env, req.word)
       keyword = null
-      c_authorization = null
+      c_authorization = ''
     }
 
     // Skip authentication if keyword doesn't exist or has no password

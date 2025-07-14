@@ -66,12 +66,12 @@ import { ref, computed } from 'vue'
 import { View, Edit, FullScreen, CopyDocument } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores'
-import { useI18nComposable } from '@/composables/useI18n'
+import { useI18n } from '@/composables/useI18n'
 import { MARKDOWN_MODE } from '@/constant'
 
 const activeTab = ref('clipboard')
 const appStore = useAppStore()
-const { t } = useI18nComposable()
+const { t } = useI18n()
 
 // Expose constants for template use
 const { EDIT, PREVIEW, FULLSCREEN } = MARKDOWN_MODE
