@@ -27,12 +27,14 @@ export function getSupportedLocales(): readonly Locale[] {
 export function getExpiryOptions(locale: Locale = 'en') {
   const timeLabels = messages[locale].common.time
   return [
-    { label: timeLabels['1h'], value: 60 * 60 },
-    { label: timeLabels['1d'], value: 24 * 60 * 60 },
-    { label: timeLabels['3d'], value: 3 * 24 * 60 * 60 },
-    { label: timeLabels['1w'], value: 7 * 24 * 60 * 60 },
-    { label: timeLabels['1m'], value: 30 * 24 * 60 * 60 },
-    { label: timeLabels['3m'], value: 90 * 24 * 60 * 60 },
+    { label: timeLabels['1hour'], value: 60 * 60 },
+    { label: timeLabels['1day'], value: 24 * 60 * 60 },
+    { label: timeLabels['3days'], value: 3 * 24 * 60 * 60 },
+    { label: timeLabels['1week'], value: 7 * 24 * 60 * 60 },
+    { label: timeLabels['1month'], value: 30 * 24 * 60 * 60 },
+    { label: timeLabels['3months'], value: 90 * 24 * 60 * 60 },
+    { label: timeLabels['1year'], value: 365 * 24 * 60 * 60 },
+    { label: timeLabels['2years'], value: 2 * 365 * 24 * 60 * 60 },
   ] as const
 }
 
