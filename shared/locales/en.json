@@ -29,12 +29,14 @@
       "actions": "Actions"
     },
     "time": {
-      "1h": "1 hour",
-      "1d": "1 day",
-      "3d": "3 days",
-      "1w": "1 week",
-      "1m": "1 month",
-      "3m": "3 months",
+      "1hour": "1 hour",
+      "1day": "1 day",
+      "3days": "3 days",
+      "1week": "1 week",
+      "1month": "1 month",
+      "3months": "3 months",
+      "1year": "1 year",
+      "2years": "2 years",
       "remaining": "Remaining: {time}",
       "calculating": "Calculating..."
     },

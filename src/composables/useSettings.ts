@@ -13,10 +13,9 @@ export function useSettings() {
   const openSettings = () => {
     // Read current settings from keyword - show ****** if password exists, empty string if none
     const passwordValue = appStore.keyword.password || ''
-
     appStore.setSettingsData({
       password: passwordValue,
-      expiry: appStore.keyword.expire_value || EXPIRY_VALUES[2].value
+      expiry: appStore?.keyword?.expire_value || EXPIRY_VALUES[2].value,
     })
     appStore.setShowSettings(true)
   }
@@ -63,17 +62,19 @@ export function useSettings() {
     // State (from Store)
     password: computed({
       get: () => appStore.password,
-      set: (value: string) => appStore.setSettingsData({
-        password: value,
-        expiry: appStore.expiry
-      })
+      set: (value: string) =>
+        appStore.setSettingsData({
+          password: value,
+          expiry: appStore.expiry,
+        }),
     }),
     expiry: computed({
       get: () => appStore.expiry,
-      set: (value: number) => appStore.setSettingsData({
-        password: appStore.password,
-        expiry: value
-      })
+      set: (value: number) =>
+        appStore.setSettingsData({
+          password: appStore.password,
+          expiry: value,
+        }),
     }),
 
     openSettings,

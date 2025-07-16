@@ -6,6 +6,8 @@ export const EXPIRY_VALUES = [
   { key: '1week', value: 7 * 24 * 60 * 60 },
   { key: '1month', value: 30 * 24 * 60 * 60 },
   { key: '3months', value: 90 * 24 * 60 * 60 },
+  { key: '1year', value: 365 * 24 * 60 * 60 },
+  { key: '2years', value: 2 * 365 * 24 * 60 * 60 },
 ] as const
 
 // Function type for creating localized expiry options

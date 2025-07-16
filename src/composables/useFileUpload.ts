@@ -7,10 +7,12 @@ import { handleError } from '@/utils/errorHandler'
 import { calculateUploadStats, updateSpeedHistory } from '@/utils'
 import { Constant } from '@/constant'
 import { useI18n } from './useI18n'
+import { useMain } from './useMain'
 
 export function useFileUpload() {
   const appStore = useAppStore()
   const { t } = useI18n()
+  const { saveKeyword } = useMain()
 
   const fetchConfig = async () => {
     try {
@@ -37,6 +39,15 @@ export function useFileUpload() {
     if (!appStore.uploadFileCheck(file)) {
       ElMessage.error(t('file.uploadLimitReached'))
       return
+    }
+
+    if (!appStore.keyword.id) {
+      try {
+        await saveKeyword(true) // silent 模式
+      } catch (e) {
+        ElMessage.error(t('common.msg.saveFailed'))
+        return
+      }
     }
 
     // Create cancellation controller

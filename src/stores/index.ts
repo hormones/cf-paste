@@ -97,6 +97,8 @@ export const useAppStore = defineStore('app', {
     // Clipboard state updates
     setKeyword(keyword: Keyword) {
       this.keyword = keyword
+      this.expiry = keyword?.expire_value || EXPIRY_VALUES[2].value
+      this.password = keyword?.password || ''
     },
 
     // Check if file can be uploaded, allows overwriting
@@ -194,8 +196,8 @@ export const useAppStore = defineStore('app', {
     },
 
     resetSettings() {
-      this.password = ''
-      this.expiry = EXPIRY_VALUES[2].value
+      this.password = this.keyword?.password || ''
+      this.expiry = this.keyword?.expire_value || EXPIRY_VALUES[2].value
     },
 
     // Theme management actions

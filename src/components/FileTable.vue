@@ -7,7 +7,7 @@
       height="100%"
       :empty-text="t('file.noFiles')"
     >
-      <el-table-column prop="name" :label="t('common.table.name')" min-width="180">
+      <el-table-column prop="name" :label="t('common.table.name')" min-width="200">
         <template #default="{ row }">
           <div class="file-name-cell">
             <span class="file-name-text">{{ row.name }}</span>
@@ -19,7 +19,7 @@
           {{ Utils.humanReadableSize(row.size) }}
         </template>
       </el-table-column>
-      <el-table-column prop="uploaded" :label="t('common.table.time')" width="180">
+      <el-table-column prop="uploaded" :label="t('common.table.time')" width="160">
         <template #default="{ row }">
           {{ new Date(row.uploaded).toLocaleString() }}
         </template>
@@ -97,5 +97,9 @@ const handleFileDelete = async (file: FileInfo) => {
 :deep(.el-button),
 :deep(.el-scrollbar__view) {
   transition: background-color 0.5s, color 0.5s, border-color 0.5s;
+}
+
+:deep(.el-button) {
+  padding: 0 4px;
 }
 </style>

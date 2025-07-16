@@ -50,18 +50,8 @@ export function useI18n() {
 
   // Get localized expiry time options
   const getExpiryOptions = (): ExpiryOption[] => {
-    // Map EXPIRY_VALUES keys to time keys in language files
-    const keyMapping = {
-      '1hour': '1h',
-      '1day': '1d',
-      '3days': '3d',
-      '1week': '1w',
-      '1month': '1m',
-      '3months': '3m',
-    } as const
-
     return EXPIRY_VALUES.map((option) => ({
-      label: i18n.global.t(`common.time.${keyMapping[option.key as keyof typeof keyMapping]}`),
+      label: i18n.global.t(`common.time.${option.key}`),
       value: option.value,
     }))
   }
