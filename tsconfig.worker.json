@@ -1,16 +1,22 @@
 {
-  "extends": "./tsconfig.node.json",
+  "extends": "@tsconfig/node22/tsconfig.json",
+  "include": [
+    "vite.config.*",
+    "vitest.config.*",
+    "cypress.config.*",
+    "nightwatch.conf.*",
+    "playwright.config.*",
+    "eslint.config.*",
+    "server/**/*",
+    "shared/**/*"
+  ],
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "target": "ES2022",
     "strict": true,
     "noEmit": true,
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
-    "types": ["./server/types/worker-configuration.d.ts", "./shared/types"]
-  },
-  "include": [
-    "server",
-    "./shared/types"
-  ]
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "types": ["node"]
+  }
 }

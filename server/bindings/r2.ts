@@ -2,6 +2,7 @@ import { error } from 'itty-router'
 import { Utils } from '../utils'
 import { newResponse } from '../utils/response'
 import { t } from '../i18n'
+import { IRequest } from '../types'
 
 export const R2 = {
   /**

@@ -8,6 +8,7 @@ import schedule from './schedule'
 import { detectLanguage } from '../shared/i18n'
 import { Auth } from './utils/auth'
 import { t } from './i18n'
+import { IRequest } from './types'
 
 const router = AutoRouter({
   before: [authenticate],

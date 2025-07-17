@@ -1,26 +1,3 @@
-export interface ApiResponse<T = never> {
-  code: number
-  data?: T | null
-  msg?: string
-}
-
-/** Keyword data structure */
-export interface Keyword {
-  id?: number | null
-  word?: string
-  view_word: string
-  content: string
-  password?: string
-  expire_time: number
-  /** User-selected expiration duration (seconds), default 3 days */
-  expire_value?: number
-  create_time?: number
-  update_time?: number
-  last_view_time?: number
-  view_count?: number
-}
-
-/** Paste configuration interface */
 export interface PasteConfig {
   /** Maximum single file size (bytes) */
   maxFileSize: number
@@ -36,7 +13,6 @@ export interface PasteConfig {
   language: string
 }
 
-/** File information structure */
 export interface FileInfo {
   name: string
   size: number

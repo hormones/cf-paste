@@ -21,7 +21,7 @@ const router = createRouter({
       component: HomeView,
       beforeEnter: (to, from, next) => {
         const store = useAppStore()
-        store.updateKeywordFields({ view_word: to.params.view_word as string })
+        store.updateKeyword({ view_word: to.params.view_word as string })
         store.setViewMode(true)
         store.setMarkdownMode(MARKDOWN_MODE.PREVIEW)
         next()
@@ -41,7 +41,7 @@ const router = createRouter({
           return
         }
         // Set new word
-        store.updateKeywordFields({ word: word })
+        store.updateKeyword({ word: word })
         store.setViewMode(false)
         store.setMarkdownMode(MARKDOWN_MODE.EDIT)
         next()

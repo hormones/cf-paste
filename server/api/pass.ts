@@ -2,6 +2,7 @@ import { AutoRouter, error } from 'itty-router'
 import { newResponse } from '../utils/response'
 import { Auth } from '../utils/auth'
 import { getKeyword } from './data'
+import { IRequest } from '../types'
 
 const word_router = AutoRouter({ base: '/api/:word/pass' })
 const view_router = AutoRouter({ base: '/api/v/:view_word/pass' })
@@ -20,7 +21,7 @@ const request4Verify = async (req: IRequest, env: Env) => {
     return error(410, req.t('errors.contentNotFound'))
   }
   req.word = keyword.word
-  req.view_word = keyword.view_word
+  req.view_word = keyword.view_word!
 
   // If password exists and verification fails, return 403
   if (keyword?.password) {

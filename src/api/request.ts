@@ -5,7 +5,6 @@ import type {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios'
-import type { ApiResponse } from '@/types'
 import api from './index'
 import { ElMessage } from 'element-plus'
 import { useI18n } from '@/composables/useI18n'

@@ -1,4 +1,5 @@
 import { Constant } from '../constants'
+import { WhereCondition } from '../types'
 
 const processWhere = (where?: WhereCondition[]) => {
   if (!where || where.length === 0) {

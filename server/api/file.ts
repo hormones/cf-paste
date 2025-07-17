@@ -3,6 +3,7 @@ import { R2 } from '../bindings/r2'
 import { Constant } from '../constants'
 import { newResponse } from '../utils/response'
 import { error } from 'itty-router'
+import { IRequest } from '../types'
 
 const word_router = AutoRouter({ base: '/api/:word/file' })
 const view_router = AutoRouter({ base: '/api/v/:view_word/file' })

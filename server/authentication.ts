@@ -1,6 +1,7 @@
 import { RequestHandler, error } from 'itty-router'
 import { Auth } from './utils/auth'
 import { deleteKeyword, getKeyword } from './api/data'
+import { IRequest } from './types'
 
 export const authenticate: RequestHandler<IRequest> = async (
   req: IRequest,

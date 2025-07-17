@@ -1,5 +1,6 @@
 import { D1 } from '../bindings/d1'
 import { deleteKeyword } from '../api/data'
+import { KeywordDB } from '../types'
 
 export default async (_controller: ScheduledController, env: Env, _ctx: ExecutionContext) => {
   const startTime = Date.now()
@@ -41,7 +42,7 @@ async function cleanupExpiredData(env: Env) {
     try {
       console.log(
         `🗑️  Cleaning up word: ${keyword.word}, expired at: ${new Date(
-          keyword.expire_time
+          keyword.expire_time!
         ).toISOString()}`
       )
 

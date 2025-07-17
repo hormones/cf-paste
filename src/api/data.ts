@@ -1,5 +1,4 @@
 import { request } from './request'
-import type { Keyword } from '@/types'
 
 export const dataApi = {
   async getKeyword(): Promise<Keyword | null> {

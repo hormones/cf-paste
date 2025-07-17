@@ -3,7 +3,6 @@ import { ElMessage } from 'element-plus'
 import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
 import { EXPIRY_VALUES } from '@/constants'
-import type { Keyword } from '@/types'
 import { useI18n } from './useI18n'
 
 export function useSettings() {
@@ -46,7 +45,7 @@ export function useSettings() {
         updatedFields.view_word = response.view_word
       }
 
-      appStore.updateKeywordFields(updatedFields)
+      appStore.updateKeyword(updatedFields)
 
       appStore.setShowSettings(false)
       ElMessage.success(t('common.msg.saveSuccess'))

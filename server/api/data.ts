@@ -5,6 +5,7 @@ import { newResponse } from '../utils/response'
 import { Auth } from '../utils/auth'
 import { Constant, EXPIRY_VALUES } from '../constants'
 import { Utils } from '../utils'
+import { IRequest } from '../types'
 
 const key = 'word'
 
@@ -206,7 +207,7 @@ const getKeyword = async (req: IRequest, env: Env) => {
 /**
  * Upload clipboard content to R2
  */
-const uploadContent = async (req: IRequest, env: Env, content: string) => {
+const uploadContent = async (req: IRequest, env: Env, content: string | undefined) => {
   // Delete file in R2 if content is empty
   if (!content) {
     return R2.delete(env, { prefix: req.word, name: Constant.PASTE_FILE, language: req.language })

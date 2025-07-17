@@ -1,8 +1,6 @@
 import { ElMessage } from 'element-plus'
 import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
-import type { Keyword } from '@/types'
-import { Constant, MARKDOWN_MODE } from '../constants'
 import { useI18n } from './useI18n'
 
 export function useMain() {
@@ -48,7 +46,7 @@ export function useMain() {
         await dataApi.updateKeyword(data)
 
         // Update frontend update_time
-        appStore.updateKeywordFields({
+        appStore.updateKeyword({
           update_time: currentTime,
         })
       } else {
@@ -62,7 +60,7 @@ export function useMain() {
         const id = await dataApi.createKeyword(data)
 
         // Update frontend time fields after successful creation
-        appStore.updateKeywordFields({
+        appStore.updateKeyword({
           id,
           create_time: currentTime,
           update_time: currentTime,
@@ -95,13 +93,12 @@ export function useMain() {
 
   const copyReadOnlyLink = async () => {
     try {
-      const fullUrl = `${window.location.origin}${appStore.readOnlyUrl}`
-      await navigator.clipboard.writeText(fullUrl)
+      await navigator.clipboard.writeText(appStore.readOnlyLink)
       ElMessage.success(t('clipboard.linkCopied'))
     } catch (error) {
       // Fallback: use traditional copy method
       const textArea = document.createElement('textarea')
-      textArea.value = `${window.location.origin}${appStore.readOnlyUrl}`
+      textArea.value = appStore.readOnlyLink
       document.body.appendChild(textArea)
       textArea.select()
       document.execCommand('copy')
@@ -115,7 +112,7 @@ export function useMain() {
     try {
       const response = await dataApi.resetViewWord()
       if (response.view_word) {
-        appStore.updateKeywordFields({ view_word: response.view_word })
+        appStore.updateKeyword({ view_word: response.view_word })
         ElMessage.success(t('clipboard.linkUpdated'))
       }
     } catch (error) {
