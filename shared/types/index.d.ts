@@ -56,6 +56,11 @@ declare global {
     clearCookie4auth?: boolean
     cookie4language?: string
   } & IContext & IRequestStrict
+
+  type ExpiryOption = {
+    label: string
+    value: number
+  }
 }
 
 /// <reference types="itty-router" />

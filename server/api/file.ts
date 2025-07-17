@@ -1,6 +1,6 @@
 import { AutoRouter } from 'itty-router'
 import { R2 } from '../bindings/r2'
-import { Constant } from '../constant'
+import { Constant } from '../constants'
 import { newResponse } from '../utils/response'
 import { error } from 'itty-router'
 

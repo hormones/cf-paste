@@ -1,10 +1,9 @@
 import { defineStore } from 'pinia'
 import type { Keyword, FileInfo, UploadState, PasteConfig } from '@/types'
 import { Utils } from '@/utils'
-import { EXPIRY_VALUES, MARKDOWN_MODE } from '../../shared/constants'
+import { EXPIRY_VALUES, MARKDOWN_MODE } from '@/constants'
 
 export type Theme = 'light' | 'dark'
-export type MarkdownMode = 'edit' | 'preview' | 'fullscreen'
 
 // Default dark mode time range: 8 PM to 6 AM
 const DARK_MODE_START_HOUR = 20
@@ -19,8 +18,8 @@ export const useAppStore = defineStore('app', {
       word: undefined,
       view_word: Utils.getRandomWord(6),
       content: '',
-      expire_time: Date.now() + EXPIRY_VALUES[2].value * 1000,
-      expire_value: EXPIRY_VALUES[2].value,
+      expire_time: Date.now() + EXPIRY_VALUES[2] * 1000,
+      expire_value: EXPIRY_VALUES[2],
     } as Keyword,
     lastSavedContent: '',
     loading: false,
@@ -37,13 +36,13 @@ export const useAppStore = defineStore('app', {
     showSettings: false,
     showQRCodeDialog: false,
     password: '',
-    expiry: EXPIRY_VALUES[2].value,
+    expiry: EXPIRY_VALUES[2],
 
     // UI state
     theme: 'light' as Theme,
 
     // Markdown state
-    markdownMode: MARKDOWN_MODE.EDIT as MarkdownMode,
+    markdownMode: MARKDOWN_MODE.EDIT,
   }),
 
   getters: {
@@ -84,8 +83,6 @@ export const useAppStore = defineStore('app', {
     urlPrefix(): string {
       return this.viewMode ? `/v/${this.keyword.view_word}` : `/${this.keyword.word}`
     },
-
-    // Settings related computed properties - getExpiryOptions removed, components use useI18n().getExpiryOptions() directly
   },
 
   actions: {
@@ -97,7 +94,7 @@ export const useAppStore = defineStore('app', {
     // Clipboard state updates
     setKeyword(keyword: Keyword) {
       this.keyword = keyword
-      this.expiry = keyword?.expire_value || EXPIRY_VALUES[2].value
+      this.expiry = keyword?.expire_value || EXPIRY_VALUES[2]
       this.password = keyword?.password || ''
     },
 
@@ -118,10 +115,7 @@ export const useAppStore = defineStore('app', {
       if (usedSpace + (file?.size || 0) >= this.pasteConfig.maxTotalSize) {
         return false
       }
-      if (fileList.length >= this.pasteConfig.maxFiles) {
-        return false
-      }
-      return true
+      return fileList.length < this.pasteConfig.maxFiles;
     },
 
     updateKeywordFields(updates: Partial<Keyword>) {
@@ -144,8 +138,8 @@ export const useAppStore = defineStore('app', {
       this.keyword.id = null
       this.keyword.view_word = Utils.getRandomWord(6)
       this.keyword.content = ''
-      this.keyword.expire_time = Date.now() + EXPIRY_VALUES[2].value * 1000
-      this.keyword.expire_value = EXPIRY_VALUES[2].value
+      this.keyword.expire_time = Date.now() + EXPIRY_VALUES[2] * 1000
+      this.keyword.expire_value = EXPIRY_VALUES[2]
       this.lastSavedContent = ''
       this.fileList = []
       this.password = ''
@@ -197,7 +191,7 @@ export const useAppStore = defineStore('app', {
 
     resetSettings() {
       this.password = this.keyword?.password || ''
-      this.expiry = this.keyword?.expire_value || EXPIRY_VALUES[2].value
+      this.expiry = this.keyword?.expire_value || EXPIRY_VALUES[2]
     },
 
     // Theme management actions
@@ -239,14 +233,13 @@ export const useAppStore = defineStore('app', {
     // Markdown mode management actions
 
     // Set markdown mode directly
-    setMarkdownMode(mode: MarkdownMode) {
+    setMarkdownMode(mode: string) {
       this.markdownMode = mode
     },
 
     // Toggle between edit and preview modes
     toggleMarkdownMode() {
-      this.markdownMode =
-        this.markdownMode === MARKDOWN_MODE.EDIT ? MARKDOWN_MODE.PREVIEW : MARKDOWN_MODE.EDIT
+      this.markdownMode = this.markdownMode === MARKDOWN_MODE.EDIT ? MARKDOWN_MODE.PREVIEW : MARKDOWN_MODE.EDIT
     },
 
     // Enter fullscreen mode

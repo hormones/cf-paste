@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import { Utils } from '@/utils'
 import { useAppStore } from '@/stores'
-import { MARKDOWN_MODE } from '@/constant'
+import { MARKDOWN_MODE } from '../constants'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

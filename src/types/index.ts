@@ -1,4 +1,3 @@
-/** API response data structure */
 export interface ApiResponse<T = never> {
   code: number
   data?: T | null

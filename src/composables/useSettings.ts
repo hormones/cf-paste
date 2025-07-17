@@ -2,7 +2,7 @@ import { computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
-import { Constant, EXPIRY_VALUES } from '@/constant'
+import { EXPIRY_VALUES } from '@/constants'
 import type { Keyword } from '@/types'
 import { useI18n } from './useI18n'
 
@@ -15,7 +15,7 @@ export function useSettings() {
     const passwordValue = appStore.keyword.password || ''
     appStore.setSettingsData({
       password: passwordValue,
-      expiry: appStore?.keyword?.expire_value || EXPIRY_VALUES[2].value,
+      expiry: appStore?.keyword?.expire_value || EXPIRY_VALUES[2],
     })
     appStore.setShowSettings(true)
   }

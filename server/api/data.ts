@@ -3,7 +3,7 @@ import { D1 } from '../bindings/d1'
 import { R2 } from '../bindings/r2'
 import { newResponse } from '../utils/response'
 import { Auth } from '../utils/auth'
-import { Constant } from '../constant'
+import { Constant, EXPIRY_VALUES } from '../constants'
 import { Utils } from '../utils'
 
 const key = 'word'
@@ -105,7 +105,7 @@ const request4PatchSettings = async (req: IRequest, env: Env) => {
   const settings = (await req.json()) as { expire_value: number; password?: string | null }
 
   // 1. Validate expire_value is within allowed range
-  if (!Constant.ALLOWED_EXPIRE_VALUES.includes(settings.expire_value)) {
+  if (!EXPIRY_VALUES.includes(settings.expire_value)) {
     return error(400, req.t('errors.invalidSettings'))
   }
 

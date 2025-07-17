@@ -1,15 +1,14 @@
-import { type Locale, getDefaultLocale, getSupportedLocales } from '../locales'
+import { availableLocales, type Locale } from '../locales'
 
-export function detectLanguage(
+function detectLanguage(
   envLanguage?: string,
   acceptLanguage?: string,
   country?: string
 ): Locale {
   console.log('envLanguage|acceptLanguage|country: ', envLanguage, acceptLanguage, country)
-  const supportedLocales = getSupportedLocales()
   const defaultLocale = getDefaultLocale()
 
-  if (envLanguage && envLanguage !== 'auto' && supportedLocales.includes(envLanguage as Locale)) {
+  if (envLanguage && envLanguage !== 'auto' && isValidLocale(envLanguage)) {
     return envLanguage as Locale
   }
 
@@ -63,4 +62,12 @@ function parseAcceptLanguage(acceptLanguage: string): Locale | null {
   return null
 }
 
-export { type Locale, getDefaultLocale, getSupportedLocales }
+function isValidLocale(locale: string): locale is Locale {
+  return availableLocales.includes(locale as Locale)
+}
+
+function getDefaultLocale(): Locale {
+  return 'en'
+}
+
+export { type Locale, detectLanguage, isValidLocale, getDefaultLocale }

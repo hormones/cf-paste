@@ -33,7 +33,7 @@ import 'md-editor-v3/lib/style.css'
 import 'md-editor-v3/lib/preview.css'
 import { useAppStore } from '@/stores'
 import { useI18n } from '@/composables/useI18n'
-import { MARKDOWN_MODE } from '@/constant'
+import { MARKDOWN_MODE } from '../constants'
 
 const localContent = defineModel<string>({ required: true })
 const emit = defineEmits<{

@@ -5,7 +5,7 @@ import { useAppStore } from '@/stores'
 import type { UploadState } from '@/types'
 import { handleError } from '@/utils/errorHandler'
 import { calculateUploadStats, updateSpeedHistory } from '@/utils'
-import { Constant } from '@/constant'
+import { Constant } from '../constants'
 import { useI18n } from './useI18n'
 import { useMain } from './useMain'
 

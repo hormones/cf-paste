@@ -2,10 +2,11 @@
 import { useAppStore } from '@/stores'
 import { useSettings } from '@/composables/useSettings'
 import { useI18n } from '@/composables/useI18n'
+import { EXPIRY_OPTIONS } from '@/constants'
 
 const appStore = useAppStore()
 const { closeSettings, saveSettings } = useSettings()
-const { t, getExpiryOptions } = useI18n()
+const { t } = useI18n()
 </script>
 
 <template>
@@ -30,9 +31,9 @@ const { t, getExpiryOptions } = useI18n()
         size="large"
       >
         <el-option
-          v-for="option in getExpiryOptions()"
+          v-for="option in EXPIRY_OPTIONS"
           :key="option.value"
-          :label="option.label"
+          :label="t(option.label)"
           :value="option.value"
         />
       </el-select>

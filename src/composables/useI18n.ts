@@ -1,7 +1,6 @@
 import { createI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores'
 import { messages } from '../../shared/locales'
-import { EXPIRY_VALUES, type ExpiryOption } from '../../shared/constants'
 
 // Create i18n instance
 export const i18n = createI18n({
@@ -48,24 +47,11 @@ export function useI18n() {
     updateDocumentTitle()
   }
 
-  // Get localized expiry time options
-  const getExpiryOptions = (): ExpiryOption[] => {
-    return EXPIRY_VALUES.map((option) => ({
-      label: i18n.global.t(`common.time.${option.key}`),
-      value: option.value,
-    }))
-  }
-
   return {
     getCurrentLanguage,
     updateI18nLocale,
     initializeLanguage,
-    getExpiryOptions,
-    // Export i18n's t function
     t: i18n.global.t,
     locale: i18n.global.locale,
   }
 }
-
-// Export types
-export type { ExpiryOption } from '../../shared/constants'

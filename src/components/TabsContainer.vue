@@ -67,7 +67,7 @@ import { View, Edit, FullScreen, CopyDocument } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useAppStore } from '@/stores'
 import { useI18n } from '@/composables/useI18n'
-import { MARKDOWN_MODE } from '@/constant'
+import { MARKDOWN_MODE } from '../constants'
 
 const activeTab = ref('clipboard')
 const appStore = useAppStore()

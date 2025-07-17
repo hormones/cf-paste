@@ -2,7 +2,7 @@ import { ElMessage } from 'element-plus'
 import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
 import type { Keyword } from '@/types'
-import { Constant, MARKDOWN_MODE } from '@/constant'
+import { Constant, MARKDOWN_MODE } from '../constants'
 import { useI18n } from './useI18n'
 
 export function useMain() {
