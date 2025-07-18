@@ -116,7 +116,6 @@
     "timeout": "请求超时，请重试",
     "serviceUnavailable": "服务暂时不可用，请稍后重试",
     "accessDenied": "访问被拒绝，请检查权限",
-    "authRequired": "请先登录",
     "sessionExpired": "登录已过期，请重新登录",
     "incorrectPassword": "密码错误，请重新输入",
     "fileNotFound": "文件不存在或已被删除",

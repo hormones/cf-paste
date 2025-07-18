@@ -4,10 +4,12 @@ import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
 import { EXPIRY_VALUES } from '@/constants'
 import { useI18n } from './useI18n'
+import { useMain } from '@/composables/useMain'
 
 export function useSettings() {
   const appStore = useAppStore()
   const { t } = useI18n()
+  const { saveKeyword } = useMain()
 
   const openSettings = () => {
     // Read current settings from keyword - show ****** if password exists, empty string if none
@@ -30,6 +32,15 @@ export function useSettings() {
       const settings = {
         expire_value: appStore.expiry,
         password: appStore.password || undefined,
+      }
+
+      if (!appStore.keyword.id) {
+        try {
+          await saveKeyword(true) // silent 模式
+        } catch (e) {
+          ElMessage.error(t('common.msg.saveFailed'))
+          return
+        }
       }
 
       const response = await dataApi.saveSettings(settings)

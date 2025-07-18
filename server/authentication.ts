@@ -54,7 +54,7 @@ export const authenticate: RequestHandler<IRequest> = async (
     }
 
     if (!c_authorization) {
-      return error(401, req.t('errors.authRequired'))
+      return error(401, req.t('auth.enterPassword'))
     }
 
     // Verify authorization

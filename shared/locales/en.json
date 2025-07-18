@@ -116,7 +116,6 @@
     "timeout": "Request timeout, please try again",
     "serviceUnavailable": "Service temporarily unavailable, please try again later",
     "accessDenied": "Access denied, please check permissions",
-    "authRequired": "Please log in first",
     "sessionExpired": "Session expired, please log in again",
     "incorrectPassword": "Incorrect password, please try again",
     "fileNotFound": "File not found or deleted",
