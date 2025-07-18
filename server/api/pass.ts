@@ -1,56 +1,61 @@
-import { AutoRouter, error } from 'itty-router'
-import { newResponse } from '../utils/response'
+import { IRequest, IContext, ApiResponse } from '../types'
 import { Auth } from '../utils/auth'
-import { getKeyword } from './data'
-import { IRequest } from '../types'
 
-const word_router = AutoRouter({ base: '/api/:word/pass' })
-const view_router = AutoRouter({ base: '/api/v/:view_word/pass' })
-
-/**
- * Verify password
- */
-word_router.post('/verify', async (req: IRequest, env: Env) => request4Verify(req, env))
-view_router.post('/verify', async (req: IRequest, env: Env) => request4Verify(req, env))
-const request4Verify = async (req: IRequest, env: Env) => {
-  const { password } = (await req.json()) as { password: string }
-  const keyword = await getKeyword(req, env)
+export async function handlePasswordVerify(req: IRequest, ctx: IContext): Promise<ApiResponse> {
+  const { password } = await req.json()
+  const keyword = await getKeyword(req, ctx)
 
   if (!keyword) {
     console.error(`cannot find keyword by ${req.word} | ${req.view_word}`)
-    return error(410, req.t('errors.contentNotFound'))
+    return {
+      code: 410,
+      msg: req.t('errors.contentNotFound'),
+      status: 410
+    }
   }
   req.word = keyword.word
   req.view_word = keyword.view_word!
 
-  // If password exists and verification fails, return 403
   if (keyword?.password) {
-    const isValid = await Auth.verifyPassword(env, password, keyword.password, keyword.word)
+    const isValid = await Auth.verifyPassword(ctx.config.AUTH_KEY, password, keyword.password, keyword.word)
     if (!isValid) {
-      return error(403, req.t('errors.incorrectPassword'))
+      return {
+        code: 403,
+        msg: req.t('errors.incorrectPassword'),
+        status: 403
+      }
     }
   }
 
-  // If password doesn't exist or verification succeeds, set cookie and return 200
-  req.cookie4auth = await Auth.encrypt(env, `${keyword!.word!}:${Date.now()}`)
-  return newResponse({})
-}
+  const authToken = await Auth.encrypt(ctx.config.AUTH_KEY, `${keyword!.word!}:${Date.now()}`)
 
-/**
- * Get PASTE configuration
- */
-word_router.get('/config', async (req: IRequest, env: Env) => request4Config(req, env))
-view_router.get('/config', async (req: IRequest, env: Env) => request4Config(req, env))
-const request4Config = async (req: IRequest, env: Env) => {
-  const config = {
-    maxFileSize: parseInt(env.MAX_FILE_SIZE || '300') * 1024 * 1024, // 300MB
-    maxTotalSize: parseInt(env.MAX_TOTAL_SIZE || '300') * 1024 * 1024, // 300MB
-    maxFiles: parseInt(env.MAX_FILES || '10'), // 10 files
-    chunkSize: parseInt(env.CHUNK_SIZE || '50') * 1024 * 1024, // 50MB chunks
-    chunkThreshold: parseInt(env.CHUNK_THRESHOLD || '100') * 1024 * 1024, // 100MB threshold
-    language: req.language, // Use language from request context
+  return {
+    code: 0,
+    data: {},
+    headers: { 'Set-Cookie': `auth=${authToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400` }
   }
-  return newResponse({ data: config })
 }
 
-export { word_router, view_router }
+export async function handleGetConfig(req: IRequest, ctx: IContext): Promise<ApiResponse> {
+  const config = {
+    maxFileSize: ctx.config.MAX_FILE_SIZE * 1024 * 1024,
+    maxTotalSize: ctx.config.MAX_TOTAL_SIZE * 1024 * 1024,
+    maxFiles: ctx.config.MAX_FILES,
+    chunkSize: ctx.config.CHUNK_SIZE * 1024 * 1024,
+    chunkThreshold: ctx.config.CHUNK_THRESHOLD * 1024 * 1024,
+    language: req.language
+  }
+
+  return {
+    code: 0,
+    data: config
+  }
+}
+
+async function getKeyword(req: IRequest, ctx: IContext) {
+  if (req.edit) {
+    return await ctx.db.first('keyword', [{ key: 'word', value: req.word }])
+  } else {
+    return await ctx.db.first('keyword', [{ key: 'view_word', value: req.view_word }])
+  }
+}

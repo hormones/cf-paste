@@ -51,6 +51,6 @@ export const dataApi = {
 
   // Reset read-only link
   resetViewWord() {
-    return request.patch<{ view_word: string }>('/data/view-word')
+    return request.patch<{ view_word: string }>('/data/view_word')
   },
 }

@@ -1,144 +1,154 @@
-import { AutoRouter } from 'itty-router'
-import { R2 } from '../bindings/r2'
-import { Constant } from '../constants'
-import { newResponse } from '../utils/response'
-import { error } from 'itty-router'
-import { IRequest } from '../types'
+import { IRequest, IContext, ApiResponse } from '../types'
+import { Constant } from '../../shared/constants'
+import { Utils } from '../utils'
 
-const word_router = AutoRouter({ base: '/api/:word/file' })
-const view_router = AutoRouter({ base: '/api/v/:view_word/file' })
-
-/**
- * List all files under specified prefix
- */
-word_router.get('/list', async (req: IRequest, env) => request4List(req, env))
-view_router.get('/list', async (req: IRequest, env) => request4List(req, env))
-const request4List = async (req: IRequest, env: Env) => {
+export async function handleFileList(req: IRequest, ctx: IContext): Promise<ApiResponse> {
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
-  return R2.list(env, { prefix, language: req.language })
+  const result = await ctx.storage.list({ prefix })
+
+  return {
+    code: 0,
+    data: result.files
+  }
 }
 
-/**
- * Download specified file
- */
-word_router.get('/download', async (req: IRequest, env: Env) => request4Download(req, env))
-view_router.get('/download', async (req: IRequest, env: Env) => request4Download(req, env))
-const request4Download = async (req: IRequest, env: Env) => {
-  const url = new URL(req.url)
+export async function handleFileDownload(req: IRequest, ctx: IContext): Promise<ApiResponse> {
+  const url = new URL(req.path)
   const fileName = url.searchParams.get('name')
   if (!fileName) {
-    return error(400, req.t('errors.invalidRequest'))
+    return {
+      code: 400,
+      msg: req.t('errors.invalidRequest'),
+      status: 400
+    }
   }
 
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
+  const range = req.getHeader('range')
 
-  // Call R2.download with resumable download support
-  return R2.download(req, env, { prefix, name: fileName })
+  let downloadOptions: any = { prefix, name: fileName }
+
+  if (range) {
+    // For range requests, we need to get file metadata first
+    // This will be handled by the storage adapter
+    const rangeInfo = Utils.parseRange(range, 0) // Size will be determined by storage adapter
+    downloadOptions.range = rangeInfo
+  }
+
+  const result = await ctx.storage.download(downloadOptions)
+
+  return {
+    code: 0,
+    data: result,
+    status: result.status,
+    headers: Object.fromEntries(result.headers.entries())
+  }
 }
 
-/**
- * Upload file
- */
-word_router.post('', async (req: IRequest, env) => request4Upload(req, env))
-const request4Upload = async (req: IRequest, env: Env) => {
-  const url = new URL(req.url)
-  const name = url.searchParams.get('name')
+export async function handleFileUpload(req: IRequest, ctx: IContext): Promise<ApiResponse> {
+  const name = req.params?.name
   if (!name) {
-    return error(400, req.t('errors.invalidRequest'))
+    return {
+      code: 400,
+      msg: req.t('errors.invalidRequest'),
+      status: 400
+    }
   }
-  // Filename from URL parameter is encoded, needs manual decoding
+
   const decodedName = decodeURIComponent(name)
-  const length = req.headers.get('content-length')
+  const length = req.getHeader('content-length')
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
-  return R2.upload(env, {
+
+  const result = await ctx.storage.upload({
     prefix,
     name: decodedName,
     length: Number(length),
-    stream: req.body as unknown as ReadableStream<Uint8Array>,
-    language: req.language,
+    stream: req.request.body as ReadableStream<Uint8Array>
   })
-}
 
-/**
- * Delete all files (one-click delete)
- */
-word_router.delete('/all', async (req: IRequest, env) => request4DeleteAll(req, env))
-const request4DeleteAll = async (req: IRequest, env: Env) => {
-  try {
-    const prefix = `${req.word}/${Constant.FILE_FOLDER}`
-
-    // Use R2's deleteFolder method to batch delete all files
-    const deletedCount = await R2.deleteFolder(env, { prefix })
-
-    return newResponse({
-      data: {
-        deletedCount,
-        message: `Successfully deleted ${deletedCount} files`,
-      },
-    })
-  } catch (err) {
-    console.error('Batch file deletion failed', err)
-    return error(500, req.t('errors.fileDeleteError'))
+  return {
+    code: 0,
+    data: result
   }
 }
 
-/**
- * Delete specified file
- */
-word_router.delete('', async (req: IRequest, env) => request4Delete(req, env))
-const request4Delete = async (req: IRequest, env: Env) => {
-  const url = new URL(req.url)
+export async function handleFileDelete(req: IRequest, ctx: IContext): Promise<ApiResponse> {
+  const url = new URL(req.path)
   const name = url.searchParams.get('name')
   if (!name) {
-    return error(400, req.t('errors.invalidRequest'))
+    return {
+      code: 400,
+      msg: req.t('errors.invalidRequest'),
+      status: 400
+    }
   }
-  // Filename from URL parameter is encoded, needs manual decoding
+
   const decodedName = decodeURIComponent(name)
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
-  console.log('delete file: ', decodedName, prefix)
-  return R2.delete(env, { prefix, name: decodedName, language: req.language })
+
+  const result = await ctx.storage.delete({ prefix, name: decodedName })
+
+  return {
+    code: 0,
+    data: result
+  }
 }
 
-// === Multipart upload related APIs ===
-
-/**
- * Initialize multipart upload
- */
-word_router.post('/multipart/init', async (req: IRequest, env: Env) =>
-  request4MultipartInit(req, env)
-)
-const request4MultipartInit = async (req: IRequest, env: Env) => {
+export async function handleFileDeleteAll(req: IRequest, ctx: IContext): Promise<ApiResponse> {
   try {
-    const { filename, fileSize, chunkSize } = (await req.json()) as {
-      filename: string
-      fileSize: number
-      chunkSize: number
-    }
+    const prefix = `${req.word}/${Constant.FILE_FOLDER}`
+    const result = await ctx.storage.deleteFolder({ prefix })
 
-    // Parameter validation
+    return {
+      code: 0,
+      data: {
+        deletedCount: result.deletedCount,
+        message: `Successfully deleted ${result.deletedCount} files`
+      }
+    }
+  } catch (err) {
+    console.error('Batch file deletion failed', err)
+    return {
+      code: 500,
+      msg: req.t('errors.fileDeleteError'),
+      status: 500
+    }
+  }
+}
+
+export async function handleMultipartInit(req: IRequest, ctx: IContext): Promise<ApiResponse> {
+  try {
+    const { filename, fileSize, chunkSize } = await req.json()
+
     if (!filename || !fileSize || !chunkSize) {
-      return error(400, req.t('errors.invalidRequest'))
+      return {
+        code: 400,
+        msg: req.t('errors.invalidRequest'),
+        status: 400
+      }
     }
 
-    // File size validation
-    const maxFileSize = parseInt(env.MAX_FILE_SIZE || '300') * 1024 * 1024
+    const maxFileSize = ctx.config.MAX_FILE_SIZE * 1024 * 1024
     if (fileSize > maxFileSize) {
-      return error(400, req.t('errors.fileTooLarge'))
+      return {
+        code: 400,
+        msg: req.t('errors.fileTooLarge'),
+        status: 400
+      }
     }
 
-    // Use original filename directly
     const uniqueFilename = filename
     const prefix = `${req.word}/${Constant.FILE_FOLDER}`
 
-    // Initialize R2 multipart upload
-    const result = await R2.createMultipartUpload(env, {
+    const result = await ctx.storage.createMultipartUpload({
       prefix,
-      name: uniqueFilename,
+      name: uniqueFilename
     })
 
     const totalChunks = Math.ceil(fileSize / chunkSize)
 
-    return newResponse({
+    return {
+      code: 0,
       data: {
         uploadId: result.uploadId,
         fileKey: result.key,
@@ -146,149 +156,164 @@ const request4MultipartInit = async (req: IRequest, env: Env) => {
         uniqueFilename,
         totalChunks,
         chunkSize,
-        fileSize,
-      },
-    })
+        fileSize
+      }
+    }
   } catch (err) {
     console.error('Failed to initialize multipart upload', err)
-    return error(500, req.t('errors.fileUploadError'))
+    return {
+      code: 500,
+      msg: req.t('errors.fileUploadError'),
+      status: 500
+    }
   }
 }
 
-/**
- * Cancel multipart upload
- */
-word_router.delete('/multipart/cancel/:uploadId', async (req: IRequest, env: Env) =>
-  request4MultipartCancel(req, env)
-)
-const request4MultipartCancel = async (req: IRequest, env: Env) => {
+export async function handleMultipartCancel(req: IRequest, ctx: IContext): Promise<ApiResponse> {
   try {
-    const { uploadId } = req.params
-    const { fileKey } = await req.json<{ fileKey: string }>()
+    const { uploadId } = req.params || {}
+    const { fileKey } = await req.json()
 
     if (!uploadId || !fileKey) {
-      return error(400, req.t('errors.invalidRequest'))
-    }
-
-    // Call R2's abortMultipartUpload
-    await R2.abortMultipartUpload(env, { uploadId, key: fileKey })
-
-    return newResponse({
-      data: { message: 'Upload cancelled' },
-    })
-  } catch (err) {
-    console.error('Failed to cancel multipart upload', err)
-    return error(500, req.t('errors.fileUploadError'))
-  }
-}
-
-/**
- * Upload single chunk
- */
-word_router.post('/multipart/chunk/:uploadId/:chunkIndex', async (req: IRequest, env: Env) =>
-  request4MultipartChunk(req, env)
-)
-const request4MultipartChunk = async (req: IRequest, env: Env) => {
-  try {
-    const { uploadId, chunkIndex } = req.params
-    const partNumber = parseInt(chunkIndex) + 1 // R2 partNumber starts from 1
-
-    if (!uploadId || !partNumber || partNumber < 1) {
-      return error(400, req.t('errors.invalidRequest'))
-    }
-
-    // Get fileKey from request header and decode
-    const encodedFileKey = req.headers.get('X-File-Key')
-    if (!encodedFileKey) {
-      return error(400, req.t('errors.fileDataError'))
-    }
-    const fileKey = decodeURIComponent(encodedFileKey)
-
-    // Get chunk data
-    const chunkData = await req.arrayBuffer()
-    if (!chunkData || chunkData.byteLength === 0) {
-      return error(400, req.t('errors.fileDataError'))
-    }
-
-    // Upload chunk to R2
-    const result = await R2.uploadPart(env, {
-      uploadId,
-      key: fileKey,
-      partNumber,
-      data: chunkData,
-    })
-
-    return newResponse({
-      data: {
-        partNumber: result.partNumber,
-        etag: result.etag,
-        size: chunkData.byteLength,
-      },
-    })
-  } catch (err) {
-    console.error('Chunk upload failed', err)
-    return error(500, req.t('errors.fileUploadError'))
-  }
-}
-
-/**
- * Complete multipart upload
- */
-word_router.post('/multipart/complete/:uploadId', async (req: IRequest, env: Env) =>
-  request4MultipartComplete(req, env)
-)
-const request4MultipartComplete = async (req: IRequest, env: Env) => {
-  try {
-    const { uploadId } = req.params
-    const { fileKey, parts } = (await req.json()) as {
-      fileKey: string
-      parts: Array<{ partNumber: number; etag: string }>
-    }
-
-    if (!uploadId || !fileKey || !parts || !Array.isArray(parts)) {
-      return error(400, req.t('errors.invalidRequest'))
-    }
-
-    // Validate chunk integrity
-    const sortedParts = parts
-      .map((part) => ({
-        partNumber: part.partNumber,
-        etag: part.etag,
-      }))
-      .sort((a, b) => a.partNumber - b.partNumber)
-
-    // Check chunk sequence continuity
-    for (let i = 0; i < sortedParts.length; i++) {
-      if (sortedParts[i].partNumber !== i + 1) {
-        return error(400, req.t('errors.fileUploadError'))
+      return {
+        code: 400,
+        msg: req.t('errors.invalidRequest'),
+        status: 400
       }
     }
 
-    // Complete R2 multipart upload
-    const result = await R2.completeMultipartUpload(env, { uploadId, key: fileKey, parts })
+    await ctx.storage.abortMultipartUpload({ uploadId, key: fileKey })
 
-    // Extract filename info from fileKey
+    return {
+      code: 0,
+      data: { message: 'Upload cancelled' }
+    }
+  } catch (err) {
+    console.error('Failed to cancel multipart upload', err)
+    return {
+      code: 500,
+      msg: req.t('errors.fileUploadError'),
+      status: 500
+    }
+  }
+}
+
+export async function handleMultipartChunk(req: IRequest, ctx: IContext): Promise<ApiResponse> {
+  try {
+    const { uploadId, chunkIndex } = req.params || {}
+    const partNumber = parseInt(chunkIndex) + 1
+
+    if (!uploadId || !partNumber || partNumber < 1) {
+      return {
+        code: 400,
+        msg: req.t('errors.invalidRequest'),
+        status: 400
+      }
+    }
+
+    const encodedFileKey = req.getHeader('X-File-Key')
+    if (!encodedFileKey) {
+      return {
+        code: 400,
+        msg: req.t('errors.fileDataError'),
+        status: 400
+      }
+    }
+    const fileKey = decodeURIComponent(encodedFileKey)
+
+    const chunkData = await req.request.arrayBuffer()
+    if (!chunkData || chunkData.byteLength === 0) {
+      return {
+        code: 400,
+        msg: req.t('errors.fileDataError'),
+        status: 400
+      }
+    }
+
+    const result = await ctx.storage.uploadPart({
+      uploadId,
+      key: fileKey,
+      partNumber,
+      data: chunkData
+    })
+
+    return {
+      code: 0,
+      data: {
+        partNumber: result.partNumber,
+        etag: result.etag,
+        size: chunkData.byteLength
+      }
+    }
+  } catch (err) {
+    console.error('Chunk upload failed', err)
+    return {
+      code: 500,
+      msg: req.t('errors.fileUploadError'),
+      status: 500
+    }
+  }
+}
+
+export async function handleMultipartComplete(req: IRequest, ctx: IContext): Promise<ApiResponse> {
+  try {
+    const { uploadId } = req.params || {}
+    const { fileKey, parts } = await req.json()
+
+    if (!uploadId || !fileKey || !parts || !Array.isArray(parts)) {
+      return {
+        code: 400,
+        msg: req.t('errors.invalidRequest'),
+        status: 400
+      }
+    }
+
+    const sortedParts = parts
+      .map((part) => ({
+        partNumber: part.partNumber,
+        etag: part.etag
+      }))
+      .sort((a, b) => a.partNumber - b.partNumber)
+
+    for (let i = 0; i < sortedParts.length; i++) {
+      if (sortedParts[i].partNumber !== i + 1) {
+        return {
+          code: 400,
+          msg: req.t('errors.fileUploadError'),
+          status: 400
+        }
+      }
+    }
+
+    const result = await ctx.storage.completeMultipartUpload({
+      uploadId,
+      key: fileKey,
+      parts
+    })
+
     const pathParts = fileKey.split('/')
     const uniqueFilename = pathParts[pathParts.length - 1]
     const originalFilename = uniqueFilename.substring(
       uniqueFilename.indexOf('-', uniqueFilename.indexOf('-') + 1) + 1
     )
 
-    return newResponse({
+    return {
+      code: 0,
       data: {
         fileKey,
         originalFilename,
         uniqueFilename,
         etag: result.etag,
-        size: result.size,
         uploadId,
-        message: 'File upload completed',
-      },
-    })
+        message: 'File upload completed'
+      }
+    }
   } catch (err) {
     console.error('Failed to complete multipart upload', err)
-    return error(500, req.t('errors.fileUploadError'))
+    return {
+      code: 500,
+      msg: req.t('errors.fileUploadError'),
+      status: 500
+    }
   }
 }
-
-export { word_router, view_router }

@@ -24,3 +24,13 @@ export const Constant = {
   FILE_FOLDER: 'files',
   TEMPLATE_FOLDER: 'templates',
 }
+
+
+export const DEFAULT_CONFIG = {
+  MAX_FILE_SIZE: 300,
+  MAX_TOTAL_SIZE: 300,
+  MAX_FILES: 10,
+  CHUNK_SIZE: 1024 * 1024,
+  CHUNK_THRESHOLD: 1024 * 1024,
+  LANGUAGE: 'auto',
+}

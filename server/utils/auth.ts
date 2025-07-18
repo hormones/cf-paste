@@ -1,61 +1,20 @@
 import CryptoJS from 'crypto-js'
 import { argon2id } from '@noble/hashes/argon2'
 
-interface CookieOptions {
-  path: string
-  httpOnly: boolean
-  secure: boolean
-  sameSite: 'Strict' | 'Lax' | 'None'
-  'max-age'?: number
-}
-
-const cookieOptions: CookieOptions = {
-  path: '/',
-  httpOnly: true,
-  secure: false,
-  sameSite: 'Lax', // Use Lax to allow GET requests like download links to carry cookies
-  'max-age': 1 * 24 * 60 * 60, // 1 day expiry
-}
-
 export const Auth = {
-  getCookie(req: Request, name: string): string | null {
-    const cookies = req.headers.get('Cookie')
-    if (!cookies) return null
-    const cookie = cookies.split(';').find((c) => c.trim().startsWith(`${name}=`))
-    return cookie ? cookie.split('=')[1] : null
+  encrypt: async (key: string, data: string) => {
+    return CryptoJS.AES.encrypt(data, key).toString()
   },
-  setCookie(res: Response, name: string, value: string, options?: Partial<CookieOptions>) {
-    let cookie = `${name}=${value}`
-    const finalOptions = { ...cookieOptions, ...options }
-    if (finalOptions) {
-      for (const [key, val] of Object.entries(finalOptions)) {
-        cookie += `; ${key}=${val}`
-      }
-    }
-
-    res.headers.append('Set-Cookie', cookie)
-  },
-  clearCookie(response: Response, ...names: string[]) {
-    names.forEach((name) => {
-      response.headers.append(
-        'Set-Cookie',
-        `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax`
-      )
-    })
-  },
-  encrypt: async (env: Env, data: string) => {
-    return CryptoJS.AES.encrypt(data, env.AUTH_KEY).toString()
-  },
-  decrypt: async (env: Env, data: string) => {
-    return CryptoJS.AES.decrypt(data, env.AUTH_KEY).toString(CryptoJS.enc.Utf8)
+  decrypt: async (key: string, data: string) => {
+    return CryptoJS.AES.decrypt(data, key).toString(CryptoJS.enc.Utf8)
   },
   /**
    * Hash password using Argon2id algorithm
    */
-  hashPassword: async (env: Env,password: string, word: string): Promise<string> => {
+  hashPassword: async (key: string, word: string, password: string): Promise<string> => {
     const startTime = Date.now()
-    // Build salt: AUTH_KEY + word to ensure uniqueness and security
-    const saltInput = `${env.AUTH_KEY}:${word}`
+    // Build salt: key + word to ensure uniqueness and security
+    const saltInput = `${key}:${word}`
     const salt = new TextEncoder().encode(saltInput)
 
     const passwordBytes = new TextEncoder().encode(password)
@@ -75,13 +34,13 @@ export const Auth = {
    * Verify password against hashed password
    */
   verifyPassword: async (
-    env: Env,
+    key: string,
+    word: string,
     password: string,
     hashedPassword: string,
-    word: string
   ): Promise<boolean> => {
     try {
-      const computedHash = await Auth.hashPassword(env, password, word)
+      const computedHash = await Auth.hashPassword(key, word, password)
       return computedHash === hashedPassword
     } catch (error) {
       console.error('Password verification failed:', error)

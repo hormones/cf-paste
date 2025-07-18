@@ -10,15 +10,20 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import ElementPlus from 'unplugin-element-plus/vite'
+
 console.log('NODE_ENV', process.env.NODE_ENV)
+console.log('PLATFORM', process.env.PLATFORM)
+
 const isDev = process.env.NODE_ENV === 'development'
+const isCloudflare = process.env.PLATFORM === 'cloudflare'
 
 // https://vite.dev/config/
 export default defineConfig({
 	plugins: [
 		vue(),
 		isDev && vueDevTools(),
-		cloudflare(),
+		// Only include Cloudflare plugin for Cloudflare builds
+		isCloudflare && cloudflare(),
 		AutoImport({
 			resolvers: [ElementPlusResolver()],
 		}),
@@ -32,7 +37,7 @@ export default defineConfig({
 				}),
 			],
 		}),
-	],
+	].filter(Boolean),
 	css: {
 		preprocessorOptions: {
 			scss: {
@@ -42,6 +47,10 @@ export default defineConfig({
 	},
 	build: {
 		sourcemap: isDev,
+		// Platform-specific build optimizations
+		rollupOptions: {
+			external: isCloudflare ? [] : ['better-sqlite3'],
+		},
 	},
 	resolve: {
 		alias: {
