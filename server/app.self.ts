@@ -13,14 +13,32 @@ registerRoutes()
 
 const app = express()
 
+let maxFileSize = process.env.MAX_UPLOAD_SIZE || '100mb'
+if (process.env.MAX_FILE_SIZE) {
+  maxFileSize = `${process.env.MAX_FILE_SIZE}mb`
+}
+
 // Configure middleware based on content type
 app.use((req, res, next) => {
   const contentType = req.headers['content-type'] || ''
-  // For file uploads, use raw body parser
+
+  // Debug logging for chunk uploads
+  if (req.path.includes('multipart/chunk')) {
+    console.log('Chunk upload - Content-Type:', contentType, 'Path:', req.path)
+    console.log('Skipping body parsing for streaming')
+    // For chunk uploads, completely skip body parsing to enable true streaming
+    // Mark the request to indicate we want streaming
+    ;(req as any)._streamingMode = true
+    next()
+    return
+  }
+
+  // For other file uploads, use raw body parser with increased limits
   if (contentType.includes('application/octet-stream')) {
-    express.raw()(req, res, next)
+    // Configurable limit for file uploads
+    express.raw({ limit: maxFileSize })(req, res, next)
   } else if (req.path.startsWith('/api/')) {
-    express.json()(req, res, next)
+    express.json({ limit: '10mb' })(req, res, next)
   } else {
     // For other requests, continue without parsing body
     next()
@@ -33,7 +51,7 @@ app.use(express.static(path.join(__dirname, '../dist')))
 // API routes - only for /api/* paths
 app.all('/api/:path(*)', async (req: express.Request, res: express.Response) => {
   try {
-    console.log('route request', req.path)
+    console.log('route request', req.method, req.path)
     const request = createRequest(req)
     const context = createContext(process.env) as IContext
 

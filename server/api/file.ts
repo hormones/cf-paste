@@ -8,25 +8,24 @@ export async function handleFileList(req: IRequest, ctx: IContext): Promise<ApiR
 
   return {
     code: 0,
-    data: result.files
+    data: result.files,
   }
 }
 
 export async function handleFileDownload(req: IRequest, ctx: IContext): Promise<ApiResponse> {
-  const url = new URL(req.path)
-  const fileName = url.searchParams.get('name')
-  if (!fileName) {
+  const { name } = req.params || {}
+  if (!name) {
     return {
       code: 400,
       msg: req.t('errors.invalidRequest'),
-      status: 400
+      status: 400,
     }
   }
 
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
   const range = req.getHeader('range')
 
-  let downloadOptions: any = { prefix, name: fileName }
+  let downloadOptions: any = { prefix, name }
 
   if (range) {
     // For range requests, we need to get file metadata first
@@ -41,7 +40,7 @@ export async function handleFileDownload(req: IRequest, ctx: IContext): Promise<
     code: 0,
     data: result,
     status: result.status,
-    headers: Object.fromEntries(result.headers.entries())
+    headers: Object.fromEntries(result.headers.entries()),
   }
 }
 
@@ -51,7 +50,7 @@ export async function handleFileUpload(req: IRequest, ctx: IContext): Promise<Ap
     return {
       code: 400,
       msg: req.t('errors.invalidRequest'),
-      status: 400
+      status: 400,
     }
   }
 
@@ -63,23 +62,22 @@ export async function handleFileUpload(req: IRequest, ctx: IContext): Promise<Ap
     prefix,
     name: decodedName,
     length: Number(length),
-    stream: req.request.body as ReadableStream<Uint8Array>
+    stream: req.request.body as ReadableStream<Uint8Array>,
   })
 
   return {
     code: 0,
-    data: result
+    data: result,
   }
 }
 
 export async function handleFileDelete(req: IRequest, ctx: IContext): Promise<ApiResponse> {
-  const url = new URL(req.path)
-  const name = url.searchParams.get('name')
+  const { name } = req.params || {}
   if (!name) {
     return {
       code: 400,
       msg: req.t('errors.invalidRequest'),
-      status: 400
+      status: 400,
     }
   }
 
@@ -90,7 +88,7 @@ export async function handleFileDelete(req: IRequest, ctx: IContext): Promise<Ap
 
   return {
     code: 0,
-    data: result
+    data: result,
   }
 }
 
@@ -103,15 +101,15 @@ export async function handleFileDeleteAll(req: IRequest, ctx: IContext): Promise
       code: 0,
       data: {
         deletedCount: result.deletedCount,
-        message: `Successfully deleted ${result.deletedCount} files`
-      }
+        message: `Successfully deleted ${result.deletedCount} files`,
+      },
     }
   } catch (err) {
     console.error('Batch file deletion failed', err)
     return {
       code: 500,
       msg: req.t('errors.fileDeleteError'),
-      status: 500
+      status: 500,
     }
   }
 }
@@ -124,7 +122,7 @@ export async function handleMultipartInit(req: IRequest, ctx: IContext): Promise
       return {
         code: 400,
         msg: req.t('errors.invalidRequest'),
-        status: 400
+        status: 400,
       }
     }
 
@@ -133,7 +131,7 @@ export async function handleMultipartInit(req: IRequest, ctx: IContext): Promise
       return {
         code: 400,
         msg: req.t('errors.fileTooLarge'),
-        status: 400
+        status: 400,
       }
     }
 
@@ -142,7 +140,7 @@ export async function handleMultipartInit(req: IRequest, ctx: IContext): Promise
 
     const result = await ctx.storage.createMultipartUpload({
       prefix,
-      name: uniqueFilename
+      name: uniqueFilename,
     })
 
     const totalChunks = Math.ceil(fileSize / chunkSize)
@@ -156,29 +154,29 @@ export async function handleMultipartInit(req: IRequest, ctx: IContext): Promise
         uniqueFilename,
         totalChunks,
         chunkSize,
-        fileSize
-      }
+        fileSize,
+      },
     }
   } catch (err) {
     console.error('Failed to initialize multipart upload', err)
     return {
       code: 500,
       msg: req.t('errors.fileUploadError'),
-      status: 500
+      status: 500,
     }
   }
 }
 
 export async function handleMultipartCancel(req: IRequest, ctx: IContext): Promise<ApiResponse> {
   try {
-    const { uploadId } = req.params || {}
+    const { uploadId } = req.variables || {}
     const { fileKey } = await req.json()
 
     if (!uploadId || !fileKey) {
       return {
         code: 400,
         msg: req.t('errors.invalidRequest'),
-        status: 400
+        status: 400,
       }
     }
 
@@ -186,28 +184,28 @@ export async function handleMultipartCancel(req: IRequest, ctx: IContext): Promi
 
     return {
       code: 0,
-      data: { message: 'Upload cancelled' }
+      data: { message: 'Upload cancelled' },
     }
   } catch (err) {
     console.error('Failed to cancel multipart upload', err)
     return {
       code: 500,
       msg: req.t('errors.fileUploadError'),
-      status: 500
+      status: 500,
     }
   }
 }
 
 export async function handleMultipartChunk(req: IRequest, ctx: IContext): Promise<ApiResponse> {
   try {
-    const { uploadId, chunkIndex } = req.params || {}
+    const { uploadId, chunkIndex } = req.variables || {}
     const partNumber = parseInt(chunkIndex) + 1
 
     if (!uploadId || !partNumber || partNumber < 1) {
       return {
         code: 400,
         msg: req.t('errors.invalidRequest'),
-        status: 400
+        status: 400,
       }
     }
 
@@ -216,17 +214,60 @@ export async function handleMultipartChunk(req: IRequest, ctx: IContext): Promis
       return {
         code: 400,
         msg: req.t('errors.fileDataError'),
-        status: 400
+        status: 400,
       }
     }
     const fileKey = decodeURIComponent(encodedFileKey)
 
-    const chunkData = await req.request.arrayBuffer()
-    if (!chunkData || chunkData.byteLength === 0) {
+    // Use true streaming approach - directly pass the request stream
+    const startTime = Date.now()
+    const memUsageBefore = process.memoryUsage()
+    console.log('Using streaming approach for chunk upload')
+    console.log('Content-Length:', req.getHeader('content-length'))
+    console.log('Request body parsed:', req.request.body !== undefined)
+    console.log('Memory before:', Math.round(memUsageBefore.heapUsed / 1024 / 1024), 'MB')
+
+    const contentLength = parseInt(req.getHeader('content-length') || '0')
+    if (contentLength === 0) {
       return {
         code: 400,
         msg: req.t('errors.fileDataError'),
-        status: 400
+        status: 400,
+      }
+    }
+
+    let chunkData: ArrayBuffer | ReadableStream | NodeJS.ReadableStream
+
+    // Check if we're in streaming mode (set by middleware)
+    const isStreamingMode = (req.request as any)._streamingMode === true
+
+    if (isStreamingMode && req.request.body === undefined) {
+      // True streaming: use the raw request stream
+      console.log('✅ Using raw request stream for true streaming')
+      chunkData = req.request as NodeJS.ReadableStream
+    } else {
+      // Body was already parsed or we're on a different platform
+      console.log('⚠️  Body was already parsed, falling back to buffer mode')
+
+      if (req.request.body instanceof ArrayBuffer) {
+        console.log('✅ Body type : ArrayBuffer')
+        chunkData = req.request.body
+      } else if (Buffer.isBuffer(req.request.body)) {
+        console.log('✅ Body type: Buffer')
+        chunkData = req.request.body.buffer.slice(
+          req.request.body.byteOffset,
+          req.request.body.byteOffset + req.request.body.byteLength
+        )
+      } else if (req.request.arrayBuffer && typeof req.request.arrayBuffer === 'function') {
+        console.log('✅ Body type: ArrayBuffer via arrayBuffer()')
+        chunkData = await req.request.arrayBuffer()
+      } else {
+        console.error('⚠️ Body type: Unknown')
+        return {
+          code: 400,
+          msg: req.t('errors.fileDataError'),
+          status: 400,
+        }
       }
     }
 
@@ -234,44 +275,51 @@ export async function handleMultipartChunk(req: IRequest, ctx: IContext): Promis
       uploadId,
       key: fileKey,
       partNumber,
-      data: chunkData
+      data: chunkData,
     })
+
+    // Performance monitoring
+    const endTime = Date.now()
+    const memUsageAfter = process.memoryUsage()
+    console.log('Chunk upload completed in:', endTime - startTime, 'ms')
+    console.log('Memory after:', Math.round(memUsageAfter.heapUsed / 1024 / 1024), 'MB')
+    console.log('Memory delta:', Math.round((memUsageAfter.heapUsed - memUsageBefore.heapUsed) / 1024 / 1024), 'MB')
 
     return {
       code: 0,
       data: {
         partNumber: result.partNumber,
         etag: result.etag,
-        size: chunkData.byteLength
-      }
+        size: contentLength, // Use content-length since we might be streaming
+      },
     }
   } catch (err) {
     console.error('Chunk upload failed', err)
     return {
       code: 500,
       msg: req.t('errors.fileUploadError'),
-      status: 500
+      status: 500,
     }
   }
 }
 
 export async function handleMultipartComplete(req: IRequest, ctx: IContext): Promise<ApiResponse> {
   try {
-    const { uploadId } = req.params || {}
+    const { uploadId } = req.variables || {}
     const { fileKey, parts } = await req.json()
 
     if (!uploadId || !fileKey || !parts || !Array.isArray(parts)) {
       return {
         code: 400,
         msg: req.t('errors.invalidRequest'),
-        status: 400
+        status: 400,
       }
     }
 
     const sortedParts = parts
       .map((part) => ({
         partNumber: part.partNumber,
-        etag: part.etag
+        etag: part.etag,
       }))
       .sort((a, b) => a.partNumber - b.partNumber)
 
@@ -280,7 +328,7 @@ export async function handleMultipartComplete(req: IRequest, ctx: IContext): Pro
         return {
           code: 400,
           msg: req.t('errors.fileUploadError'),
-          status: 400
+          status: 400,
         }
       }
     }
@@ -288,7 +336,7 @@ export async function handleMultipartComplete(req: IRequest, ctx: IContext): Pro
     const result = await ctx.storage.completeMultipartUpload({
       uploadId,
       key: fileKey,
-      parts
+      parts,
     })
 
     const pathParts = fileKey.split('/')
@@ -305,15 +353,15 @@ export async function handleMultipartComplete(req: IRequest, ctx: IContext): Pro
         uniqueFilename,
         etag: result.etag,
         uploadId,
-        message: 'File upload completed'
-      }
+        message: 'File upload completed',
+      },
     }
   } catch (err) {
     console.error('Failed to complete multipart upload', err)
     return {
       code: 500,
       msg: req.t('errors.fileUploadError'),
-      status: 500
+      status: 500,
     }
   }
 }

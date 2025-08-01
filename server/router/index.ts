@@ -18,6 +18,7 @@ export class Router {
       }
     }
 
+    req.variables = this.extractPathVariables(route.path, req.path)
     req.params = this.extractParams(req.path)
 
     const middlewareChain = [...(route.middleware || []), route.handler]
@@ -66,6 +67,22 @@ export class Router {
       }
     }
     return params
+  }
+
+  private extractPathVariables(pattern: string, path: string): Record<string, string> {
+    const variables: Record<string, string> = {}
+    const sp = path.split('?')
+    path = sp[0]
+    const patternParts = pattern.split('/').filter(Boolean)
+    const pathParts = path.split('/').filter(Boolean)
+    if (patternParts.length !== pathParts.length) return variables
+    for (let i = 0; i < patternParts.length; i++) {
+      if (patternParts[i].startsWith(':')) {
+        const key = patternParts[i].substring(1)
+        variables[key] = pathParts[i]
+      }
+    }
+    return variables
   }
 
   private async executeMiddlewareChain(

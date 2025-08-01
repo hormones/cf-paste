@@ -29,6 +29,8 @@ coverage
 
 *.tsbuildinfo
 
+data
+
 # wrangler files
 .wrangler
 .dev.vars*

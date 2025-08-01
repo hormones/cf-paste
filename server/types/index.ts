@@ -15,6 +15,8 @@ export interface IRequest {
   response?: any
   ip: string
   location: string
+  // path variables
+  variables?: Record<string, string>
   // query params
   params?: Record<string, string>
   json(): Promise<any>
@@ -65,7 +67,7 @@ export interface DatabaseAdapter {
 export interface StorageAdapter {
   upload(options: UploadOptions): Promise<UploadResult>
   download(options: DownloadOptions): Promise<DownloadResult>
-  delete(options: DeleteOptions): Promise<DeleteResult>
+  delete(options: DeleteOptions): Promise<void>
   list(options: ListOptions): Promise<ListResult>
   deleteFolder(options: DeleteFolderOptions): Promise<DeleteFolderResult>
   createMultipartUpload(options: CreateMultipartUploadOptions): Promise<CreateMultipartUploadResult>
@@ -133,7 +135,6 @@ export interface UploadOptions {
 }
 
 export interface UploadResult {
-  success: boolean
   key?: string
   etag?: string
 }
@@ -159,10 +160,6 @@ export interface DeleteOptions {
   name: string
 }
 
-export interface DeleteResult {
-  success: boolean
-}
-
 export interface ListOptions {
   prefix: string
 }
@@ -172,6 +169,7 @@ export interface ListResult {
     name: string
     size: number
     lastModified: Date
+    etag?: string
   }>
 }
 
@@ -197,7 +195,7 @@ export interface UploadPartOptions {
   uploadId: string
   key: string
   partNumber: number
-  data: ArrayBuffer
+  data: ArrayBuffer | ReadableStream | NodeJS.ReadableStream
 }
 
 export interface UploadPartResult {

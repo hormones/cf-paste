@@ -1,92 +1,108 @@
 import { promises as fs } from 'fs'
-import { join, dirname } from 'path'
-import { Readable } from 'stream'
-import { StorageAdapter, UploadOptions, UploadResult, DownloadOptions, DownloadResult, DeleteOptions, DeleteResult, ListOptions, ListResult, DeleteFolderOptions, DeleteFolderResult, CreateMultipartUploadOptions, CreateMultipartUploadResult, UploadPartOptions, UploadPartResult, CompleteMultipartUploadOptions, CompleteMultipartUploadResult, AbortMultipartUploadOptions } from '../../types'
+import { dirname, join } from 'path'
+import {
+  AbortMultipartUploadOptions,
+  CompleteMultipartUploadOptions,
+  CompleteMultipartUploadResult,
+  CreateMultipartUploadOptions,
+  CreateMultipartUploadResult,
+  DeleteFolderOptions,
+  DeleteFolderResult,
+  DeleteOptions,
+  DownloadOptions,
+  DownloadResult,
+  ListOptions,
+  ListResult,
+  StorageAdapter,
+  UploadOptions,
+  UploadPartOptions,
+  UploadPartResult,
+  UploadResult
+} from '../../types'
 
-export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
-  const ensureDir = async (path: string) => {
-    try {
-      await fs.access(path)
-    } catch {
-      await fs.mkdir(path, { recursive: true })
+const ensureDir = async (path: string) => {
+  try {
+    await fs.access(path)
+  } catch {
+    await fs.mkdir(path, { recursive: true })
+  }
+}
+
+const bufferToStream = (buffer: Buffer): ReadableStream<Uint8Array> => {
+  return new ReadableStream({
+    start(controller) {
+      controller.enqueue(buffer)
+      controller.close()
     }
+  })
+}
+
+const streamToBuffer = async (stream: any): Promise<Buffer> => {
+  console.log('Stream type:', typeof stream)
+  console.log('Stream constructor:', stream?.constructor?.name)
+
+  // Handle Buffer directly (most common case for Node.js)
+  if (Buffer.isBuffer(stream)) {
+    return stream
   }
 
-  const bufferToStream = (buffer: Buffer): ReadableStream<Uint8Array> => {
-    return new ReadableStream({
-      start(controller) {
-        controller.enqueue(buffer)
-        controller.close()
-      }
+  // Handle Node.js Readable stream
+  if (stream && typeof stream.pipe === 'function') {
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = []
+      stream.on('data', (chunk: Buffer) => chunks.push(chunk))
+      stream.on('end', () => resolve(Buffer.concat(chunks)))
+      stream.on('error', reject)
     })
   }
 
-    const streamToBuffer = async (stream: any): Promise<Buffer> => {
-    console.log('Stream type:', typeof stream)
-    console.log('Stream constructor:', stream?.constructor?.name)
+  // Handle standard ReadableStream
+  if (stream && typeof stream.getReader === 'function') {
+    const reader = stream.getReader()
+    const chunks: Uint8Array[] = []
 
-    // Handle Buffer directly (most common case for Node.js)
-    if (Buffer.isBuffer(stream)) {
-      return stream
-    }
-
-    // Handle Node.js Readable stream
-    if (stream && typeof stream.pipe === 'function') {
-      return new Promise((resolve, reject) => {
-        const chunks: Buffer[] = []
-        stream.on('data', (chunk: Buffer) => chunks.push(chunk))
-        stream.on('end', () => resolve(Buffer.concat(chunks)))
-        stream.on('error', reject)
-      })
-    }
-
-    // Handle standard ReadableStream
-    if (stream && typeof stream.getReader === 'function') {
-      const reader = stream.getReader()
-      const chunks: Uint8Array[] = []
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-          chunks.push(value)
-        }
-      } finally {
-        reader.releaseLock()
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        chunks.push(value)
       }
-
-      const buffer = Buffer.concat(chunks.map(chunk => Buffer.from(chunk)))
-      return buffer
+    } finally {
+      reader.releaseLock()
     }
 
-    // Handle ArrayBuffer
-    if (stream instanceof ArrayBuffer) {
-      return Buffer.from(stream)
-    }
-
-    // Handle Uint8Array
-    if (stream instanceof Uint8Array) {
-      return Buffer.from(stream)
-    }
-
-    // Handle string
-    if (typeof stream === 'string') {
-      return Buffer.from(stream, 'utf8')
-    }
-
-    // Handle object with toString method
-    if (stream && typeof stream.toString === 'function') {
-      return Buffer.from(stream.toString(), 'utf8')
-    }
-
-    // Handle null or undefined
-    if (stream == null) {
-      return Buffer.alloc(0)
-    }
-
-    throw new Error(`Unsupported stream type: ${typeof stream}, constructor: ${stream?.constructor?.name}`)
+    return Buffer.concat(chunks.map(chunk => Buffer.from(chunk)))
   }
 
+  // Handle ArrayBuffer
+  if (stream instanceof ArrayBuffer) {
+    return Buffer.from(stream)
+  }
+
+  // Handle Uint8Array
+  if (stream instanceof Uint8Array) {
+    return Buffer.from(stream)
+  }
+
+  // Handle string
+  if (typeof stream === 'string') {
+    return Buffer.from(stream, 'utf8')
+  }
+
+  // Handle object with toString method
+  if (stream && typeof stream.toString === 'function') {
+    return Buffer.from(stream.toString(), 'utf8')
+  }
+
+  // Handle null or undefined
+  if (stream == null) {
+    return Buffer.alloc(0)
+  }
+
+  throw new Error(`Unsupported stream type: ${typeof stream}, constructor: ${stream?.constructor?.name}`)
+}
+
+export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
   return {
     async upload(options: UploadOptions): Promise<UploadResult> {
       const filePath = join(storagePath, options.prefix, options.name)
@@ -96,13 +112,12 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
       await fs.writeFile(filePath, buffer)
 
       return {
-        success: true,
         key: `${options.prefix}/${options.name}`
       }
     },
 
     async download(options: DownloadOptions): Promise<DownloadResult> {
-      const filePath = join(storagePath, options.prefix, options.name)
+      const filePath = join(storagePath, options.prefix, decodeURIComponent(options.name))
 
       try {
         const stats = await fs.stat(filePath)
@@ -155,6 +170,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
           text: async () => buffer.toString('utf-8')
         }
       } catch (error) {
+        console.error('download error', error)
         return {
           status: 404,
           headers: new Headers(),
@@ -164,15 +180,9 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
       }
     },
 
-    async delete(options: DeleteOptions): Promise<DeleteResult> {
+    async delete(options: DeleteOptions): Promise<void> {
       const filePath = join(storagePath, options.prefix, options.name)
-
-      try {
-        await fs.unlink(filePath)
-        return { success: true }
-      } catch {
-        return { success: false }
-      }
+      await fs.unlink(filePath)
     },
 
     async list(options: ListOptions): Promise<ListResult> {
@@ -244,8 +254,56 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
       const uploadDir = join(storagePath, 'uploads', options.uploadId)
       const partPath = join(uploadDir, `part_${options.partNumber}`)
 
-      const buffer = Buffer.from(options.data)
-      await fs.writeFile(partPath, buffer)
+      // Handle different data types with streaming support
+      if (options.data instanceof ArrayBuffer) {
+        // ArrayBuffer - direct write
+        const buffer = Buffer.from(options.data)
+        await fs.writeFile(partPath, buffer)
+      } else if (Buffer.isBuffer(options.data)) {
+        // Buffer - direct write
+        await fs.writeFile(partPath, options.data)
+      } else if (options.data && typeof (options.data as any).getReader === 'function') {
+        // Web API ReadableStream - stream to file
+        const stream = options.data as ReadableStream
+        const reader = stream.getReader()
+        const writeStream = await fs.open(partPath, 'w')
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            await writeStream.write(Buffer.from(value))
+          }
+        } finally {
+          reader.releaseLock()
+          await writeStream.close()
+        }
+      } else if (options.data && typeof (options.data as any).pipe === 'function') {
+        // Node.js ReadableStream - true streaming with backpressure support
+        const nodeStream = options.data as NodeJS.ReadableStream
+        const { createWriteStream } = await import('fs')
+
+        return new Promise((resolve, reject) => {
+          const writeStream = createWriteStream(partPath)
+
+          // Handle stream errors
+          writeStream.on('error', reject)
+          nodeStream.on('error', reject)
+
+          // Handle successful completion
+          writeStream.on('finish', () => {
+            resolve({
+              partNumber: options.partNumber,
+              etag: `etag_${options.partNumber}_${Date.now()}`
+            })
+          })
+
+          // Pipe with automatic backpressure handling
+          nodeStream.pipe(writeStream)
+        })
+      } else {
+        throw new Error(`Unsupported data type for uploadPart: ${typeof options.data}`)
+      }
 
       return {
         partNumber: options.partNumber,
