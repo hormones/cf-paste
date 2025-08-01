@@ -164,7 +164,7 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
         files: result.objects.map((obj) => ({
           name: decodeURIComponent(obj.key.replace(options.prefix + '/', '')),
           size: obj.size,
-          lastModified: obj.uploaded,
+          lastModified: obj.uploaded.getTime(),
           etag: obj.etag
         }))
       }

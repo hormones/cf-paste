@@ -17,7 +17,7 @@ import {
   UploadOptions,
   UploadPartOptions,
   UploadPartResult,
-  UploadResult
+  UploadResult,
 } from '../../types'
 
 const ensureDir = async (path: string) => {
@@ -33,14 +33,11 @@ const bufferToStream = (buffer: Buffer): ReadableStream<Uint8Array> => {
     start(controller) {
       controller.enqueue(buffer)
       controller.close()
-    }
+    },
   })
 }
 
 const streamToBuffer = async (stream: any): Promise<Buffer> => {
-  console.log('Stream type:', typeof stream)
-  console.log('Stream constructor:', stream?.constructor?.name)
-
   // Handle Buffer directly (most common case for Node.js)
   if (Buffer.isBuffer(stream)) {
     return stream
@@ -71,7 +68,7 @@ const streamToBuffer = async (stream: any): Promise<Buffer> => {
       reader.releaseLock()
     }
 
-    return Buffer.concat(chunks.map(chunk => Buffer.from(chunk)))
+    return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)))
   }
 
   // Handle ArrayBuffer
@@ -99,7 +96,9 @@ const streamToBuffer = async (stream: any): Promise<Buffer> => {
     return Buffer.alloc(0)
   }
 
-  throw new Error(`Unsupported stream type: ${typeof stream}, constructor: ${stream?.constructor?.name}`)
+  throw new Error(
+    `Unsupported stream type: ${typeof stream}, constructor: ${stream?.constructor?.name}`
+  )
 }
 
 export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
@@ -112,7 +111,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
       await fs.writeFile(filePath, buffer)
 
       return {
-        key: `${options.prefix}/${options.name}`
+        key: `${options.prefix}/${options.name}`,
       }
     },
 
@@ -125,9 +124,20 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
 
         if (options.range) {
           // Handle range request for resumable download
-          const { start, end } = options.range
+          let { start, end } = options.range
 
-          if (start >= totalSize || end >= totalSize) {
+          // If end was set to a very large number (from parseRange with unknown size), adjust it
+          if (end === Number.MAX_SAFE_INTEGER - 1) {
+            end = totalSize - 1
+          }
+
+          // Validate range
+          if (
+            start < 0 ||
+            start >= totalSize ||
+            (end !== undefined && end >= totalSize) ||
+            (end !== undefined && start > end)
+          ) {
             const headers = new Headers()
             headers.set('Content-Range', `bytes */${totalSize}`)
             return {
@@ -138,36 +148,95 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
             }
           }
 
-          const buffer = await fs.readFile(filePath)
-          const rangeBuffer = buffer.slice(start, end + 1)
+          // Calculate actual end position
+          const actualEnd = end !== undefined ? Math.min(end, totalSize - 1) : totalSize - 1
+          const contentLength = actualEnd - start + 1
 
+          // Create streaming response for range request
           const headers = new Headers()
-          headers.set('Content-Range', `bytes ${start}-${end}/${totalSize}`)
-          headers.set('Content-Length', (end - start + 1).toString())
+          headers.set('Content-Range', `bytes ${start}-${actualEnd}/${totalSize}`)
+          headers.set('Content-Length', contentLength.toString())
           headers.set('Accept-Ranges', 'bytes')
           headers.set('Content-Type', 'application/octet-stream')
+
+          // Use streaming for better memory efficiency
+          const body = new ReadableStream<Uint8Array>({
+            async start(controller) {
+              try {
+                const { createReadStream } = await import('fs')
+                const stream = createReadStream(filePath, { start, end: actualEnd })
+
+                stream.on('data', (chunk: string | Buffer) => {
+                  const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+                  controller.enqueue(new Uint8Array(buffer))
+                })
+
+                stream.on('end', () => {
+                  controller.close()
+                })
+
+                stream.on('error', (error) => {
+                  console.error('Stream error:', error)
+                  controller.error(error)
+                })
+              } catch (error) {
+                controller.error(error)
+              }
+            },
+          })
 
           return {
             status: 206,
             headers,
-            body: bufferToStream(rangeBuffer),
-            text: async () => rangeBuffer.toString('utf-8')
+            body,
+            text: async () => {
+              // For text conversion, we need to read the range
+              const buffer = await fs.readFile(filePath)
+              return buffer.subarray(start, actualEnd + 1).toString('utf-8')
+            },
           }
         }
 
-        // Full file download
-        const buffer = await fs.readFile(filePath)
-
+        // Full file download with streaming
         const headers = new Headers()
         headers.set('Accept-Ranges', 'bytes')
         headers.set('Content-Type', 'application/octet-stream')
         headers.set('Content-Length', stats.size.toString())
 
+        // Use streaming for better memory efficiency
+        const body = new ReadableStream<Uint8Array>({
+          async start(controller) {
+            try {
+              const { createReadStream } = await import('fs')
+              const stream = createReadStream(filePath)
+
+              stream.on('data', (chunk: string | Buffer) => {
+                const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+                controller.enqueue(new Uint8Array(buffer))
+              })
+
+              stream.on('end', () => {
+                controller.close()
+              })
+
+              stream.on('error', (error) => {
+                console.error('Stream error:', error)
+                controller.error(error)
+              })
+            } catch (error) {
+              controller.error(error)
+            }
+          },
+        })
+
         return {
           status: 200,
           headers,
-          body: bufferToStream(buffer),
-          text: async () => buffer.toString('utf-8')
+          body,
+          text: async () => {
+            const buffer = await fs.readFile(filePath)
+            return buffer.toString('utf-8')
+          },
         }
       } catch (error) {
         console.error('download error', error)
@@ -175,7 +244,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
           status: 404,
           headers: new Headers(),
           body: new ReadableStream(),
-          text: async () => ''
+          text: async () => '',
         }
       }
     },
@@ -200,7 +269,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
             fileList.push({
               name: file.name,
               size: stats.size,
-              lastModified: stats.mtime
+              lastModified: stats.mtime.getTime(),
             })
           }
         }
@@ -233,20 +302,25 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
       }
     },
 
-    async createMultipartUpload(options: CreateMultipartUploadOptions): Promise<CreateMultipartUploadResult> {
+    async createMultipartUpload(
+      options: CreateMultipartUploadOptions
+    ): Promise<CreateMultipartUploadResult> {
       const uploadId = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       const uploadDir = join(storagePath, 'uploads', uploadId)
 
       await ensureDir(uploadDir)
-      await fs.writeFile(join(uploadDir, 'metadata.json'), JSON.stringify({
-        key: `${options.prefix}/${options.name}`,
-        uploadId,
-        createdAt: new Date().toISOString()
-      }))
+      await fs.writeFile(
+        join(uploadDir, 'metadata.json'),
+        JSON.stringify({
+          key: `${options.prefix}/${options.name}`,
+          uploadId,
+          createdAt: new Date().toISOString(),
+        })
+      )
 
       return {
         uploadId,
-        key: `${options.prefix}/${options.name}`
+        key: `${options.prefix}/${options.name}`,
       }
     },
 
@@ -294,7 +368,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
           writeStream.on('finish', () => {
             resolve({
               partNumber: options.partNumber,
-              etag: `etag_${options.partNumber}_${Date.now()}`
+              etag: `etag_${options.partNumber}_${Date.now()}`,
             })
           })
 
@@ -307,11 +381,13 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
 
       return {
         partNumber: options.partNumber,
-        etag: `etag_${options.partNumber}_${Date.now()}`
+        etag: `etag_${options.partNumber}_${Date.now()}`,
       }
     },
 
-    async completeMultipartUpload(options: CompleteMultipartUploadOptions): Promise<CompleteMultipartUploadResult> {
+    async completeMultipartUpload(
+      options: CompleteMultipartUploadOptions
+    ): Promise<CompleteMultipartUploadResult> {
       const uploadDir = join(storagePath, 'uploads', options.uploadId)
       const metadataPath = join(uploadDir, 'metadata.json')
 
@@ -336,13 +412,13 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
 
       return {
         success: true,
-        etag: `etag_${Date.now()}`
+        etag: `etag_${Date.now()}`,
       }
     },
 
     async abortMultipartUpload(options: AbortMultipartUploadOptions): Promise<void> {
       const uploadDir = join(storagePath, 'uploads', options.uploadId)
       await fs.rm(uploadDir, { recursive: true, force: true })
-    }
+    },
   }
 }

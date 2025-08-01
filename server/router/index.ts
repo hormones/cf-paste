@@ -8,9 +8,11 @@ export class Router {
   }
 
   async dispatch(req: IRequest, ctx: IContext): Promise<ApiResponse> {
+
     const route = this.matchRoute(req.method, req.path)
 
     if (!route) {
+      console.error('route not found', req.method, req.path)
       return {
         code: 404,
         msg: req.t('errors.resourceNotFound'),
@@ -26,7 +28,6 @@ export class Router {
   }
 
   private matchRoute(method: string, path: string): Route | null {
-
     for (const route of this.routes) {
       if (route.method !== method) continue
 

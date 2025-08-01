@@ -28,17 +28,32 @@ export async function handleFileDownload(req: IRequest, ctx: IContext): Promise<
   let downloadOptions: any = { prefix, name }
 
   if (range) {
-    // For range requests, we need to get file metadata first
-    // This will be handled by the storage adapter
-    const rangeInfo = Utils.parseRange(range, 0) // Size will be determined by storage adapter
-    downloadOptions.range = rangeInfo
+    // We need to get file size first for proper range parsing
+    // For now, pass a large number and let storage adapter handle it
+    const rangeInfo = Utils.parseRange(range, Number.MAX_SAFE_INTEGER)
+    if (rangeInfo) {
+      downloadOptions.range = rangeInfo
+    }
   }
 
   const result = await ctx.storage.download(downloadOptions)
 
+  // For streaming downloads, we need to handle the response differently
+  if (result.status === 206 || result.status === 200) {
+    // Return the stream directly for efficient streaming
+    return {
+      code: 0,
+      data: result.body,
+      status: result.status,
+      headers: Object.fromEntries(result.headers.entries()),
+      // Add streaming flag to indicate this is a stream response
+      streaming: true,
+    }
+  }
+
   return {
-    code: 0,
-    data: result,
+    code: result.status === 404 ? 404 : 500,
+    msg: result.status === 404 ? req.t('errors.fileNotFound') : req.t('errors.downloadError'),
     status: result.status,
     headers: Object.fromEntries(result.headers.entries()),
   }
@@ -238,10 +253,7 @@ export async function handleMultipartChunk(req: IRequest, ctx: IContext): Promis
 
     let chunkData: ArrayBuffer | ReadableStream | NodeJS.ReadableStream
 
-    // Check if we're in streaming mode (set by middleware)
-    const isStreamingMode = (req.request as any)._streamingMode === true
-
-    if (isStreamingMode && req.request.body === undefined) {
+    if (req.contentType === 'application/octet-stream' && req.request.body === undefined) {
       // True streaming: use the raw request stream
       console.log('✅ Using raw request stream for true streaming')
       chunkData = req.request as NodeJS.ReadableStream

@@ -86,15 +86,50 @@ export const Utils = {
 
   /**
    * Parse Range request header
+   * Supports formats: bytes=start-end, bytes=start-, bytes=-suffix
    */
   parseRange: (range: string, totalSize: number) => {
-    const [startStr, endStr] = range.replace(/bytes=/, '').split('-')
+    if (!range || !range.startsWith('bytes=')) {
+      return null
+    }
+
+    const rangeSpec = range.replace(/bytes=/, '')
+
+    // Handle suffix-byte-range-spec (e.g., bytes=-500)
+    if (rangeSpec.startsWith('-')) {
+      const suffix = parseInt(rangeSpec.substring(1), 10)
+      if (isNaN(suffix) || suffix <= 0) return null
+
+      const start = Math.max(0, totalSize - suffix)
+      return {
+        start,
+        end: totalSize - 1,
+      }
+    }
+
+    // Handle byte-range-spec (e.g., bytes=200-1023 or bytes=200-)
+    const [startStr, endStr] = rangeSpec.split('-')
     const start = parseInt(startStr, 10)
-    const end = endStr ? parseInt(endStr, 10) : totalSize - 1
+
+    if (isNaN(start) || start < 0) return null
+
+    let end: number
+    if (endStr === '' || endStr === undefined) {
+      // bytes=200- (from start to end of file)
+      end = totalSize - 1
+    } else {
+      end = parseInt(endStr, 10)
+      if (isNaN(end) || end < start) return null
+      // Ensure end doesn't exceed file size
+      end = Math.min(end, totalSize - 1)
+    }
+
+    // Ensure start doesn't exceed file size
+    if (start >= totalSize) return null
 
     return {
-      start: isNaN(start) ? 0 : start,
-      end: isNaN(end) ? totalSize - 1 : end,
+      start,
+      end,
     }
   },
 }

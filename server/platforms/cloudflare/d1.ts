@@ -48,6 +48,7 @@ export function createD1Adapter(d1: D1Database): DatabaseAdapter {
     },
 
     async first<T = any>(sql: string, params?: any[]): Promise<T | null> {
+      console.log('sql', sql, 'params', params)
       const stmt = d1.prepare(sql)
       const result = params ? stmt.bind(...params) : stmt
       const res = await result.first()

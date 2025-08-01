@@ -1,6 +1,8 @@
 import { IRequest, IContext, ApiResponse, CommonConfig } from '../../types'
 import { CloudflareConfig } from '../../types/platforms'
 import { DEFAULT_CONFIG } from '../../constants'
+import { createD1Adapter } from './d1'
+import { createR2Adapter } from './r2'
 
 export function createRequest(request: Request, env: Env): IRequest {
   const url = new URL(request.url)
@@ -20,7 +22,7 @@ export function createRequest(request: Request, env: Env): IRequest {
     json: () => request.json(),
     text: () => request.text(),
     method: request.method,
-    path: request.url,
+    path: url.pathname,
     getHeader: (name: string) => request.headers.get(name),
     t: (key: string, params?: Record<string, string | number>) => {
       // TODO: implement i18n translation
@@ -29,7 +31,7 @@ export function createRequest(request: Request, env: Env): IRequest {
   }
 }
 
-export function createContext(env: any): IContext {
+export function createContext(env: Env): IContext {
   const commonConfig: CommonConfig = {
     AUTH_KEY: env.AUTH_KEY,
     MAX_FILE_SIZE: parseInt(env.MAX_FILE_SIZE || DEFAULT_CONFIG.MAX_FILE_SIZE.toString()),
@@ -41,7 +43,7 @@ export function createContext(env: any): IContext {
   }
 
   const platformConfig: CloudflareConfig = {
-    D1: env.D1,
+    DB: env.DB,
     R2: env.R2,
     ASSETS: env.ASSETS
   }
@@ -51,9 +53,9 @@ export function createContext(env: any): IContext {
     config: commonConfig,
     platformConfig,
     original: env,
-    db: null as any, // Will be injected by adapter factory
-    storage: null as any, // Will be injected by adapter factory
-    timer: null as any // Will be injected by adapter factory
+    db: createD1Adapter(env.DB),
+    storage: createR2Adapter(env.R2),
+    timer: null as any
   }
 }
 

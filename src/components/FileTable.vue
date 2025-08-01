@@ -19,9 +19,9 @@
           {{ Utils.humanReadableSize(row.size) }}
         </template>
       </el-table-column>
-      <el-table-column prop="uploaded" :label="t('common.table.time')" width="160">
+      <el-table-column prop="lastModified" :label="t('common.table.time')" width="160">
         <template #default="{ row }">
-          {{ new Date(row.uploaded).toLocaleString() }}
+          {{ new Date(row.lastModified).toLocaleString() }}
         </template>
       </el-table-column>
       <el-table-column :label="t('common.table.actions')" fixed="right" align="center" width="100">

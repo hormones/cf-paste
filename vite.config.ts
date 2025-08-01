@@ -38,6 +38,14 @@ export default defineConfig({
 			],
 		}),
 	].filter(Boolean),
+	server: {
+		proxy: isCloudflare ? {
+			'/api': {
+				target: 'http://localhost:8787',
+				changeOrigin: true,
+			}
+		} : undefined,
+	},
 	css: {
 		preprocessorOptions: {
 			scss: {

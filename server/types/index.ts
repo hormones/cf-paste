@@ -19,6 +19,7 @@ export interface IRequest {
   variables?: Record<string, string>
   // query params
   params?: Record<string, string>
+  contentType?: string
   json(): Promise<any>
   text(): Promise<string>
   method: string
@@ -50,6 +51,7 @@ export interface ApiResponse<T = any> {
   msg?: string
   status?: number
   headers?: Record<string, string>
+  streaming?: boolean // Flag to indicate streaming response
 }
 
 // Adapter interfaces for platform abstraction
@@ -168,7 +170,7 @@ export interface ListResult {
   files: Array<{
     name: string
     size: number
-    lastModified: Date
+    lastModified: number
     etag?: string
   }>
 }

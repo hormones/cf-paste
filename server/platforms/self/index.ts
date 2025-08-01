@@ -9,6 +9,7 @@ export function createRequest(req: ExpressRequest): IRequest {
   const edit = req.path.startsWith('/api/v/') ? 0 : 1
   const word = edit ? req.path.split('/')[2] : ''
   const view_word = edit ? '' : req.path.split('/')[3]
+  const contentType = req.headers['content-type'] as string
 
   return {
     edit,
@@ -20,6 +21,7 @@ export function createRequest(req: ExpressRequest): IRequest {
     ip: req.ip || req.connection.remoteAddress || '',
     location: '', // TODO: implement location detection
     params: req.params || {},
+    contentType:  contentType || '',
     json: async () => req.body,
     text: async () => (typeof req.body === 'string' ? req.body : JSON.stringify(req.body)),
     method: req.method,

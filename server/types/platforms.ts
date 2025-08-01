@@ -1,8 +1,8 @@
 // Platform-specific configuration types
 
 export interface CloudflareConfig {
-  D1: string
-  R2: string
+  DB: D1Database
+  R2: R2Bucket
   ASSETS?: any
 }
 

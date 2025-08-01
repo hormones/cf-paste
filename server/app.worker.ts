@@ -5,45 +5,48 @@ import { router } from './router'
 registerRoutes()
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const url = new URL(request.url)
-    const path = url.pathname
-    if (path.startsWith('/api/')) {
-      console.log('route request', path)
-      try {
-        const req = createRequest(request, env)
-        const context = createContext(env)
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
+    console.log('route request', request.url)
+    try {
+      const req = createRequest(request, env)
+      const context = createContext(env)
 
-        const apiResponse = await router.dispatch(req, context)
-        const response = createResponse(apiResponse)
+      const apiResponse = await router.dispatch(req, context)
+      const response = createResponse(apiResponse)
 
-        if (req.clearCookie4auth) {
-          response.headers.append('Set-Cookie', 'authorization=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax')
-        }
-
-        if (req.cookie4language) {
-          response.headers.append('Set-Cookie', `language=${req.cookie4language}; Path=/; Max-Age=31536000; SameSite=Lax`)
-        }
-
-        return response
-      } catch (error) {
-        console.error('API execution error:', error)
-        return createResponse({
-          code: 500,
-          msg: 'System error',
-          status: 500
-        })
+      if (req.clearCookie4auth) {
+        response.headers.append(
+          'Set-Cookie',
+          'authorization=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax'
+        )
       }
-    }
 
-    console.log('route static', path)
-    return env.ASSETS.fetch(request)
+      if (req.cookie4language) {
+        response.headers.append(
+          'Set-Cookie',
+          `language=${req.cookie4language}; Path=/; Max-Age=31536000; SameSite=Lax`
+        )
+      }
+
+      return response
+    } catch (error) {
+      console.error('API execution error:', error)
+      return createResponse({
+        code: 500,
+        msg: 'System error',
+        status: 500,
+      })
+    }
   },
 
-  async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(
+    _controller: ScheduledController,
+    env: Env,
+    _ctx: ExecutionContext
+  ): Promise<void> {
     const context = createContext(env)
     await runScheduledTasks(context)
-  }
+  },
 }
 
 async function runScheduledTasks(ctx: any): Promise<void> {

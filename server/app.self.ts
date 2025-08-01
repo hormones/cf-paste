@@ -13,34 +13,13 @@ registerRoutes()
 
 const app = express()
 
-let maxFileSize = process.env.MAX_UPLOAD_SIZE || '100mb'
-if (process.env.MAX_FILE_SIZE) {
-  maxFileSize = `${process.env.MAX_FILE_SIZE}mb`
-}
-
 // Configure middleware based on content type
 app.use((req, res, next) => {
   const contentType = req.headers['content-type'] || ''
-
-  // Debug logging for chunk uploads
-  if (req.path.includes('multipart/chunk')) {
-    console.log('Chunk upload - Content-Type:', contentType, 'Path:', req.path)
-    console.log('Skipping body parsing for streaming')
-    // For chunk uploads, completely skip body parsing to enable true streaming
-    // Mark the request to indicate we want streaming
-    ;(req as any)._streamingMode = true
-    next()
-    return
-  }
-
-  // For other file uploads, use raw body parser with increased limits
-  if (contentType.includes('application/octet-stream')) {
-    // Configurable limit for file uploads
-    express.raw({ limit: maxFileSize })(req, res, next)
-  } else if (req.path.startsWith('/api/')) {
-    express.json({ limit: '10mb' })(req, res, next)
+  // For json requests
+  if (contentType.includes('application/json')) {
+    express.json()(req, res, next)
   } else {
-    // For other requests, continue without parsing body
     next()
   }
 })
@@ -75,11 +54,44 @@ app.all('/api/:path(*)', async (req: express.Request, res: express.Response) => 
       })
     }
 
-    res.status(apiResponse.status || 200).json({
-      code: apiResponse.code,
-      data: apiResponse.data,
-      msg: apiResponse.msg,
-    })
+    // Handle streaming responses
+    if (apiResponse.streaming && apiResponse.data) {
+      // For streaming responses, send the stream directly
+      res.status(apiResponse.status || 200)
+
+      // The data should be a ReadableStream
+      if (apiResponse.data && typeof apiResponse.data.getReader === 'function') {
+        const reader = apiResponse.data.getReader()
+
+        const pump = async () => {
+          try {
+            while (true) {
+              const { done, value } = await reader.read()
+              if (done) {
+                res.end()
+                break
+              }
+              res.write(Buffer.from(value))
+            }
+          } catch (error) {
+            console.error('Streaming error:', error)
+            res.end()
+          }
+        }
+
+        pump()
+      } else {
+        // Fallback for non-stream data
+        res.end()
+      }
+    } else {
+      // Regular JSON response
+      res.status(apiResponse.status || 200).json({
+        code: apiResponse.code,
+        data: apiResponse.data,
+        msg: apiResponse.msg,
+      })
+    }
   } catch (error) {
     console.error('API execution error:', error)
     res.status(500).json({
