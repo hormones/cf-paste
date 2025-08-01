@@ -3,7 +3,10 @@ export const Utils = {
    * Generate random ID with different formats
    * Universal solution to replace crypto.randomUUID()
    */
-  generateId(format: 'uuid' | 'short' | 'long' | 'timestamp' | 'custom' = 'uuid', length = 8): string {
+  generateId(
+    format: 'uuid' | 'short' | 'long' | 'timestamp' | 'custom' = 'uuid',
+    length = 8
+  ): string {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyz'
     const hexChars = '0123456789abcdef'
 
@@ -22,8 +25,8 @@ export const Utils = {
           randomString(8, hexChars),
           randomString(4, hexChars),
           '4' + randomString(3, hexChars), // Version fixed to 4
-          ((Math.floor(Math.random() * 4) + 8).toString(16) + randomString(3, hexChars)), // Variant bits
-          randomString(12, hexChars)
+          (Math.floor(Math.random() * 4) + 8).toString(16) + randomString(3, hexChars), // Variant bits
+          randomString(12, hexChars),
         ].join('-')
 
       case 'short':
@@ -55,11 +58,7 @@ export const Utils = {
       numbers?: boolean
     } = {}
   ): string {
-    const {
-      uppercase = false,
-      lowercase = true,
-      numbers = true
-    } = options
+    const { uppercase = false, lowercase = true, numbers = true } = options
 
     let chars = ''
     if (lowercase) chars += 'abcdefghijklmnopqrstuvwxyz'
@@ -131,5 +130,20 @@ export const Utils = {
       start,
       end,
     }
+  },
+  extractPathVariables: (pattern: string, path: string): Record<string, string> => {
+    const variables: Record<string, string> = {}
+    const sp = path.split('?')
+    path = sp[0]
+    const patternParts = pattern.split('/').filter(Boolean)
+    const pathParts = path.split('/').filter(Boolean)
+    if (patternParts.length !== pathParts.length) return variables
+    for (let i = 0; i < patternParts.length; i++) {
+      if (patternParts[i].startsWith(':')) {
+        const key = patternParts[i].substring(1)
+        variables[key] = pathParts[i]
+      }
+    }
+    return variables
   },
 }

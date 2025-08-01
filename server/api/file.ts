@@ -60,7 +60,7 @@ export async function handleFileDownload(req: IRequest, ctx: IContext): Promise<
 }
 
 export async function handleFileUpload(req: IRequest, ctx: IContext): Promise<ApiResponse> {
-  const name = req.params?.name
+  const { name } = req.params || {}
   if (!name) {
     return {
       code: 400,
@@ -73,11 +73,15 @@ export async function handleFileUpload(req: IRequest, ctx: IContext): Promise<Ap
   const length = req.getHeader('content-length')
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
 
+  // For file uploads, use the raw request stream if body is undefined
+  const stream =
+    req.request.body !== undefined ? req.request.body : (req.request as NodeJS.ReadableStream)
+
   const result = await ctx.storage.upload({
     prefix,
     name: decodedName,
     length: Number(length),
-    stream: req.request.body as ReadableStream<Uint8Array>,
+    stream,
   })
 
   return {
@@ -292,10 +296,7 @@ export async function handleMultipartChunk(req: IRequest, ctx: IContext): Promis
 
     // Performance monitoring
     const endTime = Date.now()
-    const memUsageAfter = process.memoryUsage()
     console.log('Chunk upload completed in:', endTime - startTime, 'ms')
-    console.log('Memory after:', Math.round(memUsageAfter.heapUsed / 1024 / 1024), 'MB')
-    console.log('Memory delta:', Math.round((memUsageAfter.heapUsed - memUsageBefore.heapUsed) / 1024 / 1024), 'MB')
 
     return {
       code: 0,

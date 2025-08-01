@@ -1,4 +1,5 @@
 import { IRequest, IContext, ApiResponse, Route, Middleware } from '../types'
+import { Utils } from '../utils'
 
 export class Router {
   private routes: Route[] = []
@@ -20,8 +21,7 @@ export class Router {
       }
     }
 
-    req.variables = this.extractPathVariables(route.path, req.path)
-    req.params = this.extractParams(req.path)
+    req.variables = Utils.extractPathVariables(route.path, req.path)
 
     const middlewareChain = [...(route.middleware || []), route.handler]
     return await this.executeMiddlewareChain(middlewareChain, req, ctx)
@@ -54,36 +54,6 @@ export class Router {
     }
 
     return true
-  }
-
-  private extractParams(path: string): Record<string, string> {
-    const params: Record<string, string> = {}
-    const sp = path.split('?')
-    if (sp.length > 1) {
-      const query = sp[1]
-      const queryParams = query.split('&')
-      for (const param of queryParams) {
-        const [key, value] = param.split('=')
-        params[key] = value
-      }
-    }
-    return params
-  }
-
-  private extractPathVariables(pattern: string, path: string): Record<string, string> {
-    const variables: Record<string, string> = {}
-    const sp = path.split('?')
-    path = sp[0]
-    const patternParts = pattern.split('/').filter(Boolean)
-    const pathParts = path.split('/').filter(Boolean)
-    if (patternParts.length !== pathParts.length) return variables
-    for (let i = 0; i < patternParts.length; i++) {
-      if (patternParts[i].startsWith(':')) {
-        const key = patternParts[i].substring(1)
-        variables[key] = pathParts[i]
-      }
-    }
-    return variables
   }
 
   private async executeMiddlewareChain(

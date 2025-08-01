@@ -181,18 +181,12 @@ async function uploadContent(
   }
 
   const contentBuffer = new TextEncoder().encode(content)
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(contentBuffer)
-      controller.close()
-    },
-  })
 
   await ctx.storage.upload({
     prefix: req.word,
     name: Constant.PASTE_FILE,
     length: contentBuffer.length,
-    stream,
+    stream: contentBuffer, // 直接传递ArrayBuffer，更高效
   })
 }
 

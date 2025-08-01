@@ -15,7 +15,7 @@ import {
   UploadOptions,
   UploadPartOptions,
   UploadPartResult,
-  UploadResult
+  UploadResult,
 } from '../../types'
 import './worker-configuration.d.ts'
 import { Utils } from '../../utils'
@@ -52,14 +52,17 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
         throw new Error('file upload failed: stream or length empty')
       }
 
-      // Direct upload to R2 (frontend handles chunking logic)
+      // R2原生支持ReadableStream、ArrayBuffer、Uint8Array等多种类型
+      // 直接传递给R2，让它自己处理
+
+      // Direct upload to R2
       const result = await r2.put(key, options.stream, {
-        httpMetadata: { contentType: 'application/octet-stream' }
+        httpMetadata: { contentType: 'application/octet-stream' },
       })
 
       return {
         key: result.key,
-        etag: result.etag
+        etag: result.etag,
       }
     },
 
@@ -157,7 +160,7 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
     async list(options: ListOptions): Promise<ListResult> {
       const result = await r2.list({
         prefix: options.prefix,
-        limit: 1000
+        limit: 1000,
       })
 
       return {
@@ -165,8 +168,8 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
           name: decodeURIComponent(obj.key.replace(options.prefix + '/', '')),
           size: obj.size,
           lastModified: obj.uploaded.getTime(),
-          etag: obj.etag
-        }))
+          etag: obj.etag,
+        })),
       }
     },
 
@@ -180,7 +183,7 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
           const listResult = await r2.list({
             prefix: options.prefix,
             cursor: cursor,
-            limit: 1000 // R2 returns max 1000 objects per request
+            limit: 1000, // R2 returns max 1000 objects per request
           })
 
           if (listResult.objects.length === 0) {
@@ -222,12 +225,12 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
       try {
         const multipartUpload = await r2.createMultipartUpload(key, {
           httpMetadata: { contentType: 'application/octet-stream' },
-          customMetadata: { uploadedAt: new Date().toISOString() }
+          customMetadata: { uploadedAt: new Date().toISOString() },
         })
 
         return {
           uploadId: multipartUpload.uploadId,
-          key: multipartUpload.key
+          key: multipartUpload.key,
         }
       } catch (error) {
         console.error(`Failed to create multipart upload for ${key}`, error)
@@ -239,7 +242,9 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
       const data = options.data as ArrayBuffer
 
       console.log(
-        `upload part ${options.partNumber} for ${options.key}, size: ${Utils.humanReadableSize(data.byteLength)}`
+        `upload part ${options.partNumber} for ${options.key}, size: ${Utils.humanReadableSize(
+          data.byteLength
+        )}`
       )
 
       try {
@@ -248,7 +253,7 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
 
         return {
           partNumber: options.partNumber,
-          etag: uploadedPart.etag
+          etag: uploadedPart.etag,
         }
       } catch (error) {
         console.error(`Failed to upload part ${options.partNumber} for ${options.key}`, error)
@@ -267,7 +272,7 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
 
         return {
           success: true,
-          etag: result.etag
+          etag: result.etag,
           // size: result.size,
         }
       } catch (error) {

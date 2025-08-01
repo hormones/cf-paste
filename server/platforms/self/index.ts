@@ -3,31 +3,59 @@ import { IRequest, IContext, ApiResponse } from '../../types'
 import { createSqliteAdapter } from './sqlite'
 import { createLocalStorageAdapter } from './local-storage'
 import { createNodeTimerAdapter } from './node-timer'
+import { Utils } from '../../utils'
 
-export function createRequest(req: ExpressRequest): IRequest {
+const extractParams = (path: string): Record<string, string> => {
+  const params: Record<string, string> = {}
+  const sp = path.split('?')
+  if (sp.length > 1) {
+    const query = sp[1]
+    const queryParams = query.split('&')
+    for (const param of queryParams) {
+      const [key, value] = param.split('=')
+      params[key] = value
+    }
+  }
+  return params
+}
+
+export function createRequest(request: ExpressRequest): IRequest {
   // match /api/word/* or /api/v/view_word/*
-  const edit = req.path.startsWith('/api/v/') ? 0 : 1
-  const word = edit ? req.path.split('/')[2] : ''
-  const view_word = edit ? '' : req.path.split('/')[3]
-  const contentType = req.headers['content-type'] as string
+  const edit = request.path.startsWith('/api/v/') ? 0 : 1
+  const word = edit ? request.path.split('/')[2] : ''
+  const view_word = edit ? '' : request.path.split('/')[3]
+  const contentType = request.headers['content-type'] as string
+  const params: Record<string, string> = {}
+  if (request.query) {
+    Object.entries(request.query).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        params[key] = value[0] as string
+      } else if (typeof value === 'string') {
+        params[key] = value
+      } else if (value !== undefined) {
+        params[key] = String(value)
+      }
+    })
+  }
 
   return {
     edit,
     word,
     view_word,
-    language: (req.query.language as string) || 'auto',
+    language: (request.query.language as string) || 'auto',
     t: (key: string, params?: Record<string, string | number>) => key, // TODO: implement i18n
-    request: req,
-    ip: req.ip || req.connection.remoteAddress || '',
+    request: request,
+    ip: request.ip || request.connection.remoteAddress || '',
     location: '', // TODO: implement location detection
-    params: req.params || {},
-    contentType:  contentType || '',
-    json: async () => req.body,
-    text: async () => (typeof req.body === 'string' ? req.body : JSON.stringify(req.body)),
-    method: req.method,
-    path: req.url,
+    params,
+    contentType: contentType || '',
+    json: async () => request.body,
+    text: async () =>
+      typeof request.body === 'string' ? request.body : JSON.stringify(request.body),
+    method: request.method,
+    path: request.url,
     getHeader: (name: string) => {
-      const value = req.headers[name.toLowerCase()]
+      const value = request.headers[name.toLowerCase()]
       return Array.isArray(value) ? value[0] : value || null
     },
   }

@@ -1,43 +1,6 @@
 import Database from 'better-sqlite3'
 import { DatabaseAdapter, WhereCondition, DatabaseOperation } from '../../types'
-
-const buildInsertSql = (table: string, data: Record<string, any>) => {
-  const keys = Object.keys(data)
-  const placeholders = keys.map(() => '?').join(', ')
-  return {
-    sql: `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`,
-    values: Object.values(data)
-  }
-}
-
-const buildUpdateSql = (table: string, data: Record<string, any>, where: WhereCondition[]) => {
-  const setClause = Object.keys(data)
-    .map((key) => `${key} = ?`)
-    .join(', ')
-  const whereClause = where
-    .map((condition) => {
-      const operator = condition.operator || '='
-      return `${condition.key} ${operator} ?`
-    })
-    .join(' AND ')
-  return {
-    sql: `UPDATE ${table} SET ${setClause} WHERE ${whereClause}`,
-    values: [...Object.values(data), ...where.map((w) => w.value)]
-  }
-}
-
-const buildDeleteSql = (table: string, where: WhereCondition[]) => {
-  const whereClause = where
-    .map((condition) => {
-      const operator = condition.operator || '='
-      return `${condition.key} ${operator} ?`
-    })
-    .join(' AND ')
-  return {
-    sql: `DELETE FROM ${table} WHERE ${whereClause}`,
-    values: where.map((w) => w.value)
-  }
-}
+import { buildInsertSql, buildUpdateSql, buildDeleteSql, buildSelectSql } from '../../common/sql-builder'
 
 export function createSqliteAdapter(dbPath: string): DatabaseAdapter {
   const db = new Database(dbPath)
@@ -46,20 +9,16 @@ export function createSqliteAdapter(dbPath: string): DatabaseAdapter {
   db.pragma('foreign_keys = ON')
 
   return {
-    async query<T = any>(sql: string, params?: any[]): Promise<T[]> {
+    async query<T = any>(table: string, where: WhereCondition[]): Promise<T[]> {
+      const { sql, values } = buildSelectSql(table, where)
       const stmt = db.prepare(sql)
-      return stmt.all(params || []) as T[]
+      return stmt.all(values) as T[]
     },
 
     async first<T = any>(table: string, where: WhereCondition[]): Promise<T | null> {
-      const whereClause = where
-        .map((condition) => {
-          const operator = condition.operator || '='
-          return `${condition.key} ${operator} ?`
-        })
-        .join(' AND ')
-      const stmt = db.prepare(`SELECT * FROM ${table} WHERE ${whereClause}`)
-      const result = stmt.get(where.map((w) => w.value)) as T
+      const { sql, values } = buildSelectSql(table, where)
+      const stmt = db.prepare(sql)
+      const result = stmt.get(values) as T
       return result || null
     },
 

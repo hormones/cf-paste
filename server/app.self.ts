@@ -16,6 +16,7 @@ const app = express()
 // Configure middleware based on content type
 app.use((req, res, next) => {
   const contentType = req.headers['content-type'] || ''
+
   // For json requests
   if (contentType.includes('application/json')) {
     express.json()(req, res, next)

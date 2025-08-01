@@ -1,5 +1,6 @@
-import { promises as fs } from 'fs'
+import { promises as fs, createReadStream, createWriteStream } from 'fs'
 import { dirname, join } from 'path'
+import { pipeline } from 'stream/promises'
 import {
   AbortMultipartUploadOptions,
   CompleteMultipartUploadOptions,
@@ -26,15 +27,6 @@ const ensureDir = async (path: string) => {
   } catch {
     await fs.mkdir(path, { recursive: true })
   }
-}
-
-const bufferToStream = (buffer: Buffer): ReadableStream<Uint8Array> => {
-  return new ReadableStream({
-    start(controller) {
-      controller.enqueue(buffer)
-      controller.close()
-    },
-  })
 }
 
 const streamToBuffer = async (stream: any): Promise<Buffer> => {
@@ -107,11 +99,33 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
       const filePath = join(storagePath, options.prefix, options.name)
       await ensureDir(dirname(filePath))
 
-      const buffer = await streamToBuffer(options.stream)
-      await fs.writeFile(filePath, buffer)
+      // 使用流式写入，避免将整个文件加载到内存
+      if (options.stream && typeof (options.stream as any).pipe === 'function') {
+        // Node.js ReadableStream - 真正的流式处理
+        const readableStream = options.stream as NodeJS.ReadableStream
+        const writeStream = createWriteStream(filePath)
 
-      return {
-        key: `${options.prefix}/${options.name}`,
+        return new Promise((resolve, reject) => {
+          writeStream.on('error', reject)
+          readableStream.on('error', reject)
+
+          writeStream.on('finish', () => {
+            resolve({
+              key: `${options.prefix}/${options.name}`,
+            })
+          })
+
+          // 流式复制，支持背压控制
+          readableStream.pipe(writeStream)
+        })
+      } else {
+        // 对于其他类型（Buffer、ArrayBuffer等），保持原有逻辑
+        const buffer = await streamToBuffer(options.stream)
+        await fs.writeFile(filePath, buffer)
+
+        return {
+          key: `${options.prefix}/${options.name}`,
+        }
       }
     },
 
@@ -163,7 +177,6 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
           const body = new ReadableStream<Uint8Array>({
             async start(controller) {
               try {
-                const { createReadStream } = await import('fs')
                 const stream = createReadStream(filePath, { start, end: actualEnd })
 
                 stream.on('data', (chunk: string | Buffer) => {
@@ -190,9 +203,15 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
             headers,
             body,
             text: async () => {
-              // For text conversion, we need to read the range
-              const buffer = await fs.readFile(filePath)
-              return buffer.subarray(start, actualEnd + 1).toString('utf-8')
+              // 使用流式读取指定范围，避免读取整个文件
+              const stream = createReadStream(filePath, { start, end: actualEnd })
+              const chunks: Buffer[] = []
+
+              for await (const chunk of stream) {
+                chunks.push(chunk)
+              }
+
+              return Buffer.concat(chunks).toString('utf-8')
             },
           }
         }
@@ -207,7 +226,6 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
         const body = new ReadableStream<Uint8Array>({
           async start(controller) {
             try {
-              const { createReadStream } = await import('fs')
               const stream = createReadStream(filePath)
 
               stream.on('data', (chunk: string | Buffer) => {
@@ -234,8 +252,15 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
           headers,
           body,
           text: async () => {
-            const buffer = await fs.readFile(filePath)
-            return buffer.toString('utf-8')
+            // 使用流式读取，对大文件更友好
+            const stream = createReadStream(filePath)
+            const chunks: Buffer[] = []
+
+            for await (const chunk of stream) {
+              chunks.push(chunk)
+            }
+
+            return Buffer.concat(chunks).toString('utf-8')
           },
         }
       } catch (error) {
@@ -355,7 +380,6 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
       } else if (options.data && typeof (options.data as any).pipe === 'function') {
         // Node.js ReadableStream - true streaming with backpressure support
         const nodeStream = options.data as NodeJS.ReadableStream
-        const { createWriteStream } = await import('fs')
 
         return new Promise((resolve, reject) => {
           const writeStream = createWriteStream(partPath)
@@ -397,17 +421,53 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
       await ensureDir(dirname(filePath))
 
       const parts = options.parts.sort((a, b) => a.partNumber - b.partNumber)
-      const buffers: Buffer[] = []
 
-      for (const part of parts) {
-        const partPath = join(uploadDir, `part_${part.partNumber}`)
-        const buffer = await fs.readFile(partPath)
-        buffers.push(buffer)
+      // 使用流式合并，避免将所有分片同时加载到内存
+      const writeStream = createWriteStream(filePath)
+
+      try {
+        // 逐个流式合并分片，内存使用恒定
+        for (const part of parts) {
+          const partPath = join(uploadDir, `part_${part.partNumber}`)
+
+          // 检查分片文件是否存在
+          try {
+            await fs.access(partPath)
+          } catch (error) {
+            writeStream.destroy()
+            throw new Error(`Part ${part.partNumber} not found: ${partPath}`)
+          }
+
+          const readStream = createReadStream(partPath)
+
+          // 使用 pipeline 进行流式复制，支持背压控制
+          await pipeline(readStream, writeStream, { end: false })
+        }
+
+        // 完成写入
+        writeStream.end()
+
+        // 等待写入完成
+        await new Promise<void>((resolve, reject) => {
+          writeStream.on('finish', resolve)
+          writeStream.on('error', reject)
+        })
+      } catch (error) {
+        // 确保在出错时清理资源
+        writeStream.destroy()
+
+        // 如果合并失败，删除可能的部分文件
+        try {
+          await fs.unlink(filePath)
+        } catch {
+          // 忽略删除失败的错误
+        }
+
+        console.error('Multipart upload completion failed:', error)
+        throw error
       }
 
-      const finalBuffer = Buffer.concat(buffers)
-      await fs.writeFile(filePath, finalBuffer)
-
+      // 清理临时文件和目录
       await fs.rm(uploadDir, { recursive: true, force: true })
 
       return {

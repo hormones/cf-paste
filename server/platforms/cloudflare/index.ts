@@ -9,6 +9,12 @@ export function createRequest(request: Request, env: Env): IRequest {
   const edit = url.pathname.startsWith('/api/v/') ? 0 : 1
   const word = edit ? url.pathname.split('/')[2] : ''
   const view_word = edit ? '' : url.pathname.split('/')[3]
+  const params: Record<string, string> = {}
+  if (url.searchParams) {
+    url.searchParams.forEach((value, key) => {
+      params[key] = value
+    })
+  }
 
   return {
     edit,
@@ -17,7 +23,7 @@ export function createRequest(request: Request, env: Env): IRequest {
     language: env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
     ip: request.headers.get('cf-connecting-ip') || 'unknown',
     location: request.headers.get('cf-ipcountry') || 'unknown',
-    params: {},
+    params: params,
     request,
     json: () => request.json(),
     text: () => request.text(),
@@ -27,7 +33,7 @@ export function createRequest(request: Request, env: Env): IRequest {
     t: (key: string, params?: Record<string, string | number>) => {
       // TODO: implement i18n translation
       return key
-    }
+    },
   }
 }
 
@@ -39,13 +45,13 @@ export function createContext(env: Env): IContext {
     MAX_FILES: parseInt(env.MAX_FILES || DEFAULT_CONFIG.MAX_FILES.toString()),
     CHUNK_SIZE: parseInt(env.CHUNK_SIZE || DEFAULT_CONFIG.CHUNK_SIZE.toString()),
     CHUNK_THRESHOLD: parseInt(env.CHUNK_THRESHOLD || DEFAULT_CONFIG.CHUNK_THRESHOLD.toString()),
-    LANGUAGE: env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE
+    LANGUAGE: env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
   }
 
   const platformConfig: CloudflareConfig = {
     DB: env.DB,
     R2: env.R2,
-    ASSETS: env.ASSETS
+    ASSETS: env.ASSETS,
   }
 
   return {
@@ -55,25 +61,40 @@ export function createContext(env: Env): IContext {
     original: env,
     db: createD1Adapter(env.DB),
     storage: createR2Adapter(env.R2),
-    timer: null as any
+    timer: null as any,
   }
 }
 
 export function createResponse(apiResponse: ApiResponse): Response {
   const status = apiResponse.status || 200
+
+  // Handle streaming responses
+  if (apiResponse.streaming && apiResponse.data) {
+    const headers = new Headers(apiResponse.headers)
+
+    // For streaming responses, return the stream directly
+    if (apiResponse.data && typeof apiResponse.data.getReader === 'function') {
+      return new Response(apiResponse.data as ReadableStream, {
+        status,
+        headers,
+      })
+    }
+  }
+
+  // Regular JSON response
   const headers = new Headers({
     'Content-Type': 'application/json',
-    ...apiResponse.headers
+    ...apiResponse.headers,
   })
 
   const body = JSON.stringify({
     code: apiResponse.code,
     data: apiResponse.data,
-    msg: apiResponse.msg
+    msg: apiResponse.msg,
   })
 
   return new Response(body, {
     status,
-    headers
+    headers,
   })
 }

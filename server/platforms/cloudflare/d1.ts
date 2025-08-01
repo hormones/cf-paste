@@ -1,56 +1,24 @@
 import { DatabaseAdapter, WhereCondition, DatabaseOperation } from '../../types'
-import './worker-configuration.d.ts'
-
-const buildInsertSql = (table: string, data: Record<string, any>) => {
-  const keys = Object.keys(data)
-  const placeholders = keys.map(() => '?').join(', ')
-  return {
-    sql: `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`,
-    values: Object.values(data),
-  }
-}
-
-const buildUpdateSql = (table: string, data: Record<string, any>, where: WhereCondition[]) => {
-  const setClause = Object.keys(data)
-    .map((key) => `${key} = ?`)
-    .join(', ')
-  const whereClause = where
-    .map((condition) => {
-      const operator = condition.operator || '='
-      return `${condition.key} ${operator} ?`
-    })
-    .join(' AND ')
-  return {
-    sql: `UPDATE ${table} SET ${setClause} WHERE ${whereClause}`,
-    values: [...Object.values(data), ...where.map((w) => w.value)],
-  }
-}
-
-const buildDeleteSql = (table: string, where: WhereCondition[]) => {
-  const whereClause = where
-    .map((condition) => {
-      const operator = condition.operator || '='
-      return `${condition.key} ${operator} ?`
-    })
-    .join(' AND ')
-  return {
-    sql: `DELETE FROM ${table} WHERE ${whereClause}`,
-    values: where.map((w) => w.value),
-  }
-}
+import {
+  buildInsertSql,
+  buildUpdateSql,
+  buildDeleteSql,
+  buildSelectSql,
+} from '../../common/sql-builder'
 
 export function createD1Adapter(d1: D1Database): DatabaseAdapter {
   return {
-    async query<T = any>(sql: string, params?: any[]): Promise<T[]> {
+    async query<T = any>(table: string, where: WhereCondition[]): Promise<T[]> {
+      const { sql, values } = buildSelectSql(table, where)
       const stmt = d1.prepare(sql)
-      const result = params ? stmt.bind(...params) : stmt
+      const result = values.length > 0 ? stmt.bind(...values) : stmt
       return result.all().then((res) => res.results as T[])
     },
 
-    async first<T = any>(sql: string, params?: any[]): Promise<T | null> {
-      console.log('sql', sql, 'params', params)
+    async first<T = any>(table: string, where: WhereCondition[]): Promise<T | null> {
+      const { sql, values } = buildSelectSql(table, where)
       const stmt = d1.prepare(sql)
-      const result = params ? stmt.bind(...params) : stmt
+      const result = values.length > 0 ? stmt.bind(...values) : stmt
       const res = await result.first()
       return (res as T) || null
     },

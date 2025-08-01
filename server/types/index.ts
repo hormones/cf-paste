@@ -133,7 +133,7 @@ export interface UploadOptions {
   prefix: string
   name: string
   length: number
-  stream: any
+  stream: ReadableStream | ArrayBuffer | Uint8Array | any
 }
 
 export interface UploadResult {
