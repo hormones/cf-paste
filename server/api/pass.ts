@@ -1,5 +1,6 @@
 import { getDefaultLocale } from '../../shared/i18n'
 import { IRequest, IContext, ApiResponse } from '../types'
+import { Utils } from '../utils'
 import { Auth } from '../utils/auth'
 
 export async function handlePasswordVerify(req: IRequest, ctx: IContext): Promise<ApiResponse> {
@@ -11,19 +12,24 @@ export async function handlePasswordVerify(req: IRequest, ctx: IContext): Promis
     return {
       code: 410,
       msg: req.t('errors.contentNotFound'),
-      status: 410
+      status: 410,
     }
   }
   req.word = keyword.word
   req.view_word = keyword.view_word!
 
   if (keyword?.password) {
-    const isValid = await Auth.verifyPassword(ctx.config.AUTH_KEY, password, keyword.password, keyword.word)
+    const isValid = await Auth.verifyPassword(
+      ctx.config.AUTH_KEY,
+      keyword.word,
+      password,
+      keyword.password
+    )
     if (!isValid) {
       return {
         code: 403,
         msg: req.t('errors.incorrectPassword'),
-        status: 403
+        status: 403,
       }
     }
   }
@@ -33,7 +39,7 @@ export async function handlePasswordVerify(req: IRequest, ctx: IContext): Promis
   return {
     code: 0,
     data: {},
-    headers: { 'Set-Cookie': `auth=${authToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400` }
+    headers: { 'Set-Cookie': Utils.setCookie('auth', authToken, req) },
   }
 }
 
@@ -44,12 +50,12 @@ export async function handleGetConfig(req: IRequest, ctx: IContext): Promise<Api
     maxFiles: ctx.config.MAX_FILES,
     chunkSize: ctx.config.CHUNK_SIZE * 1024 * 1024,
     chunkThreshold: ctx.config.CHUNK_THRESHOLD * 1024 * 1024,
-    language: req.language === 'auto' ? getDefaultLocale() : req.language
+    language: req.language === 'auto' ? getDefaultLocale() : req.language,
   }
 
   return {
     code: 0,
-    data: config
+    data: config,
   }
 }
 

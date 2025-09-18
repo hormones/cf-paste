@@ -1,6 +1,7 @@
 import { createRequest, createContext, createResponse } from './platforms/cloudflare'
 import { registerRoutes } from './router/routes'
 import { router } from './router'
+import { Utils } from './utils'
 
 registerRoutes()
 
@@ -15,10 +16,7 @@ export default {
       const response = createResponse(apiResponse)
 
       if (req.clearCookie4auth) {
-        response.headers.append(
-          'Set-Cookie',
-          'authorization=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax'
-        )
+        response.headers.append('Set-Cookie', Utils.setCookie('auth', '', req))
       }
 
       if (req.cookie4language) {

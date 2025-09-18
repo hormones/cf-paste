@@ -35,7 +35,7 @@ export async function createData(req: IRequest, ctx: IContext): Promise<ApiRespo
 
   // Hash password if set
   if (keywordDB.password) {
-    keywordDB.password = await Auth.hashPassword(ctx.config.AUTH_KEY, keywordDB.password, req.word)
+    keywordDB.password = await Auth.hashPassword(ctx.config.AUTH_KEY, req.word, keywordDB.password)
   }
 
   // Upload content to storage
@@ -101,7 +101,7 @@ export async function updateSettings(req: IRequest, ctx: IContext): Promise<ApiR
       updateData.password = ''
     }
   } else if (newPassword !== Constant.PASSWORD_DISPLAY) {
-    const hashedPassword = await Auth.hashPassword(ctx.config.AUTH_KEY, newPassword, keyword.word)
+    const hashedPassword = await Auth.hashPassword(ctx.config.AUTH_KEY, keyword.word, newPassword)
     if (hashedPassword !== keyword.password) {
       passwordChanged = true
       updateData.password = hashedPassword

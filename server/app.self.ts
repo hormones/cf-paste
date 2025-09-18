@@ -43,8 +43,8 @@ app.use(express.static(path.join(__dirname, '../dist')))
 app.all('/api/:path(*)', async (req: express.Request, res: express.Response) => {
   try {
     console.log('route request', req.method, req.path)
-    const request = createRequest(req)
     const context = createContext(process.env) as IContext
+    const request = createRequest(req, context)
 
     const apiResponse = await router.dispatch(request, context)
 
@@ -55,7 +55,7 @@ app.all('/api/:path(*)', async (req: express.Request, res: express.Response) => 
     }
 
     if (request.clearCookie4auth) {
-      res.clearCookie('authorization')
+      res.clearCookie('auth')
     }
 
     if (request.cookie4language) {

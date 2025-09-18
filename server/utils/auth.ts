@@ -12,7 +12,6 @@ export const Auth = {
    * Hash password using Argon2id algorithm
    */
   hashPassword: async (key: string, word: string, password: string): Promise<string> => {
-    const startTime = Date.now()
     // Build salt: key + word to ensure uniqueness and security
     const saltInput = `${key}:${word}`
     const salt = new TextEncoder().encode(saltInput)
@@ -27,7 +26,7 @@ export const Auth = {
 
     // Convert Uint8Array to Base64 string for storage
     const hashBase64 = btoa(String.fromCharCode.apply(null, Array.from(hashBytes)))
-    console.log(`hash password for word [${word}]: ${Date.now() - startTime}ms`)
+    console.debug('hashPassword', key, word, password, hashBase64)
     return hashBase64
   },
   /**
@@ -37,10 +36,11 @@ export const Auth = {
     key: string,
     word: string,
     password: string,
-    hashedPassword: string,
+    hashedPassword: string
   ): Promise<boolean> => {
     try {
       const computedHash = await Auth.hashPassword(key, word, password)
+      console.debug('verifyPassword', hashedPassword, computedHash === hashedPassword)
       return computedHash === hashedPassword
     } catch (error) {
       console.error('Password verification failed:', error)

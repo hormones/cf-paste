@@ -1,5 +1,6 @@
 import { IRequest, IContext, ApiResponse, Middleware, Keyword } from '../types'
 import { Auth } from '../utils/auth'
+import { Utils } from '../utils'
 
 export const authMiddleware: Middleware = async (req: IRequest, ctx: IContext, next) => {
   try {
@@ -21,8 +22,8 @@ export const authMiddleware: Middleware = async (req: IRequest, ctx: IContext, n
     }
 
     const now = Date.now()
-    let c_authorization = getCookie(req, 'authorization') || ''
-    console.log('authentication', req.edit, req.word, req.view_word, c_authorization)
+    let c_auth = Utils.getCookie(req, 'auth') || ''
+    console.log('auth', req.edit, req.word, req.view_word, c_auth)
 
     let keyword: Keyword | null = await getKeyword(req, ctx)
     if (!req.edit && !keyword) {
@@ -41,14 +42,14 @@ export const authMiddleware: Middleware = async (req: IRequest, ctx: IContext, n
       req.clearCookie4auth = true
       await deleteKeyword(ctx, req.word)
       keyword = null
-      c_authorization = ''
+      c_auth = ''
     }
 
     if (!keyword || !keyword.password) {
       return await next()
     }
 
-    if (!c_authorization) {
+    if (!c_auth) {
       return {
         code: 401,
         msg: req.t('auth.enterPassword'),
@@ -56,15 +57,14 @@ export const authMiddleware: Middleware = async (req: IRequest, ctx: IContext, n
       }
     }
 
-    const a_authorization = await Auth.decrypt(ctx.config.AUTH_KEY, c_authorization)
-    console.log('a_authorization', a_authorization)
+    const a_auth = await Auth.decrypt(ctx.config.AUTH_KEY, c_auth)
+    console.log('a_auth', a_auth)
 
-    const [a_word, a_timestamp] = a_authorization.split(':')
+    const [a_word, a_timestamp] = a_auth.split(':')
     const timestamp = parseInt(a_timestamp)
 
     if (req.word !== a_word) {
       req.clearCookie4auth = true
-      console.error('authorization invalid, access denied')
       return {
         code: 403,
         msg: req.t('errors.accessDenied'),
@@ -74,21 +74,21 @@ export const authMiddleware: Middleware = async (req: IRequest, ctx: IContext, n
 
     if (now - timestamp > 1 * 24 * 60 * 60 * 1000) {
       req.clearCookie4auth = true
-      console.error('authorization expired, re-authentication required')
+      console.error('auth expired, re-auth required')
       return {
         code: 401,
         msg: req.t('errors.sessionExpired'),
         status: 401
       }
     }
-    console.log('authentication success')
+    console.log('auth success')
     return await next()
   } catch (err) {
     req.clearCookie4auth = true
-    console.error('authorization failed', err)
+    console.error('auth failed', err)
     return {
       code: 500,
-      msg: req.t('errors.authorizationFailed'),
+      msg: req.t('errors.authFailed'),
       status: 500
     }
   }
@@ -118,11 +118,4 @@ async function deleteKeyword(ctx: IContext, word: string): Promise<void> {
   await ctx.storage.delete({ prefix: word, name: 'index.txt' })
   await ctx.storage.deleteFolder({ prefix: `${word}/files` })
   await ctx.db.delete('keyword', [{ key: 'word', value: word }])
-}
-
-export const getCookie = (req: IRequest, name: string): string | null => {
-  const cookies = req.getHeader('Cookie')
-  if (!cookies) return null
-  const cookie = cookies.split(';').find((c) => c.trim().startsWith(`${name}=`))
-  return cookie ? cookie.split('=')[1] : null
 }

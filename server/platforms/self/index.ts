@@ -4,8 +4,42 @@ import { createSqliteAdapter } from './sqlite'
 import { createLocalStorageAdapter } from './local-storage'
 import { createNodeTimerAdapter } from './node-timer'
 import { DEFAULT_CONFIG } from '../../constants'
+import { t as translate, detectLanguageFromRequest } from '../../i18n'
 
-export function createRequest(request: ExpressRequest): IRequest {
+export function createContext(env: NodeJS.ProcessEnv): IContext {
+  const dbPath = env.DB_PATH || './data/database.sqlite'
+  const storagePath = env.STORAGE_PATH || './data/storage'
+
+  const config: CommonConfig = {
+    AUTH_KEY: env.AUTH_KEY || '',
+    MAX_FILE_SIZE: parseInt(env.MAX_FILE_SIZE || DEFAULT_CONFIG.MAX_FILE_SIZE.toString()),
+    MAX_TOTAL_SIZE: parseInt(env.MAX_TOTAL_SIZE || DEFAULT_CONFIG.MAX_TOTAL_SIZE.toString()),
+    MAX_FILES: parseInt(env.MAX_FILES || DEFAULT_CONFIG.MAX_FILES.toString()),
+    CHUNK_SIZE: parseInt(env.CHUNK_SIZE || DEFAULT_CONFIG.CHUNK_SIZE.toString()),
+    CHUNK_THRESHOLD: parseInt(env.CHUNK_THRESHOLD || DEFAULT_CONFIG.CHUNK_THRESHOLD.toString()),
+    LANGUAGE: env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
+  }
+
+  return {
+    platform: 'selfhost',
+    config,
+    platformConfig: {
+      database: {
+        type: 'sqlite',
+        path: env.DB_PATH || './data/database.sqlite',
+      },
+      storage: {
+        type: 'local',
+        path: env.STORAGE_PATH || './data/storage',
+      },
+    },
+    db: createSqliteAdapter(dbPath),
+    storage: createLocalStorageAdapter(storagePath),
+    timer: createNodeTimerAdapter(),
+  }
+}
+
+export function createRequest(request: ExpressRequest, context: IContext): IRequest {
   // match /api/word/* or /api/v/view_word/*
   const edit = request.path.startsWith('/api/v/') ? 0 : 1
   const word = edit ? request.path.split('/')[2] : ''
@@ -24,12 +58,16 @@ export function createRequest(request: ExpressRequest): IRequest {
     })
   }
 
+  const acceptLanguage = request.headers['accept-language']
+  const detectedLanguage = detectLanguageFromRequest(context.config.LANGUAGE, acceptLanguage)
+
   return {
     edit,
     word,
     view_word,
-    language: (request.query.language as string) || 'auto',
-    t: (key: string, params?: Record<string, string | number>) => key, // TODO: implement i18n
+    language: detectedLanguage,
+    t: (key: string, params?: Record<string, string | number>) =>
+      translate(detectedLanguage, key, params),
     request: request,
     ip: request.ip || request.socket.remoteAddress || '',
     location: '', // TODO: implement location detection
@@ -44,39 +82,6 @@ export function createRequest(request: ExpressRequest): IRequest {
       const value = request.headers[name.toLowerCase()]
       return Array.isArray(value) ? value[0] : value || null
     },
-  }
-}
-
-export function createContext(env: NodeJS.ProcessEnv): IContext {
-  const dbPath = env.DB_PATH || './data/database.sqlite'
-  const storagePath = env.STORAGE_PATH || './data/storage'
-
-  const commonConfig: CommonConfig = {
-    AUTH_KEY: env.AUTH_KEY || '',
-    MAX_FILE_SIZE: parseInt(env.MAX_FILE_SIZE || DEFAULT_CONFIG.MAX_FILE_SIZE.toString()),
-    MAX_TOTAL_SIZE: parseInt(env.MAX_TOTAL_SIZE || DEFAULT_CONFIG.MAX_TOTAL_SIZE.toString()),
-    MAX_FILES: parseInt(env.MAX_FILES || DEFAULT_CONFIG.MAX_FILES.toString()),
-    CHUNK_SIZE: parseInt(env.CHUNK_SIZE || DEFAULT_CONFIG.CHUNK_SIZE.toString()),
-    CHUNK_THRESHOLD: parseInt(env.CHUNK_THRESHOLD || DEFAULT_CONFIG.CHUNK_THRESHOLD.toString()),
-    LANGUAGE: env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
-  }
-
-  return {
-    platform: 'selfhost',
-    config: commonConfig,
-    platformConfig: {
-      database: {
-        type: 'sqlite',
-        path: env.DB_PATH || './data/database.sqlite',
-      },
-      storage: {
-        type: 'local',
-        path: env.STORAGE_PATH || './data/storage',
-      },
-    },
-    db: createSqliteAdapter(dbPath),
-    storage: createLocalStorageAdapter(storagePath),
-    timer: createNodeTimerAdapter(),
   }
 }
 

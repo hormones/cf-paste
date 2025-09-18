@@ -128,6 +128,7 @@
     "settingsSaveError": "保存设置失败，请重试",
     "invalidSettings": "设置参数无效，请检查后重试",
     "operationFailed": "操作失败，请重试",
+    "authFailed": "认证失败，请重试",
     "systemError": "系统异常，请稍后重试",
     "invalidRequest": "请求参数错误，请重试",
     "resourceNotFound": "资源不存在",

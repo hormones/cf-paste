@@ -1,3 +1,5 @@
+import { IRequest } from "../types"
+
 export const Utils = {
   /**
    * Generate random ID with different formats
@@ -145,5 +147,15 @@ export const Utils = {
       }
     }
     return variables
+  },
+  getCookie: (req: IRequest, name: string): string | null => {
+    const cookies = req.getHeader('Cookie')
+    if (!cookies) return null
+    const cookie = cookies.split(';').find((c) => c.trim().startsWith(`${name}=`))
+    return cookie ? cookie.split('=')[1] : null
+  },
+  setCookie: (name: string, value: string, req: IRequest) => {
+    const path = req.edit ? req.word : 'v/' + req.view_word
+    return `${name}=${value}; Path=/api/${path}; HttpOnly; SameSite=Lax; Max-Age=86400`
   },
 }

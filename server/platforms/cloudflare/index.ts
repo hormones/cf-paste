@@ -3,6 +3,7 @@ import { CloudflareConfig } from '../../types/platforms'
 import { DEFAULT_CONFIG } from '../../constants'
 import { createD1Adapter } from './d1'
 import { createR2Adapter } from './r2'
+import { t as translate } from '../../i18n'
 
 export function createRequest(request: Request, env: Env): IRequest {
   const url = new URL(request.url)
@@ -30,10 +31,8 @@ export function createRequest(request: Request, env: Env): IRequest {
     method: request.method,
     path: url.pathname,
     getHeader: (name: string) => request.headers.get(name),
-    t: (key: string, params?: Record<string, string | number>) => {
-      // TODO: implement i18n translation
-      return key
-    },
+    t: (key: string, params?: Record<string, string | number>) =>
+      translate(env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE, key, params),
   }
 }
 

@@ -128,6 +128,7 @@
     "settingsSaveError": "Failed to save settings, please try again",
     "invalidSettings": "Invalid settings, please check and try again",
     "operationFailed": "Operation failed, please try again",
+    "authFailed": "Authentication failed, please try again",
     "systemError": "System error, please try again later",
     "invalidRequest": "Invalid request, please try again",
     "resourceNotFound": "Resource not found",
