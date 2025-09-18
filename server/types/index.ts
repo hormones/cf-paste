@@ -30,7 +30,6 @@ export interface IRequest {
   // authentication cookies
   cookie4auth?: string
   clearCookie4auth?: boolean
-  cookie4language?: string
 }
 
 export interface IContext {

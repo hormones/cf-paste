@@ -3,38 +3,7 @@ import { CloudflareConfig } from '../../types/platforms'
 import { DEFAULT_CONFIG } from '../../constants'
 import { createD1Adapter } from './d1'
 import { createR2Adapter } from './r2'
-import { t as translate } from '../../i18n'
-
-export function createRequest(request: Request, env: Env): IRequest {
-  const url = new URL(request.url)
-  const edit = url.pathname.startsWith('/api/v/') ? 0 : 1
-  const word = edit ? url.pathname.split('/')[2] : ''
-  const view_word = edit ? '' : url.pathname.split('/')[3]
-  const params: Record<string, string> = {}
-  if (url.searchParams) {
-    url.searchParams.forEach((value, key) => {
-      params[key] = value
-    })
-  }
-
-  return {
-    edit,
-    word,
-    view_word,
-    language: env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
-    ip: request.headers.get('cf-connecting-ip') || 'unknown',
-    location: request.headers.get('cf-ipcountry') || 'unknown',
-    params: params,
-    request,
-    json: () => request.json(),
-    text: () => request.text(),
-    method: request.method,
-    path: url.pathname,
-    getHeader: (name: string) => request.headers.get(name),
-    t: (key: string, params?: Record<string, string | number>) =>
-      translate(env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE, key, params),
-  }
-}
+import { detectLanguageFromRequest, t as translate } from '../../i18n'
 
 export function createContext(env: Env): IContext {
   const commonConfig: CommonConfig = {
@@ -61,6 +30,40 @@ export function createContext(env: Env): IContext {
     db: createD1Adapter(env.DB),
     storage: createR2Adapter(env.R2),
     timer: null as any,
+  }
+}
+
+export function createRequest(request: Request, env: Env, context: IContext): IRequest {
+  const url = new URL(request.url)
+  const edit = url.pathname.startsWith('/api/v/') ? 0 : 1
+  const word = edit ? url.pathname.split('/')[2] : ''
+  const view_word = edit ? '' : url.pathname.split('/')[3]
+  const params: Record<string, string> = {}
+  if (url.searchParams) {
+    url.searchParams.forEach((value, key) => {
+      params[key] = value
+    })
+  }
+
+  const country = request.cf?.country?.toString() || ''
+  const detectedLanguage = detectLanguageFromRequest(context.config.LANGUAGE, undefined, country)
+
+  return {
+    edit,
+    word,
+    view_word,
+    language: detectedLanguage,
+    t: (key: string, params?: Record<string, string | number>) =>
+      translate(detectedLanguage, key, params),
+    ip: request.headers.get('cf-connecting-ip') || 'unknown',
+    location: request.cf?.country?.toString() || 'unknown',
+    params: params,
+    request,
+    json: () => request.json(),
+    text: () => request.text(),
+    method: request.method,
+    path: url.pathname,
+    getHeader: (name: string) => request.headers.get(name),
   }
 }
 

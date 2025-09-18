@@ -37,6 +37,7 @@ function inferLocaleFromCountry(country: string): Locale | null {
     TW: 'zh-CN',
     HK: 'zh-CN',
     SG: 'zh-CN',
+    US: 'en',
   }
 
   return countryToLocale[country.toUpperCase()] || null

@@ -9,21 +9,14 @@ export default {
   async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     console.log('route request', request.url)
     try {
-      const req = createRequest(request, env)
       const context = createContext(env)
+      const req = createRequest(request, env, context)
 
       const apiResponse = await router.dispatch(req, context)
       const response = createResponse(apiResponse)
 
       if (req.clearCookie4auth) {
         response.headers.append('Set-Cookie', Utils.setCookie('auth', '', req))
-      }
-
-      if (req.cookie4language) {
-        response.headers.append(
-          'Set-Cookie',
-          `language=${req.cookie4language}; Path=/; Max-Age=31536000; SameSite=Lax`
-        )
       }
 
       return response

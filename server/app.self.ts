@@ -58,14 +58,6 @@ app.all('/api/:path(*)', async (req: express.Request, res: express.Response) => 
       res.clearCookie('auth')
     }
 
-    if (request.cookie4language) {
-      res.cookie('language', request.cookie4language, {
-        maxAge: 365 * 24 * 60 * 60 * 1000,
-        httpOnly: false,
-        sameSite: 'lax',
-      })
-    }
-
     // Handle streaming responses
     if (apiResponse.streaming && apiResponse.data) {
       // For streaming responses, send the stream directly
