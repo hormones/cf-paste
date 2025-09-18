@@ -39,10 +39,35 @@ export default defineConfig({
 		}),
 	].filter(Boolean),
 	server: {
+		port: 5173,
+		host: true, // 允许外部访问
+		open: true, // 自动打开浏览器
+		cors: true, // 启用CORS
 		proxy: isCloudflare ? {
 			'/api': {
 				target: 'http://localhost:8787',
 				changeOrigin: true,
+				configure: (proxy) => {
+					proxy.on('error', (err) => {
+						console.log('Cloudflare proxy error:', err)
+					})
+				}
+			}
+		} : process.env.PLATFORM === 'selfhost' ? {
+			'/api': {
+				target: 'http://localhost:3000',
+				changeOrigin: true,
+				secure: false,
+				ws: true, // 支持WebSocket
+				configure: (proxy) => {
+					proxy.on('error', (err) => {
+						console.log('Backend proxy error:', err)
+						console.log('Make sure the backend server is running at http://localhost:3000')
+					})
+					proxy.on('proxyReq', (proxyReq, req) => {
+						console.log('\x1b[32m%s\x1b[0m', `[Proxy] ${req.method} ${req.url} -> http://localhost:3000${req.url}`)
+					})
+				}
 			}
 		} : undefined,
 	},
