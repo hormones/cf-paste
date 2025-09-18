@@ -30,6 +30,7 @@ coverage
 *.tsbuildinfo
 
 data
+.env
 
 # wrangler files
 .wrangler

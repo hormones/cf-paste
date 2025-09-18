@@ -1,23 +1,9 @@
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
-import { IRequest, IContext, ApiResponse } from '../../types'
+import { IRequest, IContext, ApiResponse, CommonConfig } from '../../types'
 import { createSqliteAdapter } from './sqlite'
 import { createLocalStorageAdapter } from './local-storage'
 import { createNodeTimerAdapter } from './node-timer'
-import { Utils } from '../../utils'
-
-const extractParams = (path: string): Record<string, string> => {
-  const params: Record<string, string> = {}
-  const sp = path.split('?')
-  if (sp.length > 1) {
-    const query = sp[1]
-    const queryParams = query.split('&')
-    for (const param of queryParams) {
-      const [key, value] = param.split('=')
-      params[key] = value
-    }
-  }
-  return params
-}
+import { DEFAULT_CONFIG } from '../../constants'
 
 export function createRequest(request: ExpressRequest): IRequest {
   // match /api/word/* or /api/v/view_word/*
@@ -45,7 +31,7 @@ export function createRequest(request: ExpressRequest): IRequest {
     language: (request.query.language as string) || 'auto',
     t: (key: string, params?: Record<string, string | number>) => key, // TODO: implement i18n
     request: request,
-    ip: request.ip || request.connection.remoteAddress || '',
+    ip: request.ip || request.socket.remoteAddress || '',
     location: '', // TODO: implement location detection
     params,
     contentType: contentType || '',
@@ -65,17 +51,19 @@ export function createContext(env: NodeJS.ProcessEnv): IContext {
   const dbPath = env.DB_PATH || './data/database.sqlite'
   const storagePath = env.STORAGE_PATH || './data/storage'
 
+  const commonConfig: CommonConfig = {
+    AUTH_KEY: env.AUTH_KEY || '',
+    MAX_FILE_SIZE: parseInt(env.MAX_FILE_SIZE || DEFAULT_CONFIG.MAX_FILE_SIZE.toString()),
+    MAX_TOTAL_SIZE: parseInt(env.MAX_TOTAL_SIZE || DEFAULT_CONFIG.MAX_TOTAL_SIZE.toString()),
+    MAX_FILES: parseInt(env.MAX_FILES || DEFAULT_CONFIG.MAX_FILES.toString()),
+    CHUNK_SIZE: parseInt(env.CHUNK_SIZE || DEFAULT_CONFIG.CHUNK_SIZE.toString()),
+    CHUNK_THRESHOLD: parseInt(env.CHUNK_THRESHOLD || DEFAULT_CONFIG.CHUNK_THRESHOLD.toString()),
+    LANGUAGE: env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
+  }
+
   return {
     platform: 'selfhost',
-    config: {
-      AUTH_KEY: env.AUTH_KEY || '',
-      MAX_FILE_SIZE: parseInt(env.MAX_FILE_SIZE || '300'),
-      MAX_TOTAL_SIZE: parseInt(env.MAX_TOTAL_SIZE || '300'),
-      MAX_FILES: parseInt(env.MAX_FILES || '10'),
-      CHUNK_SIZE: parseInt(env.CHUNK_SIZE || '50'),
-      CHUNK_THRESHOLD: parseInt(env.CHUNK_THRESHOLD || '100'),
-      LANGUAGE: env.LANGUAGE || 'auto',
-    },
+    config: commonConfig,
     platformConfig: {
       database: {
         type: 'sqlite',

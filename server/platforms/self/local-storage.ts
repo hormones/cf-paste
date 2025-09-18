@@ -276,7 +276,10 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
 
     async delete(options: DeleteOptions): Promise<void> {
       const filePath = join(storagePath, options.prefix, options.name)
-      await fs.unlink(filePath)
+      // delete file if exists
+      if (await fs.access(filePath).then(() => true).catch(() => false)) {
+        await fs.unlink(filePath)
+      }
     },
 
     async list(options: ListOptions): Promise<ListResult> {

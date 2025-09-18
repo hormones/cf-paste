@@ -102,7 +102,7 @@ const transform: InterceptorHooks = {
       return Promise.reject(err)
     }
     const message =
-      err.response.data?.error || mapErrorStatus.get(err.response.status) || t('errors.operationFailed')
+      err.response.data?.msg || mapErrorStatus.get(err.response.status) || t('errors.operationFailed')
     // Log detailed error information for debugging
     console.error('HTTP error details:', {
       status: err.response.status,

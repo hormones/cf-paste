@@ -26,21 +26,21 @@ export function createSqliteAdapter(dbPath: string): DatabaseAdapter {
       const { sql, values } = buildInsertSql(table, data)
       const stmt = db.prepare(sql)
       const result = stmt.run(values)
-      return { lastInsertRowid: result.lastInsertRowid, changes: result.changes }
+      return result.lastInsertRowid
     },
 
     async update(table: string, data: Record<string, any>, where: WhereCondition[]): Promise<any> {
       const { sql, values } = buildUpdateSql(table, data, where)
       const stmt = db.prepare(sql)
       const result = stmt.run(values)
-      return { changes: result.changes }
+      return result.changes
     },
 
     async delete(table: string, where: WhereCondition[]): Promise<any> {
       const { sql, values } = buildDeleteSql(table, where)
       const stmt = db.prepare(sql)
       const result = stmt.run(values)
-      return { changes: result.changes }
+      return result.changes
     },
 
     async batch(operations: DatabaseOperation[]): Promise<any[]> {

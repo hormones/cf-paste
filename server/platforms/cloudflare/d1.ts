@@ -27,21 +27,24 @@ export function createD1Adapter(d1: D1Database): DatabaseAdapter {
       const { sql, values } = buildInsertSql(table, data)
       const stmt = d1.prepare(sql)
       const result = stmt.bind(...values)
-      return result.run()
+      const runResult = await result.run()
+      return runResult.meta?.last_row_id || runResult.success
     },
 
     async update(table: string, data: Record<string, any>, where: WhereCondition[]): Promise<any> {
       const { sql, values } = buildUpdateSql(table, data, where)
       const stmt = d1.prepare(sql)
       const result = stmt.bind(...values)
-      return result.run()
+      const runResult = await result.run()
+      return runResult.meta?.changes || 0
     },
 
     async delete(table: string, where: WhereCondition[]): Promise<any> {
       const { sql, values } = buildDeleteSql(table, where)
       const stmt = d1.prepare(sql)
       const result = stmt.bind(...values)
-      return result.run()
+      const runResult = await result.run()
+      return runResult.meta?.changes || 0
     },
 
     async batch(operations: DatabaseOperation[]): Promise<any[]> {

@@ -3,11 +3,11 @@ import { Auth } from '../utils/auth'
 
 export const authMiddleware: Middleware = async (req: IRequest, ctx: IContext, next) => {
   try {
-    const urlPrefix = req.edit ? req.word : 'v/' + req.view_word
-    if (req.path.startsWith(`/api/${urlPrefix}/pass/`)) {
-      console.log('request pass', req.path)
-      return await next()
-    }
+    // const urlPrefix = req.edit ? req.word : 'v/' + req.view_word
+    // if (req.path.startsWith(`/api/${urlPrefix}/pass/`)) {
+    //   console.log('request pass', req.path)
+    //   return await next()
+    // }
 
     if (!req.edit) {
       if (req.method === 'PUT' || req.method === 'POST' || req.method === 'DELETE') {

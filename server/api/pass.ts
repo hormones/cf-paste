@@ -1,3 +1,4 @@
+import { getDefaultLocale } from '../../shared/i18n'
 import { IRequest, IContext, ApiResponse } from '../types'
 import { Auth } from '../utils/auth'
 
@@ -43,7 +44,7 @@ export async function handleGetConfig(req: IRequest, ctx: IContext): Promise<Api
     maxFiles: ctx.config.MAX_FILES,
     chunkSize: ctx.config.CHUNK_SIZE * 1024 * 1024,
     chunkThreshold: ctx.config.CHUNK_THRESHOLD * 1024 * 1024,
-    language: req.language
+    language: req.language === 'auto' ? getDefaultLocale() : req.language
   }
 
   return {

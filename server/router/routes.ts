@@ -31,14 +31,14 @@ export function registerRoutes() {
     middleware: [authMiddleware]
   })
   router.register({
-    path: '/api/:word/settings',
-    method: 'PUT',
+    path: '/api/:word/data/settings',
+    method: 'PATCH',
     handler: dataApi.updateSettings,
     middleware: [authMiddleware]
   })
   router.register({
-    path: '/api/:word/view_word',
-    method: 'PUT',
+    path: '/api/:word/data/view_word',
+    method: 'PATCH',
     handler: dataApi.updateViewWord,
     middleware: [authMiddleware]
   })
@@ -140,12 +140,10 @@ export function registerRoutes() {
     path: '/api/v/:view_word/pass/verify',
     method: 'POST',
     handler: passApi.handlePasswordVerify,
-    middleware: [authMiddleware]
   })
   router.register({
     path: '/api/v/:view_word/pass/config',
     method: 'GET',
     handler: passApi.handleGetConfig,
-    middleware: [authMiddleware]
   })
 }

@@ -5,6 +5,17 @@ import { registerRoutes } from './router/routes'
 import { router } from './router'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import dotenv from 'dotenv'
+
+// Load environment variables from .env file
+dotenv.config()
+
+// check env config AUTH_KEY
+// console.log(process.env)
+if (!process.env.AUTH_KEY) {
+  console.error('AUTH_KEY is not set!')
+  process.exit(1)
+}
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
