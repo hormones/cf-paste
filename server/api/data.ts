@@ -1,6 +1,6 @@
 import { ApiResponse, IContext, IRequest, Keyword } from '../types'
 import { Utils } from '../utils'
-import { Auth } from '../utils/auth'
+import { Crypto } from '../utils/crypto'
 import { Constant, EXPIRY_VALUES } from '../constants'
 
 export async function getData(req: IRequest, ctx: IContext): Promise<ApiResponse> {
@@ -33,9 +33,8 @@ export async function createData(req: IRequest, ctx: IContext): Promise<ApiRespo
   const { content, ...keywordDB } = data
   keywordDB.word = req.word
 
-  // Hash password if set
   if (keywordDB.password) {
-    keywordDB.password = await Auth.hashPassword(ctx.config.AUTH_KEY, req.word, keywordDB.password)
+    keywordDB.password = await Crypto.hashPassword(ctx.config.AUTH_KEY, req.word, keywordDB.password)
   }
 
   // Upload content to storage
@@ -101,7 +100,7 @@ export async function updateSettings(req: IRequest, ctx: IContext): Promise<ApiR
       updateData.password = ''
     }
   } else if (newPassword !== Constant.PASSWORD_DISPLAY) {
-    const hashedPassword = await Auth.hashPassword(ctx.config.AUTH_KEY, keyword.word, newPassword)
+    const hashedPassword = await Crypto.hashPassword(ctx.config.AUTH_KEY, keyword.word, newPassword)
     if (hashedPassword !== keyword.password) {
       passwordChanged = true
       updateData.password = hashedPassword
@@ -126,7 +125,7 @@ export async function updateSettings(req: IRequest, ctx: IContext): Promise<ApiR
 
     const headers: Record<string, string> = {}
     if (passwordChanged && updateData.password) {
-      const authToken = await Auth.encrypt(ctx.config.AUTH_KEY, `${keyword.word}:${Date.now()}`)
+      const authToken = await Crypto.encrypt(ctx.config.AUTH_KEY, `${keyword.word}:${Date.now()}`)
       headers['Set-Cookie'] = `auth=${authToken}; Path=/; HttpOnly`
     }
 

@@ -54,9 +54,7 @@ body {
   min-height: 100vh;
   color: var(--color-text);
   background: var(--color-background);
-  transition:
-    color 0.5s,
-    background-color 0.5s;
+    transition: background-color 0.5s, color 0.5s, border-color 0.5s;
   line-height: 1.6;
   font-family:
     Inter,
@@ -86,25 +84,9 @@ main {
   overflow: hidden; /* App root must not scroll */
 }
 
-/* Element Plus dialog backdrop blur transition effects */
-
-/* Overlay transitions for both opacity and backdrop-filter */
-.el-overlay {
-  transition:
-    opacity var(--el-transition-duration),
-    backdrop-filter var(--el-transition-duration);
-  -webkit-transition:
-    opacity var(--el-transition-duration),
-    -webkit-backdrop-filter var(--el-transition-duration);
-  /* Default end state with blur effect */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-/* Reset blur effect to 0 in animation start/end frames */
-.el-fade-in-linear-enter-from,
-.el-fade-in-linear-leave-to {
-  opacity: 0;
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
+.cm-editor,
+.el-upload-dragger,
+.el-table__row,
+.el-table__cell {
+    transition: background-color 0.5s, color 0.5s, border-color 0.5s !important;
 }

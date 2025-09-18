@@ -1,7 +1,7 @@
 import CryptoJS from 'crypto-js'
 import { argon2id } from '@noble/hashes/argon2'
 
-export const Auth = {
+export const Crypto = {
   encrypt: async (key: string, data: string) => {
     return CryptoJS.AES.encrypt(data, key).toString()
   },
@@ -39,7 +39,7 @@ export const Auth = {
     hashedPassword: string
   ): Promise<boolean> => {
     try {
-      const computedHash = await Auth.hashPassword(key, word, password)
+      const computedHash = await Crypto.hashPassword(key, word, password)
       console.debug('verifyPassword', hashedPassword, computedHash === hashedPassword)
       return computedHash === hashedPassword
     } catch (error) {

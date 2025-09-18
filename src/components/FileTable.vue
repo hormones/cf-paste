@@ -83,22 +83,6 @@ const handleFileDelete = async (file: FileInfo) => {
 </script>
 
 <style scoped>
-:deep(.el-table),
-:deep(.el-table__header-wrapper),
-:deep(.el-table__header),
-:deep(.el-table__header th),
-:deep(.el-table__body-wrapper),
-:deep(.el-table__body),
-:deep(.el-table__body td),
-:deep(.el-table__row),
-:deep(.el-table__row:hover td),
-:deep(.el-table__empty-block),
-:deep(.el-table__empty-text),
-:deep(.el-button),
-:deep(.el-scrollbar__view) {
-  transition: background-color 0.5s, color 0.5s, border-color 0.5s;
-}
-
 :deep(.el-button) {
   padding: 0 4px;
 }

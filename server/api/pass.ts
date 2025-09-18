@@ -1,7 +1,7 @@
 import { getDefaultLocale } from '../../shared/i18n'
 import { IRequest, IContext, ApiResponse } from '../types'
 import { Utils } from '../utils'
-import { Auth } from '../utils/auth'
+import { Crypto } from '../utils/crypto'
 
 export async function handlePasswordVerify(req: IRequest, ctx: IContext): Promise<ApiResponse> {
   const { password } = await req.json()
@@ -19,7 +19,7 @@ export async function handlePasswordVerify(req: IRequest, ctx: IContext): Promis
   req.view_word = keyword.view_word!
 
   if (keyword?.password) {
-    const isValid = await Auth.verifyPassword(
+    const isValid = await Crypto.verifyPassword(
       ctx.config.AUTH_KEY,
       keyword.word,
       password,
@@ -34,7 +34,7 @@ export async function handlePasswordVerify(req: IRequest, ctx: IContext): Promis
     }
   }
 
-  const authToken = await Auth.encrypt(ctx.config.AUTH_KEY, `${keyword!.word!}:${Date.now()}`)
+  const authToken = await Crypto.encrypt(ctx.config.AUTH_KEY, `${keyword!.word!}:${Date.now()}`)
 
   return {
     code: 0,

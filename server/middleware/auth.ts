@@ -1,5 +1,5 @@
 import { IRequest, IContext, ApiResponse, Middleware, Keyword } from '../types'
-import { Auth } from '../utils/auth'
+import { Crypto } from '../utils/crypto'
 import { Utils } from '../utils'
 
 export const authMiddleware: Middleware = async (req: IRequest, ctx: IContext, next) => {
@@ -57,7 +57,7 @@ export const authMiddleware: Middleware = async (req: IRequest, ctx: IContext, n
       }
     }
 
-    const a_auth = await Auth.decrypt(ctx.config.AUTH_KEY, c_auth)
+    const a_auth = await Crypto.decrypt(ctx.config.AUTH_KEY, c_auth)
     console.log('a_auth', a_auth)
 
     const [a_word, a_timestamp] = a_auth.split(':')
