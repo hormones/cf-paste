@@ -21,12 +21,15 @@
 - [x] **大文件上传**：突破 Cloudflare Workers 的 100MB 上传限制
 - [x] **多格式支持**：支持分享文本和文件
 - [x] **批量上传**：支持最多 10 个文件，总大小不超过 300MB（可通过修改配置调整）
+
+  > Cloudflare Workers部署时，总大小最好不要超过 512MB，参见：[response-limits](https://developers.cloudflare.com/workers/platform/limits/#response-limits)
 - [x] **匿名分享**：无需注册登录，保护隐私
 - [x] **密码保护**：为分享内容设置访问密码
 - [x] **自定义有效期**：过期后自动删除，可选 1 小时到 2 年等多个时间段
-- [x] **多语言支持**：支持中文和英文
+- [x] **多语言支持**：目前仅支持中文和英文
 - [x] **Markdown 支持**：支持 Markdown，支持**实时预览**、代码语法高亮、流程图渲染
-- [ ] **文件预览**：支持文件预览
+- [ ] **文件预览**：支持文件在线预览
+- [ ] **Docker部署**
 
 ## 🚀 在线演示
 
@@ -85,7 +88,7 @@
       # 将 schema.sql 应用到远程数据库
       npx wrangler d1 execute cf-paste --remote --file=./schema.sql
       # 部署到 Cloudflare
-      npm run deploy
+      npm run deploy:cf
       ```
 
     - **本地开发**
@@ -93,7 +96,7 @@
       # 将 schema.sql 应用到本地数据库
       npx wrangler d1 execute cf-paste --local --file=./schema.sql
       # 启动本地开发服务器
-      npm run preview
+      npm run dev:cf
       ```
 
 ### 方式二：Node.js 自托管部署
@@ -120,7 +123,7 @@
 
     ```bash
     # 初始化 SQLite 数据库
-    npm run db:init
+    npm run db:init:self
     ```
 
 4.  **启动服务**
@@ -128,16 +131,14 @@
     - **生产环境**
 
       ```bash
-      # 构建项目
-      npm run build
       # 启动生产服务器
-      npm run start
+      npm run deploy:self
       ```
-
+      
     - **开发环境**
       ```bash
       # 启动开发服务器
-      npm run dev
+      npm run dev:self
       ```
 
 ## 🏗️ 项目架构
