@@ -23,3 +23,30 @@ FOR EACH ROW
 BEGIN
     UPDATE keyword SET update_time = CURRENT_TIMESTAMP WHERE id = OLD.id;
 END;
+
+CREATE TABLE activity_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    action INTEGER NOT NULL,    -- 操作类型 1-新建/2-修改/3-删除/4-访问/5-自动过期（自动过期的ip、region等全部记录为-）
+    word_id INTEGER NOT NULL,  -- keyword表数据ID
+    word INTEGER NOT NULL,    -- 关键词
+    ip TEXT NOT NULL,          -- IP地址
+    country TEXT,              -- 国家代码
+    region TEXT,              -- 地区
+    action_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+);
+
+-- 访问/修改操作，如果10分钟内相同IP地址已经存在相同的操作，则更新，新建和删除每次都记录
+CREATE TRIGGER upsert_activity_log
+BEFORE INSERT ON activity_log
+FOR EACH ROW
+WHEN NEW.action IN (2,4)
+BEGIN
+    UPDATE activity_log
+    SET action_time = CURRENT_TIMESTAMP
+    WHERE word_id = NEW.word_id
+      AND action = NEW.action
+      AND ip = NEW.ip
+      AND action_time >= datetime(CURRENT_TIMESTAMP, '-10 minutes');
+
+    SELECT RAISE(IGNORE) WHERE changes() > 0;
+END;

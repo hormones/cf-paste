@@ -31,6 +31,8 @@ coverage
 
 data
 .env
+CLAUDE.md
+AI
 
 # wrangler files
 .wrangler
