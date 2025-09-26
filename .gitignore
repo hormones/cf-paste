@@ -33,6 +33,7 @@ data
 .env
 CLAUDE.md
 AI
+.claude
 
 # wrangler files
 .wrangler

@@ -1,8 +1,10 @@
 // Core business interfaces for platform-agnostic architecture
+import type { AdminOverviewResponse, AdminActivityResponse, AdminActivityRequest, AdminRankingResponse, AdminRankingRequest, AdminLogsRequest, AdminLogsResponse } from '../../shared/types/admin'
 
 export interface IRequest {
   // business parameters
   edit: number
+  id: number | null // the id of table: keyword
   word: string
   view_word: string
 
@@ -30,6 +32,10 @@ export interface IRequest {
   // authentication cookies
   cookie4auth?: string
   clearCookie4auth?: boolean
+
+  // admin authentication
+  isAdmin?: boolean
+  adminTokenTimestamp?: number
 }
 
 export interface IContext {
@@ -63,6 +69,12 @@ export interface DatabaseAdapter {
   delete(table: string, where: WhereCondition[]): Promise<any>
   batch(operations: DatabaseOperation[]): Promise<any[]>
   transaction<T>(callback: (tx: DatabaseAdapter) => Promise<T>): Promise<T>
+
+  // Admin statistics methods
+  getOverviewStats?(timeRange?: { start?: number; end?: number }): Promise<AdminOverviewResponse>
+  getActivityStats?(request: AdminActivityRequest): Promise<AdminActivityResponse>
+  getRankingStats?(request: AdminRankingRequest): Promise<AdminRankingResponse>
+  getActivityLogs?(request: AdminLogsRequest): Promise<AdminLogsResponse>
 }
 
 export interface StorageAdapter {
@@ -95,6 +107,7 @@ export interface CommonConfig {
   CHUNK_SIZE: number
   CHUNK_THRESHOLD: number
   LANGUAGE: string
+  ADMIN_DASH_PASSWORD?: string
 }
 
 // Routing and middleware interfaces
@@ -251,3 +264,4 @@ export type ExpiryOption = {
   label: string
   value: number
 }
+

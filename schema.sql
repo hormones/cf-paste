@@ -26,20 +26,21 @@ END;
 
 CREATE TABLE activity_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    action INTEGER NOT NULL,    -- 操作类型 1-新建/2-修改/3-删除/4-访问/5-自动过期（自动过期的ip、region等全部记录为-）
+    action INTEGER NOT NULL,    -- 操作类型，枚举：1-新建、2-修改正文、3-上传文件、4-下载文件、5-删除文件、6-访问、7-删除、99-自动过期（自动过期的ip、region等全部记录为-）
     word_id INTEGER NOT NULL,  -- keyword表数据ID
-    word INTEGER NOT NULL,    -- 关键词
+    word TEXT NOT NULL,        -- 关键词
     ip TEXT NOT NULL,          -- IP地址
     country TEXT,              -- 国家代码
-    region TEXT,              -- 地区
-    action_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    region TEXT,               -- 地区
+    desc TEXT,                 -- 操作描述（文件类操作，此字段记录文件名）
+    action_time DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 访问/修改操作，如果10分钟内相同IP地址已经存在相同的操作，则更新，新建和删除每次都记录
 CREATE TRIGGER upsert_activity_log
 BEFORE INSERT ON activity_log
 FOR EACH ROW
-WHEN NEW.action IN (2,4)
+WHEN NEW.action IN (2,6)  -- UPDATE_CONTENT=2, VIEW=6
 BEGIN
     UPDATE activity_log
     SET action_time = CURRENT_TIMESTAMP

@@ -35,6 +35,7 @@ export const authMiddleware: Middleware = async (req: IRequest, ctx: IContext, n
       }
     }
 
+    req.id = keyword?.id || null
     req.word = req.word || keyword?.word || ''
     req.view_word = req.view_word || keyword?.view_word || ''
 
