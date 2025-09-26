@@ -18,6 +18,7 @@ export function createContext(env: NodeJS.ProcessEnv): IContext {
     CHUNK_SIZE: parseInt(env.CHUNK_SIZE || DEFAULT_CONFIG.CHUNK_SIZE.toString()),
     CHUNK_THRESHOLD: parseInt(env.CHUNK_THRESHOLD || DEFAULT_CONFIG.CHUNK_THRESHOLD.toString()),
     LANGUAGE: env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
+    ADMIN_DASH_PASSWORD: env.ADMIN_DASH_PASSWORD,
   }
 
   return {
@@ -63,6 +64,7 @@ export function createRequest(request: ExpressRequest, context: IContext): IRequ
 
   return {
     edit,
+    id: null,
     word,
     view_word,
     language: detectedLanguage,

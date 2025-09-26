@@ -19,6 +19,10 @@ export function activityLogMiddleware(action?: Action): Middleware {
       return response
     }
 
+    if (action == Action.VIEW && !req.id) {
+      return response
+    }
+
     const logContext = extractLogContext(req)
     const activityLogger = createActivityLogger(ctx)
 
@@ -28,7 +32,7 @@ export function activityLogMiddleware(action?: Action): Middleware {
       await activityLogger.record({
         action,
         word: req.word,
-        wordId: req.id || null,
+        wordId: req.id,
         desc,
         context: logContext
       })

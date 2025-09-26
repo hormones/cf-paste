@@ -50,6 +50,7 @@ export function createRequest(request: Request, env: Env, context: IContext): IR
 
   return {
     edit,
+    id: null,
     word,
     view_word,
     language: detectedLanguage,

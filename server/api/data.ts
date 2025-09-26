@@ -41,6 +41,8 @@ export async function createData(req: IRequest, ctx: IContext): Promise<ApiRespo
   await uploadContent(req, ctx, content)
   const result = await ctx.db.insert('keyword', keywordDB)
 
+  console.log("create word success:", result)
+  req.id = result
   return { code: 0, data: result }
 }
 

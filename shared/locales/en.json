@@ -136,5 +136,139 @@
     "requestAddress": "Request address error",
     "accessDeniedWithPassword": "Access denied, please check password or permissions",
     "operationCancelled": "Operation cancelled"
+  },
+  "admin": {
+    "auth": {
+      "title": "Admin Login",
+      "password": "Admin Password",
+      "passwordPlaceholder": "Enter admin password",
+      "login": "Login",
+      "logout": "Logout",
+      "loginFailed": "Login failed, incorrect password",
+      "checking": "Checking authentication...",
+      "sessionExpired": "Session expired, please log in again"
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "subtitle": "System Statistics and Logs"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "logs": "Detailed Logs"
+    },
+    "theme": {
+      "switch": "Theme Switch"
+    },
+    "overview": {
+      "title": "Data Overview",
+      "timeRange": "Time Range",
+      "quickRanges": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "last7Days": "Last 7 Days",
+        "last30Days": "Last 30 Days",
+        "thisMonth": "This Month",
+        "lastMonth": "Last Month"
+      },
+      "refreshData": "Refresh Data",
+      "autoRefresh": "Auto Refresh"
+    },
+    "stats": {
+      "totalViews": "Total Views",
+      "totalCreated": "Total Created",
+      "activeIPs": "Active IPs",
+      "todayNew": "Today's New",
+      "clickToFilter": "Click to view details"
+    },
+    "activity": {
+      "title": "Activity Trends",
+      "loading": "Chart loading...",
+      "noData": "No data available",
+      "metrics": {
+        "all": "All",
+        "create": "Create",
+        "update": "Update",
+        "delete": "Delete",
+        "view": "View"
+      },
+      "granularity": {
+        "day": "Daily",
+        "month": "Monthly",
+        "year": "Yearly",
+        "all": "All"
+      }
+    },
+    "rankings": {
+      "title": "TOP 5 Rankings",
+      "topIPs": "Top IPs",
+      "topCountries": "Top Countries",
+      "topRegions": "Top Regions",
+      "clickToFilter": "Click to filter",
+      "noData": "No ranking data"
+    },
+    "logs": {
+      "title": "Activity Logs",
+      "activeFilters": "Active Filters",
+      "filtersDescription": "The following filters are currently applied to the log view:",
+      "fromOverview": "Filter applied from overview page",
+      "totalCount": "Total",
+      "noData": "No log data found",
+      "noDataDesc": "No activity logs match your current filters.",
+      "tryAdjustFilters": "Try adjusting your search filters or time range.",
+      "exactTime": "Exact time"
+    },
+    "filters": {
+      "keyword": "Keyword",
+      "keywordPlaceholder": "Enter keyword to search",
+      "ip": "IP Address",
+      "ipPlaceholder": "Enter IP address",
+      "action": "Action Type",
+      "actionPlaceholder": "Select action type",
+      "country": "Country",
+      "countryPlaceholder": "Enter country name",
+      "region": "Region",
+      "regionPlaceholder": "Enter region name",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter description",
+      "timeRange": "Time Range",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "actions": "Actions"
+    },
+    "actions": {
+      "all": "All Actions",
+      "search": "Search",
+      "reset": "Reset",
+      "export": "Export",
+      "exportData": "Export data",
+      "refresh": "Refresh"
+    },
+    "columns": {
+      "id": "ID",
+      "keyword": "Keyword",
+      "action": "Action",
+      "ip": "IP Address",
+      "location": "Location",
+      "description": "Description",
+      "time": "Time"
+    },
+    "actionLabels": {
+      "create": "Create",
+      "updateContent": "Update Content",
+      "uploadFile": "Upload File",
+      "downloadFile": "Download File",
+      "deleteFile": "Delete File",
+      "view": "View",
+      "delete": "Delete",
+      "autoExpire": "Auto Expire"
+    },
+    "errors": {
+      "loginFailed": "Login failed",
+      "fetchOverviewFailed": "Failed to fetch overview data",
+      "fetchActivityFailed": "Failed to fetch activity data",
+      "fetchRankingFailed": "Failed to fetch ranking data",
+      "fetchLogsFailed": "Failed to fetch logs data",
+      "exportFailed": "Export failed"
+    }
   }
 }

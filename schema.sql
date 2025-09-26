@@ -24,6 +24,7 @@ BEGIN
     UPDATE keyword SET update_time = CURRENT_TIMESTAMP WHERE id = OLD.id;
 END;
 
+DROP TABLE IF EXISTS activity_log;
 CREATE TABLE activity_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     action INTEGER NOT NULL,    -- 操作类型，枚举：1-新建、2-修改正文、3-上传文件、4-下载文件、5-删除文件、6-访问、7-删除、99-自动过期（自动过期的ip、region等全部记录为-）
@@ -37,7 +38,7 @@ CREATE TABLE activity_log (
 );
 
 -- 访问/修改操作，如果10分钟内相同IP地址已经存在相同的操作，则更新，新建和删除每次都记录
-CREATE TRIGGER upsert_activity_log
+CREATE TRIGGER IF NOT EXISTS  upsert_activity_log
 BEFORE INSERT ON activity_log
 FOR EACH ROW
 WHEN NEW.action IN (2,6)  -- UPDATE_CONTENT=2, VIEW=6
@@ -51,3 +52,23 @@ BEGIN
 
     SELECT RAISE(IGNORE) WHERE changes() > 0;
 END;
+
+-- Performance optimization indexes for admin queries
+-- Primary index for time-based queries (most frequent in admin dashboard)
+CREATE INDEX IF NOT EXISTS idx_activity_log_action_time ON activity_log(action_time);
+
+-- Composite index for action-specific queries with time filtering
+CREATE INDEX IF NOT EXISTS idx_activity_log_action_time_desc ON activity_log(action, action_time DESC);
+
+-- Index for IP-based queries (admin can filter by IP)
+CREATE INDEX IF NOT EXISTS idx_activity_log_ip ON activity_log(ip);
+
+-- Index for keyword-based queries (admin can search by keyword)
+CREATE INDEX IF NOT EXISTS idx_activity_log_word ON activity_log(word);
+
+-- Index for location-based queries (country/region filtering)
+CREATE INDEX IF NOT EXISTS idx_activity_log_country ON activity_log(country);
+CREATE INDEX IF NOT EXISTS idx_activity_log_region ON activity_log(region);
+
+-- Composite index for efficient trigger operation (word_id, action, ip, action_time)
+CREATE INDEX IF NOT EXISTS idx_activity_log_trigger ON activity_log(word_id, action, ip, action_time);

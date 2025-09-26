@@ -18,6 +18,8 @@ interface RequestOptions {
   logError?: boolean
   // Whether to skip response transformation
   skipResponseTransform?: boolean
+  // Whether to skip url prefix (for admin routes)
+  skipUrlPrefix?: boolean
 }
 
 // Extended custom request config
@@ -47,8 +49,13 @@ export interface InterceptorHooks {
 // Request interceptor
 const transform: InterceptorHooks = {
   requestInterceptor(config) {
-    // Dynamically construct URL
-    config.url = `${api.getUrlPrefix()}${config.url}`
+    // Dynamically construct URL - skip urlPrefix for admin routes
+    const expandedConfig = config as ExpandInternalAxiosRequestConfig
+    if (expandedConfig.added?.skipUrlPrefix) {
+      config.url = `/api${config.url}`
+    } else {
+      config.url = `${api.getUrlPrefix()}${config.url}`
+    }
     return config
   },
   requestInterceptorCatch(err) {

@@ -78,7 +78,7 @@
 
 4.  **Configure `wrangler.jsonc`**
 
-    Copy `wrangler.example.jsonc` and rename it to `wrangler.jsonc`. Follow the comments in the file to fill in the necessary configuration items, especially `database_id`, `AUTH_KEY`, and `LANGUAGE`.
+    Copy `wrangler.example.jsonc` and rename it to `wrangler.jsonc`. Follow the comments in the file to fill in the necessary configuration items, especially `database_id`, `AUTH_KEY`, `ADMIN_DASH_PASSWORD` (for admin dashboard access), and `LANGUAGE`.
 
 5.  **Deploy**
 

@@ -136,5 +136,139 @@
     "requestAddress": "请求地址错误",
     "accessDeniedWithPassword": "访问被拒绝，请检查密码或权限",
     "operationCancelled": "操作已取消"
+  },
+  "admin": {
+    "auth": {
+      "title": "管理员登录",
+      "password": "管理员密码",
+      "passwordPlaceholder": "请输入管理员密码",
+      "login": "登录",
+      "logout": "退出登录",
+      "loginFailed": "登录失败，密码错误",
+      "checking": "正在验证身份...",
+      "sessionExpired": "会话已过期，请重新登录"
+    },
+    "dashboard": {
+      "title": "管理后台",
+      "subtitle": "系统统计与日志"
+    },
+    "tabs": {
+      "overview": "概览",
+      "logs": "详细日志"
+    },
+    "theme": {
+      "switch": "主题切换"
+    },
+    "overview": {
+      "title": "数据概览",
+      "timeRange": "时间范围",
+      "quickRanges": {
+        "today": "今日",
+        "yesterday": "昨日",
+        "last7Days": "最近7天",
+        "last30Days": "最近30天",
+        "thisMonth": "本月",
+        "lastMonth": "上月"
+      },
+      "refreshData": "刷新数据",
+      "autoRefresh": "自动刷新"
+    },
+    "stats": {
+      "totalViews": "总访问数",
+      "totalCreated": "总新建数",
+      "activeIPs": "活跃IP数",
+      "todayNew": "今日新增",
+      "clickToFilter": "点击查看详情"
+    },
+    "activity": {
+      "title": "活动趋势",
+      "loading": "图表加载中...",
+      "noData": "暂无数据",
+      "metrics": {
+        "all": "全部",
+        "create": "新建",
+        "update": "修改",
+        "delete": "删除",
+        "view": "访问"
+      },
+      "granularity": {
+        "day": "按天",
+        "month": "按月",
+        "year": "按年",
+        "all": "全部"
+      }
+    },
+    "rankings": {
+      "title": "TOP5 排行榜",
+      "topIPs": "热门IP",
+      "topCountries": "热门国家",
+      "topRegions": "热门地区",
+      "clickToFilter": "点击筛选",
+      "noData": "暂无排行数据"
+    },
+    "logs": {
+      "title": "活动日志",
+      "activeFilters": "当前筛选条件",
+      "filtersDescription": "以下筛选条件当前已应用于日志视图：",
+      "fromOverview": "来自概览页面的筛选",
+      "totalCount": "总计",
+      "noData": "未找到日志数据",
+      "noDataDesc": "没有符合当前筛选条件的活动日志。",
+      "tryAdjustFilters": "请尝试调整搜索筛选条件或时间范围。",
+      "exactTime": "精确时间"
+    },
+    "filters": {
+      "keyword": "关键词",
+      "keywordPlaceholder": "输入关键词搜索",
+      "ip": "IP地址",
+      "ipPlaceholder": "输入IP地址",
+      "action": "操作类型",
+      "actionPlaceholder": "选择操作类型",
+      "country": "国家",
+      "countryPlaceholder": "输入国家名称",
+      "region": "地区",
+      "regionPlaceholder": "输入地区名称",
+      "description": "描述",
+      "descriptionPlaceholder": "输入描述",
+      "timeRange": "时间范围",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "actions": "操作"
+    },
+    "actions": {
+      "all": "全部操作",
+      "search": "搜索",
+      "reset": "重置",
+      "export": "导出",
+      "exportData": "导出数据",
+      "refresh": "刷新"
+    },
+    "columns": {
+      "id": "ID",
+      "keyword": "关键词",
+      "action": "操作",
+      "ip": "IP地址",
+      "location": "位置",
+      "description": "描述",
+      "time": "时间"
+    },
+    "actionLabels": {
+      "create": "新建",
+      "updateContent": "修改正文",
+      "uploadFile": "上传文件",
+      "downloadFile": "下载文件",
+      "deleteFile": "删除文件",
+      "view": "访问",
+      "delete": "删除",
+      "autoExpire": "自动过期"
+    },
+    "errors": {
+      "loginFailed": "登录失败",
+      "fetchOverviewFailed": "获取概览数据失败",
+      "fetchActivityFailed": "获取活动数据失败",
+      "fetchRankingFailed": "获取排行数据失败",
+      "fetchLogsFailed": "获取日志数据失败",
+      "exportFailed": "导出失败"
+    }
   }
 }

@@ -108,6 +108,7 @@ export interface AdminLogsRequest {
   action?: Action        // Action type filter
   country?: string       // Country filter
   region?: string        // Region filter
+  desc?: string          // Description filter
   start?: number         // Start timestamp (milliseconds)
   end?: number           // End timestamp (milliseconds)
 }

@@ -8,6 +8,15 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AdminActivityChart: typeof import('./src/components/admin/AdminActivityChart.vue')['default']
+    AdminLogFilterForm: typeof import('./src/components/admin/AdminLogFilterForm.vue')['default']
+    AdminLoginCard: typeof import('./src/components/admin/AdminLoginCard.vue')['default']
+    AdminLogTab: typeof import('./src/components/admin/AdminLogTab.vue')['default']
+    AdminLogTable: typeof import('./src/components/admin/AdminLogTable.vue')['default']
+    AdminOverviewTab: typeof import('./src/components/admin/AdminOverviewTab.vue')['default']
+    AdminStatsCards: typeof import('./src/components/admin/AdminStatsCards.vue')['default']
+    AdminTabBar: typeof import('./src/components/admin/AdminTabBar.vue')['default']
+    AdminTopRankings: typeof import('./src/components/admin/AdminTopRankings.vue')['default']
     ClipboardPanel: typeof import('./src/components/ClipboardPanel.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCard: typeof import('element-plus/es')['ElCard']
@@ -18,6 +27,7 @@ declare module 'vue' {
     ElOption: typeof import('element-plus/es')['ElOption']
     ElProgress: typeof import('element-plus/es')['ElProgress']
     ElSelect: typeof import('element-plus/es')['ElSelect']
+    ElSkeletonItem: typeof import('element-plus/es')['ElSkeletonItem']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     ElTabPane: typeof import('element-plus/es')['ElTabPane']

@@ -49,7 +49,7 @@ export async function handleAuth(req: IRequest, ctx: IContext): Promise<ApiRespo
     const encryptedToken = await Crypto.encrypt(ctx.config.AUTH_KEY, tokenPayload)
 
     // Set HttpOnly Cookie with admin token (path=/admin, 1 day expiry)
-    const cookieHeader = `admin_token=${encryptedToken}; Path=/admin; HttpOnly; SameSite=Lax; Max-Age=86400`
+    const cookieHeader = `admin_token=${encryptedToken}; Path=/api/admin; HttpOnly; SameSite=Lax; Max-Age=86400`
 
     const response: AdminAuthResponse = {
       success: true,

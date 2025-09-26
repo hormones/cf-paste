@@ -79,7 +79,7 @@
 
 4.  **配置 `wrangler.jsonc`**
 
-    复制 `wrangler.example.jsonc` 并重命名为 `wrangler.jsonc`。根据文件内的注释提示，填写必要的配置项，特别是 `database_id`、`AUTH_KEY` 和 `LANGUAGE`。
+    复制 `wrangler.example.jsonc` 并重命名为 `wrangler.jsonc`。根据文件内的注释提示，填写必要的配置项，特别是 `database_id`、`AUTH_KEY`、`ADMIN_DASH_PASSWORD`（管理员面板访问密码）和 `LANGUAGE`。
 
 5.  **部署**
 

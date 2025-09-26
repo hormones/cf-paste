@@ -4,9 +4,31 @@ import { Utils } from '@/utils'
 import { useAppStore } from '@/stores'
 import { MARKDOWN_MODE } from '../constants'
 
+// Check admin authentication status
+const isAdminAuthenticated = (): boolean => {
+  // Check for admin auth cookie or token
+  const cookies = document.cookie.split(';').map(c => c.trim())
+  const adminCookie = cookies.find(c => c.startsWith('admin_token='))
+  return !!adminCookie
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../views/AdminDashboardView.vue'),
+      beforeEnter: (to, from, next) => {
+        // Check if admin is authenticated
+        if (!isAdminAuthenticated()) {
+          // If not authenticated, still allow access to admin page (login form will be shown)
+          next()
+        } else {
+          next()
+        }
+      },
+    },
     {
       path: '/',
       name: 'root',
