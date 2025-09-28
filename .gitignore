@@ -35,6 +35,7 @@ CLAUDE.md
 AI
 .claude
 .mcp.json
+.playwright-mcp
 
 # wrangler files
 .wrangler

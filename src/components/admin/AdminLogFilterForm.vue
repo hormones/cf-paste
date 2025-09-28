@@ -50,14 +50,14 @@ const formData = computed({
 // Action options for select
 const actionOptions = computed(() => [
   { label: t('admin.actions.all') || 'All Actions', value: '' },
-  { label: ActionLabels[1] || '新建', value: 1 },           // CREATE
-  { label: ActionLabels[2] || '修改正文', value: 2 },       // UPDATE_CONTENT
-  { label: ActionLabels[3] || '上传文件', value: 3 },       // UPLOAD_FILE
-  { label: ActionLabels[4] || '下载文件', value: 4 },       // DOWNLOAD_FILE
-  { label: ActionLabels[5] || '删除文件', value: 5 },       // DELETE_FILE
-  { label: ActionLabels[6] || '访问', value: 6 },          // VIEW
-  { label: ActionLabels[7] || '删除', value: 7 },          // DELETE
-  { label: ActionLabels[99] || '自动过期', value: 99 }     // AUTO_EXPIRE
+  { label: t('admin.actionLabels.1') || 'Create', value: 1 },           // CREATE
+  { label: t('admin.actionLabels.2') || 'Update Content', value: 2 },   // UPDATE_CONTENT
+  { label: t('admin.actionLabels.3') || 'Upload File', value: 3 },       // UPLOAD_FILE
+  { label: t('admin.actionLabels.4') || 'Download File', value: 4 },     // DOWNLOAD_FILE
+  { label: t('admin.actionLabels.5') || 'Delete File', value: 5 },       // DELETE_FILE
+  { label: t('admin.actionLabels.6') || 'View', value: 6 },              // VIEW
+  { label: t('admin.actionLabels.7') || 'Delete', value: 7 },            // DELETE
+  { label: t('admin.actionLabels.99') || 'Auto Expire', value: 99 }      // AUTO_EXPIRE
 ])
 
 // Update individual form fields

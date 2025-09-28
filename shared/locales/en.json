@@ -15,7 +15,6 @@
     },
     "states": {
       "loading": "Loading...",
-      "success": "Success",
       "failed": "Failed",
       "warning": "Warning",
       "uploading": "Uploading",
@@ -61,7 +60,8 @@
     "title": "Clipboard",
     "theme": {
       "toDark": "Switch to dark mode",
-      "toLight": "Switch to light mode"
+      "toLight": "Switch to light mode",
+      "dark": "Dark Mode"
     }
   },
   "clipboard": {
@@ -122,14 +122,12 @@
     "fileTooLarge": "File too large, please compress and try again",
     "fileUploadError": "File upload failed, please try again",
     "fileDeleteError": "File deletion failed, please try again",
-    "fileListError": "Failed to load file list, please refresh the page",
     "fileDataError": "File data error, please select file again",
     "contentNotFound": "Content not found or expired",
     "settingsSaveError": "Failed to save settings, please try again",
     "invalidSettings": "Invalid settings, please check and try again",
     "operationFailed": "Operation failed, please try again",
     "authFailed": "Authentication failed, please try again",
-    "systemError": "System error, please try again later",
     "invalidRequest": "Invalid request, please try again",
     "resourceNotFound": "Resource not found",
     "requestMethod": "Request method error",
@@ -142,11 +140,13 @@
       "title": "Admin Login",
       "password": "Admin Password",
       "passwordPlaceholder": "Enter admin password",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "description": "Enter admin password to continue",
+      "securityNotice": "For security reasons, admin sessions will expire after 24 hours of inactivity.",
       "login": "Login",
       "logout": "Logout",
-      "loginFailed": "Login failed, incorrect password",
-      "checking": "Checking authentication...",
-      "sessionExpired": "Session expired, please log in again"
+      "loginFailed": "Login failed, incorrect password"
     },
     "dashboard": {
       "title": "Admin Dashboard",
@@ -156,58 +156,64 @@
       "overview": "Overview",
       "logs": "Detailed Logs"
     },
-    "theme": {
-      "switch": "Theme Switch"
-    },
     "overview": {
-      "title": "Data Overview",
-      "timeRange": "Time Range",
-      "quickRanges": {
-        "today": "Today",
-        "yesterday": "Yesterday",
-        "last7Days": "Last 7 Days",
-        "last30Days": "Last 30 Days",
-        "thisMonth": "This Month",
-        "lastMonth": "Last Month"
-      },
-      "refreshData": "Refresh Data",
-      "autoRefresh": "Auto Refresh"
+      "keyMetrics": "Key Metrics",
+      "activityTrends": "Activity Trends",
+      "topRankings": "Top Rankings",
+      "selectTimeRange": "Select Time Range",
+      "currentTimeRange": "Current Time Range",
+      "refreshData": "Refresh Data"
+    },
+    "dateRange": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "thisMonth": "This Month",
+      "allTime": "All Time",
+      "selectRange": "Select Range",
+      "startDate": "Start Date",
+      "endDate": "End Date"
     },
     "stats": {
       "totalViews": "Total Views",
-      "totalCreated": "Total Created",
+      "totalCreates": "Total Creates",
+      "todayCreates": "Today's Creates",
       "activeIPs": "Active IPs",
-      "todayNew": "Today's New",
-      "clickToFilter": "Click to view details"
+      "totalViewsDesc": "Total number of views across all pastes",
+      "totalCreatesDesc": "Total number of pastes created",
+      "activeIPsDesc": "Number of unique active IP addresses",
+      "todayCreatesDesc": "Number of new pastes created today"
     },
-    "activity": {
-      "title": "Activity Trends",
-      "loading": "Chart loading...",
-      "noData": "No data available",
-      "metrics": {
-        "all": "All",
-        "create": "Create",
-        "update": "Update",
-        "delete": "Delete",
-        "view": "View"
-      },
-      "granularity": {
-        "day": "Daily",
-        "month": "Monthly",
-        "year": "Yearly",
-        "all": "All"
-      }
+    "trends": {
+      "increased": "Increased",
+      "decreased": "Decreased",
+      "stable": "Stable"
+    },
+    "chart": {
+      "activityTrends": "Activity Trends",
+      "subtitle": "Activity data over time",
+      "noData": "No data available for the selected time range"
+    },
+    "metrics": {
+      "all": "All",
+      "create": "Create",
+      "update": "Update",
+      "delete": "Delete",
+      "view": "View"
     },
     "rankings": {
-      "title": "TOP 5 Rankings",
       "topIPs": "Top IPs",
       "topCountries": "Top Countries",
       "topRegions": "Top Regions",
-      "clickToFilter": "Click to filter",
-      "noData": "No ranking data"
+      "noIPs": "No IP data available",
+      "noCountries": "No country data available",
+      "noRegions": "No region data available",
+      "rank": "Rank"
     },
     "logs": {
       "title": "Activity Logs",
+      "filters": "Filters",
       "activeFilters": "Active Filters",
       "filtersDescription": "The following filters are currently applied to the log view:",
       "fromOverview": "Filter applied from overview page",
@@ -215,7 +221,16 @@
       "noData": "No log data found",
       "noDataDesc": "No activity logs match your current filters.",
       "tryAdjustFilters": "Try adjusting your search filters or time range.",
-      "exactTime": "Exact time"
+      "exactTime": "Exact time",
+      "columns": {
+        "id": "ID",
+        "keyword": "Keyword",
+        "action": "Action",
+        "ip": "IP Address",
+        "location": "Location",
+        "description": "Description",
+        "time": "Time"
+      }
     },
     "filters": {
       "keyword": "Keyword",
@@ -241,34 +256,21 @@
       "reset": "Reset",
       "export": "Export",
       "exportData": "Export data",
-      "refresh": "Refresh"
-    },
-    "columns": {
-      "id": "ID",
-      "keyword": "Keyword",
-      "action": "Action",
-      "ip": "IP Address",
-      "location": "Location",
-      "description": "Description",
-      "time": "Time"
+      "refresh": "Refresh",
+      "viewDetails": "View Details"
     },
     "actionLabels": {
-      "create": "Create",
-      "updateContent": "Update Content",
-      "uploadFile": "Upload File",
-      "downloadFile": "Download File",
-      "deleteFile": "Delete File",
-      "view": "View",
-      "delete": "Delete",
-      "autoExpire": "Auto Expire"
+      "1": "Create",
+      "2": "Update Content",
+      "3": "Upload File",
+      "4": "Download File",
+      "5": "Delete File",
+      "6": "View",
+      "7": "Delete",
+      "99": "Auto Expire"
     },
     "errors": {
-      "loginFailed": "Login failed",
-      "fetchOverviewFailed": "Failed to fetch overview data",
-      "fetchActivityFailed": "Failed to fetch activity data",
-      "fetchRankingFailed": "Failed to fetch ranking data",
-      "fetchLogsFailed": "Failed to fetch logs data",
-      "exportFailed": "Export failed"
+      "fetchLogsFailed": "Failed to fetch logs data"
     }
   }
 }

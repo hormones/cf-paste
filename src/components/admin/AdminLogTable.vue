@@ -201,7 +201,7 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
 
         <!-- Action Type Column -->
         <el-table-column
-          prop="actionLabel"
+          prop="action"
           :label="t('admin.logs.columns.action') || 'Action'"
           width="110"
           align="center"
@@ -212,7 +212,7 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
               size="small"
               class="action-tag"
             >
-              {{ row.actionLabel || '-' }}
+              {{ t(`admin.actionLabels.${row.action}`) || row.actionLabel || '-' }}
             </el-tag>
           </template>
         </el-table-column>
