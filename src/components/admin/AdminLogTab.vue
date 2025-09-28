@@ -168,9 +168,6 @@ const fetchLogs = async () => {
       total: 0
     }
 
-    // Cache data
-    adminStore.cacheData('logs', result.items || [], result.pagination)
-
   } catch (err: any) {
     console.error('Failed to fetch logs:', err)
     error.value = err?.message || t('admin.errors.fetchLogsFailed') || 'Failed to fetch logs'
@@ -179,22 +176,9 @@ const fetchLogs = async () => {
   }
 }
 
-// Load cached data first, then fetch if needed
+// Load data (简化为直接获取数据)
 const loadData = async () => {
-  // Try to load cached data first
-  const cachedLogs = adminStore.getCachedData('logs')
-
-  if (cachedLogs && cachedLogs.data) {
-    logData.value = cachedLogs.data
-    if (cachedLogs.pagination) {
-      pagination.value = cachedLogs.pagination
-    }
-  }
-
-  // If no cached data or cache expired, fetch new data
-  if (!cachedLogs) {
-    await fetchLogs()
-  }
+  await fetchLogs()
 }
 
 // Handle filter form events

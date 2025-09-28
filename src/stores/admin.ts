@@ -7,7 +7,7 @@ import type {
   AdminActivityRequest,
   AdminRankingRequest,
   AdminLogsRequest,
-  Action
+  Action,
 } from 'shared/types/admin'
 
 export type AdminTab = 'overview' | 'logs'
@@ -49,18 +49,15 @@ export interface AdminDataCache {
 // Admin application state management
 export const useAdminStore = defineStore('admin', {
   state: () => ({
-    // Authentication state
-    isAuthenticated: false,
-    token: null as string | null,
-
     // UI state
     currentTab: 'overview' as AdminTab,
+    showLogin: false, // 控制是否显示登录界面
     loading: {
       auth: false,
       overview: false,
       activity: false,
       ranking: false,
-      logs: false
+      logs: false,
     },
 
     // Filter conditions
@@ -69,7 +66,7 @@ export const useAdminStore = defineStore('admin', {
       activityMetric: 'all',
       activityGranularity: 'day',
       logPage: 1,
-      logPageSize: 50
+      logPageSize: 50,
     } as AdminFilters,
 
     // Data cache
@@ -82,21 +79,14 @@ export const useAdminStore = defineStore('admin', {
       overviewCachedAt: undefined,
       activityCachedAt: undefined,
       rankingCachedAt: undefined,
-      logsCachedAt: undefined
+      logsCachedAt: undefined,
     } as AdminDataCache,
 
     // Cache TTL (5 minutes)
-    cacheTTL: 5 * 60 * 1000
+    cacheTTL: 5 * 60 * 1000,
   }),
 
   getters: {
-    // Check if admin is authenticated by cookie
-    hasAuthCookie(): boolean {
-      if (typeof document === 'undefined') return false
-      const cookies = document.cookie.split(';').map(c => c.trim())
-      const adminCookie = cookies.find(c => c.startsWith('admin_token='))
-      return !!adminCookie
-    },
 
     // Get current time range for requests
     getTimeRangeParams() {
@@ -120,7 +110,7 @@ export const useAdminStore = defineStore('admin', {
         const params: AdminActivityRequest = {
           ...this.getTimeRangeParams(filters),
           metric: filters.activityMetric,
-          granularity: filters.activityGranularity
+          granularity: filters.activityGranularity,
         }
 
         return params
@@ -132,7 +122,7 @@ export const useAdminStore = defineStore('admin', {
       return (baseFilters?: AdminFilters) => {
         const filters = { ...this.filters, ...baseFilters }
         const params: AdminRankingRequest = {
-          ...this.getTimeRangeParams(filters)
+          ...this.getTimeRangeParams(filters),
         }
 
         return params
@@ -151,11 +141,11 @@ export const useAdminStore = defineStore('admin', {
           ip: filters.ip,
           action: filters.action,
           country: filters.country,
-          region: filters.region
+          region: filters.region,
         }
 
         // Remove undefined values
-        Object.keys(params).forEach(key => {
+        Object.keys(params).forEach((key) => {
           if (params[key as keyof AdminLogsRequest] === undefined) {
             delete params[key as keyof AdminLogsRequest]
           }
@@ -168,39 +158,30 @@ export const useAdminStore = defineStore('admin', {
     // Check if cache is valid
     isCacheValid(): (cacheType: keyof AdminDataCache, timestamp?: number) => boolean {
       return (cacheType: keyof AdminDataCache, timestamp?: number) => {
-        const cacheTimestamp = timestamp || this.cache[`${cacheType}CachedAt` as keyof AdminDataCache] as number
+        const cacheTimestamp =
+          timestamp || (this.cache[`${cacheType}CachedAt` as keyof AdminDataCache] as number)
         if (!cacheTimestamp) return false
 
         return Date.now() - cacheTimestamp < this.cacheTTL
       }
-    }
+    },
   },
 
   actions: {
-    // Initialize admin authentication state
-    initAuth() {
-      this.isAuthenticated = this.hasAuthCookie
-      if (this.isAuthenticated) {
-        // Try to extract token from cookie if needed
-        const cookies = document.cookie.split(';').map(c => c.trim())
-        const adminCookie = cookies.find(c => c.startsWith('admin_token='))
-        if (adminCookie) {
-          this.token = adminCookie.split('=')[1]
-        }
-      }
+    // 设置登录界面显示状态
+    setShowLogin(show: boolean) {
+      this.showLogin = show
     },
 
-    // Set authentication state
-    setAuth(token: string) {
-      this.isAuthenticated = true
-      this.token = token
+    // 处理登录成功
+    handleLoginSuccess() {
+      this.showLogin = false
+      this.clearCache() // 清除缓存，重新加载数据
     },
 
-    // Clear authentication state
-    clearAuth() {
-      this.isAuthenticated = false
-      this.token = null
-      // Clear auth-related cache
+    // 处理登出
+    handleLogout() {
+      this.showLogin = true
       this.clearCache()
     },
 
@@ -226,12 +207,16 @@ export const useAdminStore = defineStore('admin', {
         activityMetric: 'all',
         activityGranularity: 'day',
         logPage: 1,
-        logPageSize: 50
+        logPageSize: 50,
       }
     },
 
     // Cache data with timestamp
-    cacheData(type: 'overview' | 'activity' | 'ranking' | 'logs', data: any, pagination?: Pagination) {
+    cacheData(
+      type: 'overview' | 'activity' | 'ranking' | 'logs',
+      data: any,
+      pagination?: Pagination
+    ) {
       const now = Date.now()
 
       switch (type) {
@@ -272,7 +257,7 @@ export const useAdminStore = defineStore('admin', {
           if (this.cache.logs) {
             return {
               data: this.cache.logs,
-              pagination: this.cache.logsPagination
+              pagination: this.cache.logsPagination,
             }
           }
           return null
@@ -300,7 +285,7 @@ export const useAdminStore = defineStore('admin', {
           overviewCachedAt: undefined,
           activityCachedAt: undefined,
           rankingCachedAt: undefined,
-          logsCachedAt: undefined
+          logsCachedAt: undefined,
         }
       }
     },
@@ -331,11 +316,11 @@ export const useAdminStore = defineStore('admin', {
         refreshTypes.push('logs')
       }
 
-      refreshTypes.forEach(type => {
+      refreshTypes.forEach((type) => {
         this.clearCache(type)
       })
 
       return refreshTypes
-    }
-  }
+    },
+  },
 })

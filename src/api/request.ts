@@ -84,6 +84,7 @@ const transform: InterceptorHooks = {
     if (axios.isCancel(err) || err.name === 'AbortError' || err.name === 'CanceledError') {
       return Promise.reject(err)
     }
+
     // Handle common HTTP errors with global notifications
     const { t } = useI18n()
     const mapErrorStatus = new Map([
@@ -96,6 +97,7 @@ const transform: InterceptorHooks = {
       [503, t('errors.serviceUnavailable')],
       [504, t('errors.timeout')],
     ])
+
     // Network error or server didn't return response
     if (!err.response) {
       console.error('Network error details:', {
@@ -108,8 +110,19 @@ const transform: InterceptorHooks = {
       ElMessage.error(t('errors.network'))
       return Promise.reject(err)
     }
+
+    // 特殊处理：当管理接口返回 401 时，设置显示登录界面
+    if (err.response.status === 401 && err.config?.url?.includes('/admin/')) {
+      // 动态导入 adminStore 避免循环依赖
+      import('@/stores/admin').then(({ useAdminStore }) => {
+        const adminStore = useAdminStore()
+        adminStore.setShowLogin(true)
+      })
+    }
+
     const message =
       err.response.data?.msg || mapErrorStatus.get(err.response.status) || t('errors.operationFailed')
+
     // Log detailed error information for debugging
     console.error('HTTP error details:', {
       status: err.response.status,
@@ -119,6 +132,7 @@ const transform: InterceptorHooks = {
       method: err.config?.method,
       timestamp: new Date().toISOString()
     })
+
     // Global error notification here
     ElMessage.error(message)
     return Promise.reject(err)

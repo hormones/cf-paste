@@ -1,16 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 import { Utils } from '@/utils'
 import { useAppStore } from '@/stores'
 import { MARKDOWN_MODE } from '../constants'
 
-// Check admin authentication status
-const isAdminAuthenticated = (): boolean => {
-  // Check for admin auth cookie or token
-  const cookies = document.cookie.split(';').map(c => c.trim())
-  const adminCookie = cookies.find(c => c.startsWith('admin_token='))
-  return !!adminCookie
-}
+// Note: Admin authentication is now handled in the component itself
+// No need to check authentication in router since we use HttpOnly cookies
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,20 +13,12 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: () => import('../views/AdminDashboardView.vue'),
-      beforeEnter: (to, from, next) => {
-        // Check if admin is authenticated
-        if (!isAdminAuthenticated()) {
-          // If not authenticated, still allow access to admin page (login form will be shown)
-          next()
-        } else {
-          next()
-        }
-      },
+      // No beforeEnter guard needed - authentication is handled in the component
     },
     {
       path: '/',
       name: 'root',
-      component: HomeView,
+      component: () => import('../views/HomeView.vue'),
       beforeEnter: (to, from, next) => {
         next(`/${Utils.getRandomWord()}`)
       },
@@ -40,7 +26,7 @@ const router = createRouter({
     {
       path: '/v/:view_word',
       name: 'view_word',
-      component: HomeView,
+      component: () => import('../views/HomeView.vue'),
       beforeEnter: (to, from, next) => {
         const store = useAppStore()
         store.updateKeyword({ view_word: to.params.view_word as string })
@@ -53,7 +39,7 @@ const router = createRouter({
       // Catch all other paths
       path: '/:pathMatch(.*)*',
       name: 'home',
-      component: HomeView,
+      component: () => import('../views/HomeView.vue'),
       beforeEnter: (to, from, next) => {
         const store = useAppStore()
         const word = to.path.slice(1) // Remove leading /

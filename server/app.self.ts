@@ -36,10 +36,7 @@ app.use((req, res, next) => {
   }
 })
 
-// Serve static files first (before API routes)
-app.use(express.static(path.join(__dirname, '../dist')))
-
-// API routes - only for /api/* paths
+// API routes - must be before static files to prevent conflicts
 app.all('/api/:path(*)', async (req: express.Request, res: express.Response) => {
   try {
     console.log('route request', req.method, req.path)
@@ -104,6 +101,9 @@ app.all('/api/:path(*)', async (req: express.Request, res: express.Response) => 
     })
   }
 })
+
+// Serve static files after API routes
+app.use(express.static(path.join(__dirname, '../dist')))
 
 // Catch-all route for SPA - must be last
 app.get('*', (req, res) => {

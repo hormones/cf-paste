@@ -57,11 +57,6 @@ const handleSubmit = async () => {
       // Login successful
       ElMessage.success(t('admin.auth.loginSuccess') || 'Login successful')
 
-      // Set auth state (token will be set via cookie)
-      if (result.token) {
-        adminStore.setAuth(result.token)
-      }
-
       // Emit success event to parent
       emit('loginSuccess')
 

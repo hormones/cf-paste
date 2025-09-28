@@ -130,16 +130,19 @@ const fetchOverviewData = async () => {
   try {
     error.value = ''
 
-    // Set loading states
+    const timeParams = adminStore.getTimeRangeParams()
+
+    // 前置调用 overview 接口
     adminStore.setLoading('overview', true)
+    const overviewResult = await adminApi.getOverview(timeParams)
+    overviewData.value = overviewResult
+    adminStore.setLoading('overview', false)
+
+    // 并行获取其他数据
     adminStore.setLoading('activity', true)
     adminStore.setLoading('ranking', true)
 
-    const timeParams = adminStore.getTimeRangeParams()
-
-    // Fetch all data in parallel
-    const [overviewResult, activityResult, rankingResult] = await Promise.all([
-      adminApi.getOverview(timeParams),
+    const [activityResult, rankingResult] = await Promise.all([
       adminApi.getActivity({
         ...timeParams,
         granularity: 'day'
@@ -147,15 +150,9 @@ const fetchOverviewData = async () => {
       adminApi.getRanking(timeParams)
     ])
 
-    // Update data
-    overviewData.value = overviewResult
+    // Update remaining data
     activityData.value = activityResult.data || []
     rankingData.value = rankingResult
-
-    // Cache data
-    adminStore.cacheData('overview', overviewResult)
-    adminStore.cacheData('activity', activityResult.data || [])
-    adminStore.cacheData('ranking', rankingResult)
 
   } catch (err: any) {
     console.error('Failed to fetch overview data:', err)
@@ -167,32 +164,13 @@ const fetchOverviewData = async () => {
   }
 }
 
-// Load cached data first, then fetch if needed
+// Load data (简化为直接获取数据)
 const loadData = async () => {
-  // Try to load cached data first
-  const cachedOverview = adminStore.getCachedData('overview')
-  const cachedActivity = adminStore.getCachedData('activity')
-  const cachedRanking = adminStore.getCachedData('ranking')
-
-  if (cachedOverview) {
-    overviewData.value = cachedOverview
-  }
-  if (cachedActivity) {
-    activityData.value = cachedActivity
-  }
-  if (cachedRanking) {
-    rankingData.value = cachedRanking
-  }
-
-  // If no cached data or cache expired, fetch new data
-  if (!cachedOverview || !cachedActivity || !cachedRanking) {
-    await fetchOverviewData()
-  }
+  await fetchOverviewData()
 }
 
-// Refresh data (force reload)
+// Refresh data (重新获取数据)
 const refreshData = async () => {
-  adminStore.refreshData() // Clear cache
   await fetchOverviewData()
 }
 

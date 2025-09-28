@@ -12,22 +12,6 @@ import type {
   AdminLogsResponse
 } from 'shared/types/admin'
 
-// Get auth headers with admin token
-function getAuthHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {}
-
-  // Check for admin token from cookie
-  if (typeof document !== 'undefined') {
-    const cookies = document.cookie.split(';').map(c => c.trim())
-    const adminCookie = cookies.find(c => c.startsWith('admin_token='))
-    if (adminCookie) {
-      const token = adminCookie.split('=')[1]
-      headers['Authorization'] = `Bearer ${token}`
-    }
-  }
-
-  return headers
-}
 
 export const adminApi = {
   // Admin authentication
@@ -56,7 +40,6 @@ export const adminApi = {
     try {
       return await request.get('/admin/overview', {
         params,
-        headers: getAuthHeaders(),
         added: { skipUrlPrefix: true }
       })
     } catch (error) {
@@ -70,7 +53,6 @@ export const adminApi = {
     try {
       return await request.get('/admin/activity', {
         params,
-        headers: getAuthHeaders(),
         added: { skipUrlPrefix: true }
       })
     } catch (error) {
@@ -84,7 +66,6 @@ export const adminApi = {
     try {
       return await request.get('/admin/ranking', {
         params,
-        headers: getAuthHeaders(),
         added: { skipUrlPrefix: true }
       })
     } catch (error) {
@@ -98,7 +79,6 @@ export const adminApi = {
     try {
       return await request.get('/admin/logs', {
         params,
-        headers: getAuthHeaders(),
         added: { skipUrlPrefix: true }
       })
     } catch (error) {
@@ -107,18 +87,11 @@ export const adminApi = {
     }
   },
 
-  // Check if user is authenticated
-  isAuthenticated(): boolean {
-    if (typeof document === 'undefined') return false
-    const cookies = document.cookie.split(';').map(c => c.trim())
-    return !!cookies.find(c => c.startsWith('admin_token='))
-  },
-
   // Logout (clear auth state)
   logout(): void {
     // Clear auth cookie by setting it to expire
     if (typeof document !== 'undefined') {
-      document.cookie = 'admin_token=; path=/admin; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+      document.cookie = 'admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
     }
   }
 }
