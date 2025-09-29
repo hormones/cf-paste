@@ -38,28 +38,18 @@ const handleLogout = () => {
 
     <!-- 管理仪表板 (当已认证时) -->
     <el-container v-else class="dashboard-container" direction="vertical">
-      <!-- Dashboard Header -->
-      <el-header class="dashboard-header">
-        <div class="header-content">
-          <div class="header-title">
-            <h1>{{ t('admin.dashboard.title') || 'Admin Dashboard' }}</h1>
-            <p class="header-subtitle">
-              {{ t('admin.dashboard.subtitle') || 'System Statistics and Logs' }}
-            </p>
-          </div>
-          <div class="header-actions">
-            <el-button type="primary" plain @click="handleLogout">
-              {{ t('admin.auth.logout') || 'Logout' }}
-            </el-button>
-          </div>
-        </div>
-      </el-header>
+      <!-- Modern Header with Tabs -->
+      <div class="modern-header">
+        <AdminTabBar
+          v-model="currentTab"
+          :show-title="true"
+          @logout="handleLogout"
+        />
+      </div>
 
       <!-- Dashboard Main Content -->
       <el-main class="dashboard-main">
         <div class="dashboard-content">
-          <!-- Tab Navigation -->
-          <AdminTabBar v-model="currentTab" />
 
           <!-- Tab Content -->
           <div class="tab-content">
@@ -105,31 +95,9 @@ const handleLogout = () => {
   min-height: 100vh;
 }
 
-.dashboard-header {
+.modern-header {
   background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color);
-  padding: 0;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 100%;
-  padding: 0 2rem;
-}
-
-.header-title h1 {
-  margin: 0;
-  color: var(--el-text-color-primary);
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.header-subtitle {
-  margin: 0.25rem 0 0 0;
-  color: var(--el-text-color-regular);
-  font-size: 0.9rem;
+  border-bottom: 1px solid var(--el-border-color-lighter, var(--el-border-color));
 }
 
 .dashboard-main {

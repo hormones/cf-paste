@@ -310,71 +310,50 @@ onUnmounted(() => {
 
 <template>
   <div class="admin-overview-tab">
-    <!-- Controls Section -->
-    <div class="controls-section">
-      <el-row :gutter="16" align="middle" justify="space-between">
-        <el-col :xs="24" :sm="16" :md="18">
-          <el-space wrap>
-            <!-- Time Range Picker -->
-            <div class="time-range-control">
-              <el-tooltip
-                :content="t('admin.overview.selectTimeRange') || 'Select time range'"
-                placement="bottom"
-              >
-                <el-date-picker
-                  :model-value="filters.timeRange ? [new Date(filters.timeRange[0]), new Date(filters.timeRange[1])] : undefined"
-                  type="datetimerange"
-                  :shortcuts="shortcuts"
-                  :placeholder="t('admin.dateRange.selectRange') || 'Select date range'"
-                  :start-placeholder="t('admin.dateRange.startDate') || 'Start date'"
-                  :end-placeholder="t('admin.dateRange.endDate') || 'End date'"
-                  :prefix-icon="Calendar"
-                  format="YYYY-MM-DD HH:mm"
-                  value-format="YYYY-MM-DD HH:mm:ss"
-                  @change="handleTimeRangeChange"
-                />
-              </el-tooltip>
-            </div>
+    <!-- Modern Controls Section -->
+    <div class="modern-controls">
+      <div class="controls-left">
+        <!-- Time Range Picker -->
+        <el-date-picker
+          :model-value="filters.timeRange ? [new Date(filters.timeRange[0]), new Date(filters.timeRange[1])] : undefined"
+          type="datetimerange"
+          :shortcuts="shortcuts"
+          :placeholder="t('admin.dateRange.selectRange') || 'Select date range'"
+          :start-placeholder="t('admin.dateRange.startDate') || 'Start date'"
+          :end-placeholder="t('admin.dateRange.endDate') || 'End date'"
+          :prefix-icon="Calendar"
+          format="YYYY-MM-DD HH:mm"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          size="default"
+          @change="handleTimeRangeChange"
+          class="time-range-picker"
+        />
 
-            <!-- Current Time Range Display -->
-            <div class="time-range-display">
-              <el-tooltip
-                :content="t('admin.overview.currentTimeRange') || 'Current time range'"
-                placement="bottom"
-              >
-                <div class="time-range-text">
-                  <el-icon><TrendCharts /></el-icon>
-                  <span>{{ timeRangeText }}</span>
-                </div>
-              </el-tooltip>
-            </div>
-          </el-space>
-        </el-col>
+        <!-- Current Range Badge -->
+        <el-tag
+          v-if="timeRangeText"
+          type="info"
+          effect="plain"
+          size="default"
+          class="time-range-badge"
+        >
+          <el-icon><TrendCharts /></el-icon>
+          {{ timeRangeText }}
+        </el-tag>
+      </div>
 
-        <el-col :xs="24" :sm="8" :md="6">
-          <!-- Refresh Controls -->
-          <div class="refresh-controls">
-            <el-space>
-              <el-tooltip
-                :content="t('admin.overview.refreshData') || 'Refresh data'"
-                placement="bottom"
-              >
-                <el-button
-                  type="primary"
-                  :icon="Refresh"
-                  :loading="loading.overview || loading.activity || loading.ranking"
-                  @click="refreshData"
-                >
-                  {{ t('admin.actions.refresh') || 'Refresh' }}
-                </el-button>
-              </el-tooltip>
-            </el-space>
-          </div>
-        </el-col>
-      </el-row>
+      <div class="controls-right">
+        <!-- Refresh Button -->
+        <el-button
+          :icon="Refresh"
+          :loading="loading.overview || loading.activity || loading.ranking"
+          @click="refreshData"
+          class="refresh-btn"
+        >
+          {{ t('admin.actions.refresh') || 'Refresh' }}
+        </el-button>
+      </div>
     </div>
-
-    <el-divider />
 
     <!-- Error Alert -->
     <el-alert
@@ -485,40 +464,63 @@ onUnmounted(() => {
 
 <style scoped>
 .admin-overview-tab {
-  padding: 1rem;
+  padding: 1.5rem;
 }
 
-/* Controls Section */
-.controls-section {
-  margin-bottom: 1rem;
-}
-
-.time-range-control :deep(.el-date-editor) {
-  width: 300px;
-}
-
-.time-range-display {
-  background: var(--el-bg-color-page);
-  border: 1px solid var(--el-border-color);
-  border-radius: 6px;
-  padding: 8px 12px;
-}
-
-.time-range-text {
+/* Modern Controls Section */
+.modern-controls {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.9rem;
-  color: var(--el-text-color-regular);
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 0;
 }
 
-.refresh-controls {
-  text-align: right;
+.controls-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.controls-right {
+  flex-shrink: 0;
+}
+
+.time-range-picker {
+  min-width: 280px;
+}
+
+.time-range-badge {
+  --el-tag-bg-color: var(--el-fill-color-extra-light);
+  --el-tag-border-color: transparent;
+  --el-tag-text-color: var(--el-text-color-regular);
+  border-radius: 16px;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+}
+
+.time-range-badge .el-icon {
+  margin-right: 4px;
+  font-size: 0.85rem;
+}
+
+.refresh-btn {
+  --el-button-text-color: var(--el-color-primary);
+  --el-button-hover-text-color: var(--el-color-primary-light-3);
+  --el-button-hover-bg-color: var(--el-color-primary-light-9);
+  border: 1px solid var(--el-border-color-lighter);
+  transition: all 0.2s ease;
+}
+
+.refresh-btn:hover {
+  border-color: var(--el-color-primary-light-7);
 }
 
 /* Content Sections */
 .content-sections {
-  margin-top: 1rem;
+  margin-top: 0;
 }
 
 .section-title {
@@ -580,31 +582,36 @@ onUnmounted(() => {
 /* Responsive Design */
 @media (max-width: 768px) {
   .admin-overview-tab {
-    padding: 0.75rem;
+    padding: 1rem;
   }
 
-  .controls-section .el-row {
+  .modern-controls {
     flex-direction: column;
-    gap: 1rem;
+    align-items: stretch;
+    gap: 0.75rem;
   }
 
-  .time-range-control :deep(.el-date-editor) {
-    width: 100%;
-    max-width: 100%;
+  .controls-left {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
   }
 
-  .time-range-display {
-    width: 100%;
-    text-align: center;
-  }
-
-  .refresh-controls {
-    text-align: center;
+  .time-range-picker {
+    min-width: unset;
     width: 100%;
   }
 
-  .refresh-controls .el-space {
-    justify-content: center;
+  .time-range-badge {
+    align-self: flex-start;
+  }
+
+  .controls-right {
+    width: 100%;
+  }
+
+  .refresh-btn {
+    width: 100%;
   }
 
   .section-title {
@@ -618,12 +625,20 @@ onUnmounted(() => {
 
 @media (max-width: 480px) {
   .admin-overview-tab {
-    padding: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .modern-controls {
+    margin-bottom: 1rem;
   }
 
   .section-title::before {
     width: 2px;
     height: 14px;
+  }
+
+  .time-range-badge {
+    font-size: 0.8rem;
   }
 }
 

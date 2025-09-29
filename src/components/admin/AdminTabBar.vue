@@ -11,10 +11,12 @@ import type { AdminTab } from '@/stores/admin'
 // Define props and emits for v-model support
 const props = defineProps<{
   modelValue: AdminTab
+  showTitle?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: AdminTab]
+  logout: []
 }>()
 
 const { t } = useI18n()
@@ -69,6 +71,11 @@ const tabs = [
 <template>
   <div class="admin-tab-bar">
     <div class="tab-container">
+      <!-- App Title -->
+      <div v-if="showTitle" class="app-title">
+        <h1>{{ t('admin.dashboard.title') || 'Admin Dashboard' }}</h1>
+      </div>
+
       <!-- Tab Navigation -->
       <div class="tab-navigation">
         <el-tabs
@@ -94,24 +101,29 @@ const tabs = [
         </el-tabs>
       </div>
 
-      <!-- Theme Toggle -->
-      <div class="theme-toggle">
-        <div class="theme-control">
-          <el-icon class="theme-icon">
-            <component :is="themeIcon" />
-          </el-icon>
-          <span class="theme-label">{{ themeLabel }}</span>
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <!-- Theme Toggle -->
+        <div class="theme-toggle">
           <el-switch
             :model-value="currentTheme === 'dark'"
             @change="handleThemeToggle"
-            inline-prompt
             :active-icon="Moon"
             :inactive-icon="Sunny"
-            active-color="var(--el-color-primary)"
-            inactive-color="var(--el-color-info)"
+            size="small"
             class="theme-switch"
           />
         </div>
+
+        <!-- Logout Button -->
+        <el-button
+          type="primary"
+          text
+          @click="emit('logout')"
+          class="logout-btn"
+        >
+          {{ t('admin.auth.logout') || 'Logout' }}
+        </el-button>
       </div>
     </div>
   </div>
@@ -120,19 +132,36 @@ const tabs = [
 <style scoped>
 .admin-tab-bar {
   background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color);
 }
 
 .tab-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 2rem;
-  min-height: 56px;
+  gap: 2rem;
+  padding: 1rem 2rem;
+  min-height: 60px;
+}
+
+.app-title {
+  flex-shrink: 0;
+}
+
+.app-title h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
 }
 
 .tab-navigation {
   flex: 1;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
 }
 
 :deep(.admin-tabs .el-tabs__header) {
@@ -161,40 +190,19 @@ const tabs = [
 
 /* Theme toggle */
 .theme-toggle {
-  flex-shrink: 0;
-  margin-left: 2rem;
-}
-
-.theme-control {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: var(--el-bg-color-page);
-  border: 1px solid var(--el-border-color);
-  transition: all 0.2s ease-in-out;
-}
-
-.theme-control:hover {
-  background: var(--el-color-primary-light-9);
-  border-color: var(--el-color-primary-light-7);
-}
-
-.theme-icon {
-  font-size: 1rem;
-  color: var(--el-text-color-regular);
-}
-
-.theme-label {
-  font-size: 0.85rem;
-  color: var(--el-text-color-regular);
-  min-width: 32px;
 }
 
 .theme-switch {
   --el-switch-on-color: var(--el-color-primary);
-  --el-switch-off-color: var(--el-color-info);
+  --el-switch-off-color: var(--el-fill-color-lighter);
+}
+
+/* Logout button */
+.logout-btn {
+  --el-button-text-color: var(--el-color-primary);
+  font-size: 0.9rem;
 }
 
 /* Responsive design */
@@ -206,20 +214,24 @@ const tabs = [
     min-height: auto;
   }
 
+  .app-title {
+    order: 0;
+    align-self: flex-start;
+  }
+
+  .app-title h1 {
+    font-size: 1.1rem;
+  }
+
   .tab-navigation {
     width: 100%;
     order: 1;
   }
 
-  .theme-toggle {
+  .header-actions {
     width: 100%;
-    margin-left: 0;
     order: 2;
-  }
-
-  .theme-control {
-    justify-content: center;
-    width: 100%;
+    justify-content: space-between;
   }
 
   /* Mobile tabs */
@@ -248,6 +260,10 @@ const tabs = [
     padding: 0.75rem;
   }
 
+  .app-title h1 {
+    font-size: 1rem;
+  }
+
   .tab-label {
     gap: 4px;
   }
@@ -256,13 +272,13 @@ const tabs = [
     display: none; /* Hide text on very small screens, show only icons */
   }
 
-  .theme-label {
-    display: none; /* Hide theme label on very small screens */
-  }
-
   :deep(.admin-tabs .el-tabs__item) {
     padding: 0 8px;
     min-width: 44px;
+  }
+
+  .logout-btn {
+    font-size: 0.8rem;
   }
 }
 
@@ -271,9 +287,4 @@ const tabs = [
   padding: 0;
 }
 
-.theme-switch:focus-within {
-  outline: 2px solid var(--el-color-primary);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
 </style>
