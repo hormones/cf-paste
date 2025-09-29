@@ -1,6 +1,7 @@
 import { IRequest, IContext, ApiResponse } from '../../types'
 import { AdminAuthRequest, AdminAuthResponse } from '../../../shared/types/admin'
 import { Crypto } from '../../utils/crypto'
+import { Utils } from '../../utils'
 
 /**
  * Handle admin authentication
@@ -48,8 +49,8 @@ export async function handleAuth(req: IRequest, ctx: IContext): Promise<ApiRespo
     const tokenPayload = `admin:${timestamp}`
     const encryptedToken = await Crypto.encrypt(ctx.config.AUTH_KEY, tokenPayload)
 
-    // Set HttpOnly Cookie with admin token (path=/admin, 1 day expiry)
-    const cookieHeader = `admin_token=${encryptedToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`
+    // Set HttpOnly Cookie with admin token (path=/api/admin, 1 day expiry)
+    const cookieHeader = Utils.setAdminCookie('admin_token', encryptedToken)
 
     const response: AdminAuthResponse = {
       success: true,
@@ -96,4 +97,35 @@ async function constantTimeCompare(input: string, expected: string): Promise<boo
   }
 
   return result === 0
+}
+
+/**
+ * Handle admin logout
+ * POST /api/admin/logout
+ */
+export async function handleLogout(req: IRequest, ctx: IContext): Promise<ApiResponse> {
+  try {
+    // Clear admin cookie by setting it to expire immediately
+    const expiredCookieHeader = Utils.clearAdminCookie('admin_token')
+
+    const response = {
+      success: true,
+      message: 'Admin logout successful'
+    }
+
+    console.log('Admin logout successful')
+
+    return {
+      code: 0,
+      data: response,
+      headers: { 'Set-Cookie': expiredCookieHeader }
+    }
+  } catch (error) {
+    console.error('Admin logout error:', error)
+    return {
+      code: 500,
+      msg: 'Internal server error',
+      status: 500
+    }
+  }
 }

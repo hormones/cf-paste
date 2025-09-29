@@ -50,6 +50,11 @@ export interface AdminAuthResponse {
   token?: string
 }
 
+export interface AdminLogoutResponse {
+  success: boolean
+  message: string
+}
+
 // Overview data related
 export interface AdminOverviewRequest {
   start?: number  // Start timestamp (milliseconds)

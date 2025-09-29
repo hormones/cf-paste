@@ -158,4 +158,10 @@ export const Utils = {
     const path = req.edit ? req.word : 'v/' + req.view_word
     return `${name}=${value}; Path=/api/${path}; HttpOnly; SameSite=Lax; Max-Age=86400`
   },
+  setAdminCookie: (name: string, value: string) => {
+    return `${name}=${value}; Path=/api/admin; HttpOnly; SameSite=Lax; Max-Age=86400`
+  },
+  clearAdminCookie: (name: string) => {
+    return `${name}=; Path=/api/admin; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
+  },
 }

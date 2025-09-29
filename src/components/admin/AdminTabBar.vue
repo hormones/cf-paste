@@ -73,7 +73,7 @@ const tabs = [
       <div class="tab-navigation">
         <el-tabs
           v-model="activeTab"
-          type="card"
+          type="border-card"
           class="admin-tabs"
         >
           <el-tab-pane
@@ -135,55 +135,13 @@ const tabs = [
   flex: 1;
 }
 
-/* Custom tabs styling */
 :deep(.admin-tabs .el-tabs__header) {
   margin: 0;
-  border: none;
-}
-
-:deep(.admin-tabs .el-tabs__nav-wrap) {
-  background: transparent;
-}
-
-:deep(.admin-tabs .el-tabs__nav) {
-  border: none;
-}
-
-:deep(.admin-tabs .el-tabs__item) {
-  border: 1px solid var(--el-border-color);
-  border-radius: 6px 6px 0 0;
-  margin-right: 4px;
-  padding: 0 20px;
-  height: 40px;
-  line-height: 38px;
-  background: var(--el-bg-color-page);
-  color: var(--el-text-color-regular);
-  transition: all 0.2s ease-in-out;
-}
-
-:deep(.admin-tabs .el-tabs__item:hover) {
-  color: var(--el-color-primary);
-  background: var(--el-color-primary-light-9);
-  border-color: var(--el-color-primary-light-7);
 }
 
 :deep(.admin-tabs .el-tabs__item.is-active) {
-  background: var(--el-bg-color);
-  color: var(--el-color-primary);
-  border-color: var(--el-color-primary);
-  border-bottom-color: var(--el-bg-color);
-  position: relative;
-  z-index: 1;
-}
-
-:deep(.admin-tabs .el-tabs__item.is-active::after) {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--el-bg-color);
+  border-color: var(--el-border-color);
+  border-bottom-color: transparent;
 }
 
 .tab-label {
@@ -311,12 +269,6 @@ const tabs = [
 /* Animation for tab switching */
 :deep(.admin-tabs .el-tabs__content) {
   padding: 0;
-}
-
-/* Focus states for accessibility */
-:deep(.admin-tabs .el-tabs__item:focus) {
-  outline: 2px solid var(--el-color-primary);
-  outline-offset: 2px;
 }
 
 .theme-switch:focus-within {

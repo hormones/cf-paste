@@ -33,6 +33,7 @@ data
 .env
 CLAUDE.md
 AI
+.cursor
 .claude
 .mcp.json
 .playwright-mcp

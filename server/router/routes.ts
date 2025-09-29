@@ -162,11 +162,17 @@ export function registerRoutes() {
     handler: passApi.handleGetConfig,
   })
 
-  // Admin routes - Authentication endpoint (no middleware required)
+  // Admin routes - Authentication endpoints (no middleware required)
   router.register({
     path: '/api/admin/auth',
     method: 'POST',
     handler: adminAuthApi.handleAuth
+  })
+  router.register({
+    path: '/api/admin/logout',
+    method: 'POST',
+    handler: adminAuthApi.handleLogout,
+    middleware: [adminAuthMiddleware]
   })
 
   // Admin routes - Protected endpoints (require authentication middleware)

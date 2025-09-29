@@ -2,6 +2,7 @@ import { request } from './request'
 import type {
   AdminAuthRequest,
   AdminAuthResponse,
+  AdminLogoutResponse,
   AdminOverviewRequest,
   AdminOverviewResponse,
   AdminActivityRequest,
@@ -9,9 +10,8 @@ import type {
   AdminRankingRequest,
   AdminRankingResponse,
   AdminLogsRequest,
-  AdminLogsResponse
+  AdminLogsResponse,
 } from 'shared/types/admin'
-
 
 export const adminApi = {
   // Admin authentication
@@ -20,8 +20,8 @@ export const adminApi = {
       const response = await request.post('/admin/auth', data, {
         added: {
           logError: false, // Handle auth errors manually
-          skipUrlPrefix: true // Skip urlPrefix for admin routes
-        }
+          skipUrlPrefix: true, // Skip urlPrefix for admin routes
+        },
       })
       return response
     } catch (error: any) {
@@ -30,7 +30,7 @@ export const adminApi = {
       const errorMessage = error?.response?.data?.msg || error?.msg || 'Authentication failed'
       return {
         success: false,
-        message: errorMessage
+        message: errorMessage,
       }
     }
   },
@@ -40,7 +40,7 @@ export const adminApi = {
     try {
       return await request.get('/admin/overview', {
         params,
-        added: { skipUrlPrefix: true }
+        added: { skipUrlPrefix: true },
       })
     } catch (error) {
       console.error('Failed to get overview data:', error)
@@ -53,7 +53,7 @@ export const adminApi = {
     try {
       return await request.get('/admin/activity', {
         params,
-        added: { skipUrlPrefix: true }
+        added: { skipUrlPrefix: true },
       })
     } catch (error) {
       console.error('Failed to get activity data:', error)
@@ -66,7 +66,7 @@ export const adminApi = {
     try {
       return await request.get('/admin/ranking', {
         params,
-        added: { skipUrlPrefix: true }
+        added: { skipUrlPrefix: true },
       })
     } catch (error) {
       console.error('Failed to get ranking data:', error)
@@ -79,7 +79,7 @@ export const adminApi = {
     try {
       return await request.get('/admin/logs', {
         params,
-        added: { skipUrlPrefix: true }
+        added: { skipUrlPrefix: true },
       })
     } catch (error) {
       console.error('Failed to get logs data:', error)
@@ -88,10 +88,22 @@ export const adminApi = {
   },
 
   // Logout (clear auth state)
-  logout(): void {
-    // Clear auth cookie by setting it to expire
-    if (typeof document !== 'undefined') {
-      document.cookie = 'admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+  async logout(): Promise<AdminLogoutResponse> {
+    try {
+      const response = await request.post(
+        '/admin/logout',
+        {},
+        {
+          added: {
+            logError: false, // Handle logout errors manually
+            skipUrlPrefix: true, // Skip urlPrefix for admin routes
+          },
+        }
+      )
+      return response
+    } catch (error: any) {
+      console.error('Admin logout failed:', error)
+      throw error
     }
-  }
+  },
 }
