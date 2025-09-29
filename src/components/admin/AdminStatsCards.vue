@@ -251,10 +251,10 @@ const handleCardClick = (type: 'views' | 'creates' | 'activeIPs' | 'todayCreates
 /* Card Structure */
 :deep(.el-card__body) {
   padding: 20px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  min-height: 140px;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 12px;
+  min-height: 200px;
 }
 
 /* Card Header */
@@ -287,7 +287,6 @@ const handleCardClick = (type: 'views' | 'creates' | 'activeIPs' | 'todayCreates
 
 /* Card Content */
 .card-content {
-  flex: 1;
   display: flex;
   flex-direction: column;
 }
@@ -331,16 +330,15 @@ const handleCardClick = (type: 'views' | 'creates' | 'activeIPs' | 'todayCreates
   font-size: 12px;
   color: var(--el-text-color-placeholder);
   line-height: 1.4;
-  flex: 1;
-  display: flex;
-  align-items: end;
+  flex-shrink: 0;
 }
 
 /* Card Footer */
 .card-footer {
-  margin-top: 12px;
+  margin-top: 16px;
   border-top: 1px solid var(--el-border-color-lighter);
   padding-top: 12px;
+  flex-shrink: 0;
 }
 
 .action-button {
@@ -367,7 +365,10 @@ const handleCardClick = (type: 'views' | 'creates' | 'activeIPs' | 'todayCreates
 
   :deep(.el-card__body) {
     padding: 16px;
-    min-height: 120px;
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    gap: 10px;
+    min-height: 180px;
   }
 
   .card-icon {
@@ -389,11 +390,13 @@ const handleCardClick = (type: 'views' | 'creates' | 'activeIPs' | 'todayCreates
 
   .stats-description {
     font-size: 11px;
+    line-height: 1.3;
+    padding-top: 6px;
   }
 
   .card-footer {
-    margin-top: 8px;
-    padding-top: 8px;
+    margin-top: 12px;
+    padding-top: 10px;
   }
 
   .action-button {
@@ -405,11 +408,19 @@ const handleCardClick = (type: 'views' | 'creates' | 'activeIPs' | 'todayCreates
 @media (max-width: 480px) {
   :deep(.el-card__body) {
     padding: 12px;
-    min-height: 100px;
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    gap: 8px;
+    min-height: 160px;
   }
 
   .card-header {
     margin-bottom: 8px;
+  }
+
+  .card-footer {
+    margin-top: 10px;
+    padding-top: 8px;
   }
 
   .card-icon {
@@ -423,6 +434,12 @@ const handleCardClick = (type: 'views' | 'creates' | 'activeIPs' | 'todayCreates
 
   .trend-value {
     font-size: 11px;
+  }
+
+  .stats-description {
+    font-size: 10px;
+    line-height: 1.2;
+    padding-top: 4px;
   }
 }
 
