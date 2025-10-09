@@ -481,6 +481,7 @@ onUnmounted(() => {
 <style scoped>
 .admin-overview-tab {
   padding: 1.5rem;
+  padding-bottom: 3rem; /* Extra bottom padding to prevent content cutoff */
 }
 
 /* Modern Controls Section */
@@ -599,6 +600,7 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .admin-overview-tab {
     padding: 1rem;
+    padding-bottom: 2.5rem;
   }
 
   .modern-controls {
@@ -642,6 +644,7 @@ onUnmounted(() => {
 @media (max-width: 480px) {
   .admin-overview-tab {
     padding: 0.75rem;
+    padding-bottom: 2rem;
   }
 
   .modern-controls {

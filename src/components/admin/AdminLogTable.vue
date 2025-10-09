@@ -11,7 +11,7 @@ import {
   ElButton,
   ElTooltip
 } from 'element-plus'
-import { Download, InfoFilled } from '@element-plus/icons-vue'
+import { InfoFilled } from '@element-plus/icons-vue'
 import { useI18n } from '@/composables/useI18n'
 import type { AdminLogItem } from 'shared/types/admin'
 
@@ -27,7 +27,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   pageChange: [page: number]
   pageSizeChange: [pageSize: number]
-  export: []
 }>()
 
 const { t } = useI18n()
@@ -93,11 +92,6 @@ const handlePageSizeChange = (pageSize: number) => {
   emit('pageSizeChange', pageSize)
 }
 
-// Handle export
-const handleExport = () => {
-  emit('export')
-}
-
 // Computed properties
 const hasData = computed(() => props.data && props.data.length > 0)
 const totalCount = computed(() => props.total || props.pagination?.total || 0)
@@ -112,22 +106,6 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
           <el-tag v-if="totalCount > 0" type="info" size="small">
             {{ t('admin.logs.totalCount') || 'Total' }}: {{ totalCount }}
           </el-tag>
-        </div>
-        <div class="header-actions">
-          <el-tooltip
-            :content="t('admin.actions.exportData') || 'Export data'"
-            placement="top"
-          >
-            <el-button
-              type="primary"
-              text
-              :icon="Download"
-              :disabled="!hasData || loading"
-              @click="handleExport"
-            >
-              {{ t('admin.actions.export') || 'Export' }}
-            </el-button>
-          </el-tooltip>
         </div>
       </div>
     </template>
@@ -170,7 +148,6 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
       <el-table
         :data="data"
         stripe
-        :height="500"
         class="logs-table"
         :empty-text="t('admin.logs.noData') || 'No data'"
       >
@@ -285,6 +262,12 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
               <el-tooltip
                 :content="t('admin.logs.exactTime') || 'Exact time'"
                 placement="top"
+                teleported
+                :show-after="200"
+                :popper-options="{
+                  strategy: 'fixed',
+                  modifiers: [{ name: 'offset', options: { offset: [0, 8] } }]
+                }"
               >
                 <span>{{ formatTimestamp(row.actionTime) }}</span>
               </el-tooltip>
@@ -315,13 +298,22 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
 <style scoped>
 .log-table-card {
   border: 1px solid var(--el-border-color-lighter);
+  overflow: visible !important; /* Allow tooltips to overflow card boundaries */
+}
+
+.log-table-card :deep(.el-card__body) {
+  overflow: visible !important; /* Ensure card body doesn't clip tooltips */
+}
+
+/* Ensure tooltips appear above all other elements */
+:deep(.el-tooltip__popper) {
+  z-index: 9999 !important;
 }
 
 /* Card Header */
 .card-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
 }
 
 .header-left {
@@ -334,11 +326,6 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
   font-weight: 600;
   font-size: 16px;
   color: var(--el-text-color-primary);
-}
-
-.header-actions {
-  display: flex;
-  gap: 8px;
 }
 
 /* Loading Skeleton */
@@ -412,7 +399,8 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
 
 /* Table Container */
 .table-container {
-  min-height: 500px;
+  min-height: 400px;
+  position: relative;
 }
 
 .logs-table {
@@ -476,6 +464,7 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
   justify-content: center;
   margin-top: 24px;
   padding: 20px 0;
+  padding-bottom: 32px; /* Extra bottom padding for pagination visibility */
   border-top: 1px solid var(--el-border-color-lighter);
 }
 

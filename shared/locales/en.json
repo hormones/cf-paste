@@ -145,8 +145,11 @@
       "description": "Enter admin password to continue",
       "securityNotice": "For security reasons, admin sessions will expire after 24 hours of inactivity.",
       "login": "Login",
+      "loggingIn": "Logging in...",
+      "loginSuccess": "Login successful",
       "logout": "Logout",
-      "loginFailed": "Login failed, incorrect password"
+      "loginFailed": "Login failed, incorrect password",
+      "loginError": "Login error, please try again"
     },
     "dashboard": {
       "title": "Admin Dashboard",

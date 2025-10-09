@@ -93,20 +93,26 @@ const handleLogout = () => {
 /* Dashboard state */
 .dashboard-container {
   min-height: 100vh;
+  height: 100%;
 }
 
 .modern-header {
   background: var(--el-bg-color);
   border-bottom: 1px solid var(--el-border-color-lighter, var(--el-border-color));
+  flex-shrink: 0;
 }
 
 .dashboard-main {
   padding: 0;
   background: var(--el-bg-color-page);
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 1; /* Create stacking context but keep it low */
 }
 
 .dashboard-content {
-  height: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -114,6 +120,7 @@ const handleLogout = () => {
 .tab-content {
   flex: 1;
   padding: 2rem;
+  padding-bottom: 4rem; /* Add extra bottom padding to prevent content cutoff */
 }
 
 /* Responsive design */
@@ -135,6 +142,7 @@ const handleLogout = () => {
 
   .tab-content {
     padding: 1rem;
+    padding-bottom: 3rem; /* Extra bottom padding on tablet */
   }
 
   .login-container {

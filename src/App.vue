@@ -13,3 +13,16 @@ appStore.initTheme()
     <RouterView />
   </ElementLocaleProvider>
 </template>
+
+<style>
+/* Global tooltip styles to ensure they're never clipped */
+.el-popper.is-light,
+.el-popper.is-dark {
+  z-index: 9999 !important;
+}
+
+/* Ensure tooltip containers don't get clipped by overflow */
+body > .el-popper {
+  z-index: 9999 !important;
+}
+</style>

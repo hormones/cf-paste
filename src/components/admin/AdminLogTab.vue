@@ -233,11 +233,6 @@ const handleReset = () => {
   fetchLogs()
 }
 
-const handleExport = () => {
-  // TODO: Implement export functionality
-  console.log('Export logs:', searchForm.value)
-}
-
 // Handle table events
 const handlePageChange = (page: number) => {
   searchForm.value.page = page
@@ -306,49 +301,40 @@ onMounted(async () => {
 
 <template>
   <div class="admin-log-tab">
-    <!-- Applied Filters Display -->
+    <!-- Applied Filters Display - Simplified and Compact -->
     <div v-if="appliedFilters.length > 0" class="applied-filters">
-      <el-alert
-        :title="t('admin.logs.activeFilters') || 'Active Filters'"
-        type="info"
-        :closable="false"
-        show-icon
-        class="filters-alert"
-      >
-        <template #default>
-          <div class="filters-content">
-            <p class="filters-description">
-              {{ t('admin.logs.filtersDescription') || 'The following filters are currently applied to the log view:' }}
-            </p>
-            <el-space wrap class="filters-tags">
-              <el-tag
-                v-for="filter in appliedFilters"
-                :key="filter.key"
-                :type="filter.type === 'from-overview' ? 'warning' : 'primary'"
-                closable
-                @close="removeFilter(filter.key)"
-                class="filter-tag"
-              >
-                <template #default>
-                  <el-tooltip
-                    v-if="filter.type === 'from-overview'"
-                    :content="t('admin.logs.fromOverview') || 'Filter applied from overview page'"
-                    placement="top"
-                  >
-                    <span class="filter-content">
-                      <el-icon class="filter-icon"><InfoFilled /></el-icon>
-                      <span class="filter-text">{{ filter.label }}: {{ filter.value }}</span>
-                    </span>
-                  </el-tooltip>
-                  <span v-else class="filter-content">
-                    <span class="filter-text">{{ filter.label }}: {{ filter.value }}</span>
-                  </span>
-                </template>
-              </el-tag>
-            </el-space>
-          </div>
-        </template>
-      </el-alert>
+      <div class="filters-container">
+        <div class="filters-header">
+          <span class="filters-title">
+            <el-icon class="filters-icon"><InfoFilled /></el-icon>
+            {{ t('admin.logs.activeFilters') || 'Active Filters' }}:
+          </span>
+        </div>
+        <el-space wrap class="filters-tags" :size="8">
+          <el-tag
+            v-for="filter in appliedFilters"
+            :key="filter.key"
+            :type="filter.type === 'from-overview' ? 'warning' : 'primary'"
+            closable
+            size="small"
+            @close="removeFilter(filter.key)"
+            class="filter-tag"
+          >
+            <el-tooltip
+              v-if="filter.type === 'from-overview'"
+              :content="t('admin.logs.fromOverview') || 'Filter applied from overview page'"
+              placement="top"
+            >
+              <span class="filter-content">
+                <span class="filter-text">{{ filter.label }}: {{ filter.value }}</span>
+              </span>
+            </el-tooltip>
+            <span v-else class="filter-content">
+              <span class="filter-text">{{ filter.label }}: {{ filter.value }}</span>
+            </span>
+          </el-tag>
+        </el-space>
+      </div>
     </div>
 
     <!-- Filter Form -->
@@ -357,7 +343,6 @@ onMounted(async () => {
       :loading="loading.logs"
       @search="handleSearch"
       @reset="handleReset"
-      @export="handleExport"
     />
 
     <!-- Error Alert -->
@@ -379,7 +364,6 @@ onMounted(async () => {
       :total="pagination.total"
       @page-change="handlePageChange"
       @page-size-change="handlePageSizeChange"
-      @export="handleExport"
     />
   </div>
 </template>
@@ -387,42 +371,56 @@ onMounted(async () => {
 <style scoped>
 .admin-log-tab {
   padding: 1rem;
+  padding-bottom: 3rem; /* Extra bottom padding to prevent content cutoff */
 }
 
-/* Applied Filters */
+/* Applied Filters - Compact Style */
 .applied-filters {
   margin-bottom: 1rem;
 }
 
-.filters-alert {
-  border-left: 4px solid var(--el-color-primary);
+.filters-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--el-fill-color-light);
+  border: 1px solid var(--el-border-color);
+  border-radius: 4px;
+  border-left: 3px solid var(--el-color-info);
 }
 
-.filters-content {
-  margin-top: 8px;
+.filters-header {
+  flex-shrink: 0;
 }
 
-.filters-description {
-  margin: 0 0 12px 0;
+.filters-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--el-text-color-regular);
+}
+
+.filters-icon {
   font-size: 14px;
-  line-height: 1.5;
+  color: var(--el-color-info);
 }
 
 .filters-tags {
-  min-height: 32px;
+  flex: 1;
+  min-height: 24px;
 }
 
 .filter-tag {
-  margin: 2px;
-  font-size: 13px;
-  border-radius: 4px;
+  font-size: 12px;
   transition: all 0.2s ease;
 }
 
 .filter-tag:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .filter-content {
@@ -431,12 +429,8 @@ onMounted(async () => {
   gap: 4px;
 }
 
-.filter-icon {
-  font-size: 12px;
-}
-
 .filter-text {
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .error-alert {
@@ -447,35 +441,45 @@ onMounted(async () => {
 @media (max-width: 768px) {
   .admin-log-tab {
     padding: 0.75rem;
+    padding-bottom: 2.5rem;
   }
 
-  .filters-description {
-    font-size: 13px;
+  .filters-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .filters-title {
+    font-size: 12px;
   }
 
   .filter-tag {
-    font-size: 12px;
-    margin: 1px;
+    font-size: 11px;
   }
 }
 
 @media (max-width: 480px) {
   .admin-log-tab {
     padding: 0.5rem;
+    padding-bottom: 2rem;
   }
 
-  .filters-content {
-    margin-top: 6px;
+  .filters-container {
+    padding: 8px 10px;
   }
 
-  .filters-description {
+  .filters-title {
+    font-size: 11px;
+  }
+
+  .filters-icon {
     font-size: 12px;
-    margin-bottom: 8px;
   }
 
   .filter-tag {
-    font-size: 11px;
-    padding: 2px 6px;
+    font-size: 10px;
   }
 }
 

@@ -16,7 +16,6 @@ import {
 import {
   Search,
   Refresh,
-  Download,
   Filter
 } from '@element-plus/icons-vue'
 import { useI18n } from '@/composables/useI18n'
@@ -34,7 +33,6 @@ const emit = defineEmits<{
   'update:modelValue': [value: AdminLogsRequest]
   search: []
   reset: []
-  export: []
 }>()
 
 const { t } = useI18n()
@@ -85,10 +83,6 @@ const handleSearch = () => {
 
 const handleReset = () => {
   emit('reset')
-}
-
-const handleExport = () => {
-  emit('export')
 }
 
 // Handle Enter key in input fields
@@ -228,35 +222,28 @@ const handleKeyPress = (event: KeyboardEvent) => {
           </el-form-item>
         </el-col>
 
-        <!-- Action Buttons -->
-        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
-          <el-form-item :label="t('admin.filters.actions') || 'Actions'">
-            <el-space wrap class="action-buttons">
-              <el-button
-                type="primary"
-                :icon="Search"
-                :loading="loading"
-                @click="handleSearch"
-              >
-                {{ t('admin.actions.search') || 'Search' }}
-              </el-button>
+      </el-row>
 
-              <el-button
-                :icon="Refresh"
-                @click="handleReset"
-              >
-                {{ t('admin.actions.reset') || 'Reset' }}
-              </el-button>
+      <!-- Action Buttons Row -->
+      <el-row class="action-buttons-row">
+        <el-col :span="24">
+          <el-space wrap :size="12">
+            <el-button
+              type="primary"
+              :icon="Search"
+              :loading="loading"
+              @click="handleSearch"
+            >
+              {{ t('admin.actions.search') || 'Search' }}
+            </el-button>
 
-              <el-button
-                type="success"
-                :icon="Download"
-                @click="handleExport"
-              >
-                {{ t('admin.actions.export') || 'Export' }}
-              </el-button>
-            </el-space>
-          </el-form-item>
+            <el-button
+              :icon="Refresh"
+              @click="handleReset"
+            >
+              {{ t('admin.actions.reset') || 'Reset' }}
+            </el-button>
+          </el-space>
         </el-col>
       </el-row>
     </el-form>
@@ -294,9 +281,15 @@ const handleKeyPress = (event: KeyboardEvent) => {
   width: 100%;
 }
 
-.action-buttons {
+/* Action Buttons Row */
+.action-buttons-row {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.action-buttons-row .el-space {
   width: 100%;
-  justify-content: flex-start;
 }
 
 /* Form field styling */
@@ -340,11 +333,6 @@ const handleKeyPress = (event: KeyboardEvent) => {
   width: 100%;
 }
 
-/* Button styling */
-.action-buttons .el-button {
-  flex: none;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .card-header {
@@ -361,12 +349,11 @@ const handleKeyPress = (event: KeyboardEvent) => {
     margin-bottom: 16px;
   }
 
-  .action-buttons {
-    flex-direction: column;
-    width: 100%;
+  .action-buttons-row {
+    padding-top: 12px;
   }
 
-  .action-buttons .el-button {
+  .action-buttons-row .el-button {
     width: 100%;
   }
 }
@@ -381,7 +368,12 @@ const handleKeyPress = (event: KeyboardEvent) => {
     padding-bottom: 4px;
   }
 
-  .action-buttons .el-button {
+  .action-buttons-row {
+    padding-top: 10px;
+  }
+
+  .action-buttons-row .el-button {
+    width: 100%;
     font-size: 13px;
     padding: 8px 16px;
   }
