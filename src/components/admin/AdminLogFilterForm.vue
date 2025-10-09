@@ -65,16 +65,28 @@ const updateField = (field: keyof AdminLogsRequest, value: any) => {
   emit('update:modelValue', newData)
 }
 
-// Handle date range change
-const handleDateRangeChange = (range: [Date, Date] | null) => {
-  if (range) {
-    updateField('start', range[0].getTime())
-    updateField('end', range[1].getTime())
-  } else {
-    updateField('start', undefined)
-    updateField('end', undefined)
+// Date range computed for v-model
+const dateRange = computed({
+  get: () => {
+    if (formData.value.start && formData.value.end) {
+      return [new Date(formData.value.start), new Date(formData.value.end)]
+    }
+    return null
+  },
+  set: (range: [Date, Date] | null) => {
+    if (range && range.length === 2) {
+      const newData = { ...formData.value }
+      newData.start = range[0].getTime()
+      newData.end = range[1].getTime()
+      emit('update:modelValue', newData)
+    } else {
+      const newData = { ...formData.value }
+      newData.start = undefined
+      newData.end = undefined
+      emit('update:modelValue', newData)
+    }
   }
-}
+})
 
 // Handle form actions
 const handleSearch = () => {
@@ -210,13 +222,11 @@ const handleKeyPress = (event: KeyboardEvent) => {
         <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
           <el-form-item :label="t('admin.filters.timeRange') || 'Time Range'">
             <el-date-picker
-              :model-value="formData.start && formData.end ? [new Date(formData.start), new Date(formData.end)] : undefined"
+              v-model="dateRange"
               type="datetimerange"
               :start-placeholder="t('admin.filters.startDate') || 'Start date'"
               :end-placeholder="t('admin.filters.endDate') || 'End date'"
               format="YYYY-MM-DD HH:mm"
-              value-format="YYYY-MM-DD HH:mm:ss"
-              @change="handleDateRangeChange"
               class="w-full"
             />
           </el-form-item>
