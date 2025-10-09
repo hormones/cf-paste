@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { ElTabs, ElTabPane, ElSwitch } from 'element-plus'
+import { ElTabs, ElTabPane, ElButton } from 'element-plus'
 import { Moon, Sunny, TrendCharts, Document } from '@element-plus/icons-vue'
 import { useAppStore } from '@/stores'
 import { useAdminStore } from '@/stores/admin'
@@ -37,21 +37,17 @@ const activeTab = computed({
   }
 })
 
-// Dynamic theme icon and label
+// Dynamic theme icon based on current theme (same as PageHeader)
 const themeIcon = computed(() => {
-  return currentTheme.value === 'light' ? Moon : Sunny
+  return currentTheme.value === 'light' ? Sunny : Moon
 })
 
-const themeLabel = computed(() => {
+// Dynamic tooltip text based on current theme (same as PageHeader)
+const themeTitle = computed(() => {
   return currentTheme.value === 'light'
-    ? (t('app.theme.dark') || 'Dark')
-    : (t('app.theme.light') || 'Light')
+    ? t('app.theme.toDark')
+    : t('app.theme.toLight')
 })
-
-// Handle theme toggle
-const handleThemeToggle = (value: string | number | boolean) => {
-  toggleTheme()
-}
 
 // Tab configuration
 const tabs = [
@@ -103,17 +99,14 @@ const tabs = [
 
       <!-- Header Actions -->
       <div class="header-actions">
-        <!-- Theme Toggle -->
-        <div class="theme-toggle">
-          <el-switch
-            :model-value="currentTheme === 'dark'"
-            @change="handleThemeToggle"
-            :active-icon="Moon"
-            :inactive-icon="Sunny"
-            size="small"
-            class="theme-switch"
-          />
-        </div>
+        <!-- Theme Toggle Button (same as PageHeader) -->
+        <el-button
+          size="small"
+          :icon="themeIcon"
+          text
+          :title="themeTitle"
+          @click="toggleTheme"
+        />
 
         <!-- Logout Button -->
         <el-button
@@ -186,17 +179,6 @@ const tabs = [
 .tab-text {
   font-size: 0.9rem;
   font-weight: 500;
-}
-
-/* Theme toggle */
-.theme-toggle {
-  display: flex;
-  align-items: center;
-}
-
-.theme-switch {
-  --el-switch-on-color: var(--el-color-primary);
-  --el-switch-off-color: var(--el-fill-color-lighter);
 }
 
 /* Logout button */

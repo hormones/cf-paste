@@ -14,8 +14,12 @@ export type AdminTab = 'overview' | 'logs'
 
 // Admin filter conditions state
 export interface AdminFilters {
-  // Common filters
-  timeRange?: [number, number] // [start, end] timestamps
+  // Time range filters - separate for each tab
+  overviewTimeRange?: [number, number] // [start, end] timestamps for Overview tab
+  logsTimeRange?: [number, number] // [start, end] timestamps for Logs tab
+
+  // Deprecated: use overviewTimeRange or logsTimeRange instead
+  timeRange?: [number, number] // For backward compatibility
 
   // Activity filters
   activityMetric?: 'create' | 'update' | 'delete' | 'view' | 'all'
@@ -62,7 +66,9 @@ export const useAdminStore = defineStore('admin', {
 
     // Filter conditions
     filters: {
-      timeRange: undefined,
+      overviewTimeRange: undefined,
+      logsTimeRange: undefined,
+      timeRange: undefined, // For backward compatibility
       activityMetric: 'all',
       activityGranularity: 'day',
       logPage: 1,
@@ -88,15 +94,28 @@ export const useAdminStore = defineStore('admin', {
 
   getters: {
 
-    // Get current time range for requests
+    // Get current time range for requests based on current tab
     getTimeRangeParams() {
       return (baseFilters?: AdminFilters) => {
         const filters = { ...this.filters, ...baseFilters }
         const params: { start?: number; end?: number } = {}
 
-        if (filters.timeRange) {
-          params.start = filters.timeRange[0]
-          params.end = filters.timeRange[1]
+        // Use tab-specific time range based on current tab
+        let timeRange: [number, number] | undefined
+        if (this.currentTab === 'overview') {
+          timeRange = filters.overviewTimeRange
+        } else if (this.currentTab === 'logs') {
+          timeRange = filters.logsTimeRange
+        }
+
+        // Fallback to deprecated timeRange for backward compatibility
+        if (!timeRange && filters.timeRange) {
+          timeRange = filters.timeRange
+        }
+
+        if (timeRange) {
+          params.start = timeRange[0]
+          params.end = timeRange[1]
         }
 
         return params
@@ -203,6 +222,8 @@ export const useAdminStore = defineStore('admin', {
     // Reset filters
     resetFilters() {
       this.filters = {
+        overviewTimeRange: undefined,
+        logsTimeRange: undefined,
         timeRange: undefined,
         activityMetric: 'all',
         activityGranularity: 'day',

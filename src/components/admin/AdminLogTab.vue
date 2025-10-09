@@ -107,8 +107,8 @@ const appliedFilters = computed(() => {
     })
   }
 
-  if (currentFilters.timeRange) {
-    const [start, end] = currentFilters.timeRange
+  if (currentFilters.logsTimeRange) {
+    const [start, end] = currentFilters.logsTimeRange
     const startDate = new Date(start).toLocaleDateString()
     const endDate = new Date(end).toLocaleDateString()
     applied.push({
@@ -135,8 +135,8 @@ const initializeForm = () => {
     country: currentFilters.country || '',
     region: currentFilters.region || '',
     desc: '',
-    start: currentFilters.timeRange ? currentFilters.timeRange[0] : undefined,
-    end: currentFilters.timeRange ? currentFilters.timeRange[1] : undefined
+    start: currentFilters.logsTimeRange ? currentFilters.logsTimeRange[0] : undefined,
+    end: currentFilters.logsTimeRange ? currentFilters.logsTimeRange[1] : undefined
   }
 }
 
@@ -196,7 +196,7 @@ const handleSearch = async () => {
     action: searchForm.value.action,
     country: searchForm.value.country || undefined,
     region: searchForm.value.region || undefined,
-    timeRange: (searchForm.value.start && searchForm.value.end)
+    logsTimeRange: (searchForm.value.start && searchForm.value.end)
       ? [searchForm.value.start, searchForm.value.end]
       : undefined
   })
@@ -227,7 +227,7 @@ const handleReset = () => {
     action: undefined,
     country: undefined,
     region: undefined,
-    timeRange: undefined
+    logsTimeRange: undefined
   })
 
   fetchLogs()
@@ -276,7 +276,7 @@ const removeFilter = (key: string) => {
     case 'timeRange':
       searchForm.value.start = undefined
       searchForm.value.end = undefined
-      updates.timeRange = undefined
+      updates.logsTimeRange = undefined
       break
   }
 

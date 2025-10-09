@@ -92,32 +92,43 @@ const shortcuts = [
   }
 ]
 
-// Computed time range value for date picker
+// Computed time range value for date picker - use overviewTimeRange
 const timeRangeValue = computed({
   get: () => {
-    if (!filters.value.timeRange) return undefined
+    if (!filters.value.overviewTimeRange) return undefined
 
-    // Convert timestamps to ISO string format for Element Plus
-    const startDate = new Date(filters.value.timeRange[0])
-    const endDate = new Date(filters.value.timeRange[1])
+    // Convert timestamps to local datetime string for Element Plus
+    const startDate = new Date(filters.value.overviewTimeRange[0])
+    const endDate = new Date(filters.value.overviewTimeRange[1])
+
+    // Format as YYYY-MM-DDTHH:mm in local timezone
+    const formatLocalDateTime = (date: Date) => {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      return `${year}-${month}-${day}T${hours}:${minutes}`
+    }
 
     return [
-      startDate.toISOString().slice(0, 16),
-      endDate.toISOString().slice(0, 16)
+      formatLocalDateTime(startDate),
+      formatLocalDateTime(endDate)
     ]
   },
   set: (value) => {
-    console.log('Time range value set:', value)
+    console.log('Overview time range value set:', value)
     if (value && Array.isArray(value)) {
+      // Parse datetime strings in local timezone
       const startDate = new Date(value[0]).getTime()
       const endDate = new Date(value[1]).getTime()
       adminStore.updateFilters({
-        timeRange: [startDate, endDate]
+        overviewTimeRange: [startDate, endDate]
       })
       refreshData()
     } else {
       adminStore.updateFilters({
-        timeRange: undefined
+        overviewTimeRange: undefined
       })
       refreshData()
     }
@@ -126,11 +137,11 @@ const timeRangeValue = computed({
 
 // Computed time range for display
 const timeRangeText = computed(() => {
-  if (!filters.value.timeRange) {
+  if (!filters.value.overviewTimeRange) {
     return t('admin.dateRange.allTime') || 'All Time'
   }
 
-  const [start, end] = filters.value.timeRange
+  const [start, end] = filters.value.overviewTimeRange
   const startDate = new Date(start).toLocaleDateString()
   const endDate = new Date(end).toLocaleDateString()
 
@@ -238,7 +249,7 @@ const handleStatsCardClick = (type: 'views' | 'creates' | 'activeIPs' | 'todayCr
       endOfDay.setHours(23, 59, 59, 999)
 
       adminStore.updateFilters({
-        timeRange: [today.getTime(), endOfDay.getTime()],
+        logsTimeRange: [today.getTime(), endOfDay.getTime()],
         logPage: 1,
         action: Action.CREATE
       })
@@ -269,7 +280,7 @@ const handleChartDrillDown = (bucket: string, metric: string) => {
       }
 
       const filters: any = {
-        timeRange: [startOfDay.getTime(), endOfDay.getTime()],
+        logsTimeRange: [startOfDay.getTime(), endOfDay.getTime()],
         logPage: 1
       }
 

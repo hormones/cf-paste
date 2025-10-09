@@ -65,26 +65,43 @@ const updateField = (field: keyof AdminLogsRequest, value: any) => {
   emit('update:modelValue', newData)
 }
 
-// Date range computed for v-model
+// Date range computed for v-model - use local timezone
 const dateRange = computed({
   get: () => {
-    if (formData.value.start && formData.value.end) {
-      return [new Date(formData.value.start), new Date(formData.value.end)]
+    if (!formData.value.start || !formData.value.end) return undefined
+
+    // Convert timestamps to local datetime string for Element Plus
+    const startDate = new Date(formData.value.start)
+    const endDate = new Date(formData.value.end)
+
+    // Format as YYYY-MM-DDTHH:mm in local timezone
+    const formatLocalDateTime = (date: Date) => {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      return `${year}-${month}-${day}T${hours}:${minutes}`
     }
-    return null
+
+    return [
+      formatLocalDateTime(startDate),
+      formatLocalDateTime(endDate)
+    ]
   },
-  set: (range: [Date, Date] | null) => {
-    if (range && range.length === 2) {
-      const newData = { ...formData.value }
-      newData.start = range[0].getTime()
-      newData.end = range[1].getTime()
-      emit('update:modelValue', newData)
+  set: (value) => {
+    const newData = { ...formData.value }
+    if (value && Array.isArray(value)) {
+      // Parse datetime strings in local timezone
+      const startDate = new Date(value[0]).getTime()
+      const endDate = new Date(value[1]).getTime()
+      newData.start = startDate
+      newData.end = endDate
     } else {
-      const newData = { ...formData.value }
       newData.start = undefined
       newData.end = undefined
-      emit('update:modelValue', newData)
     }
+    emit('update:modelValue', newData)
   }
 })
 
@@ -227,6 +244,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
               :start-placeholder="t('admin.filters.startDate') || 'Start date'"
               :end-placeholder="t('admin.filters.endDate') || 'End date'"
               format="YYYY-MM-DD HH:mm"
+              value-format="YYYY-MM-DDTHH:mm"
               class="w-full"
             />
           </el-form-item>
