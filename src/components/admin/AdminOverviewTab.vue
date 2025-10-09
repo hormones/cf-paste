@@ -92,6 +92,38 @@ const shortcuts = [
   }
 ]
 
+// Computed time range value for date picker
+const timeRangeValue = computed({
+  get: () => {
+    if (!filters.value.timeRange) return undefined
+
+    // Convert timestamps to ISO string format for Element Plus
+    const startDate = new Date(filters.value.timeRange[0])
+    const endDate = new Date(filters.value.timeRange[1])
+
+    return [
+      startDate.toISOString().slice(0, 16),
+      endDate.toISOString().slice(0, 16)
+    ]
+  },
+  set: (value) => {
+    console.log('Time range value set:', value)
+    if (value && Array.isArray(value)) {
+      const startDate = new Date(value[0]).getTime()
+      const endDate = new Date(value[1]).getTime()
+      adminStore.updateFilters({
+        timeRange: [startDate, endDate]
+      })
+      refreshData()
+    } else {
+      adminStore.updateFilters({
+        timeRange: undefined
+      })
+      refreshData()
+    }
+  }
+})
+
 // Computed time range for display
 const timeRangeText = computed(() => {
   if (!filters.value.timeRange) {
@@ -109,21 +141,6 @@ const timeRangeText = computed(() => {
   return `${startDate} - ${endDate}`
 })
 
-// Handle time range change
-const handleTimeRangeChange = (range: [Date, Date] | null) => {
-  if (range) {
-    adminStore.updateFilters({
-      timeRange: [range[0].getTime(), range[1].getTime()]
-    })
-  } else {
-    adminStore.updateFilters({
-      timeRange: undefined
-    })
-  }
-
-  // Auto refresh data when time range changes
-  refreshData()
-}
 
 // Fetch all overview data
 const fetchOverviewData = async () => {
@@ -315,7 +332,7 @@ onUnmounted(() => {
       <div class="controls-left">
         <!-- Time Range Picker -->
         <el-date-picker
-          :model-value="filters.timeRange ? [new Date(filters.timeRange[0]), new Date(filters.timeRange[1])] : undefined"
+          v-model="timeRangeValue"
           type="datetimerange"
           :shortcuts="shortcuts"
           :placeholder="t('admin.dateRange.selectRange') || 'Select date range'"
@@ -323,9 +340,8 @@ onUnmounted(() => {
           :end-placeholder="t('admin.dateRange.endDate') || 'End date'"
           :prefix-icon="Calendar"
           format="YYYY-MM-DD HH:mm"
-          value-format="YYYY-MM-DD HH:mm:ss"
+          value-format="YYYY-MM-DDTHH:mm"
           size="default"
-          @change="handleTimeRangeChange"
           class="time-range-picker"
         />
 
