@@ -255,23 +255,15 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
           :label="t('admin.logs.columns.time') || 'Time'"
           width="160"
           align="center"
-          fixed="right"
         >
           <template #default="{ row }">
-            <div class="time-cell">
-              <el-tooltip
-                :content="t('admin.logs.exactTime') || 'Exact time'"
-                placement="top"
-                teleported
-                :show-after="200"
-                :popper-options="{
-                  strategy: 'fixed',
-                  modifiers: [{ name: 'offset', options: { offset: [0, 8] } }]
-                }"
-              >
-                <span>{{ formatTimestamp(row.actionTime) }}</span>
-              </el-tooltip>
-            </div>
+            <el-tooltip
+              :content="t('admin.logs.exactTime') || 'Exact time'"
+              placement="top"
+              :show-after="300"
+            >
+              <span class="time-cell">{{ formatTimestamp(row.actionTime) }}</span>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -298,16 +290,6 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
 <style scoped>
 .log-table-card {
   border: 1px solid var(--el-border-color-lighter);
-  overflow: visible !important; /* Allow tooltips to overflow card boundaries */
-}
-
-.log-table-card :deep(.el-card__body) {
-  overflow: visible !important; /* Ensure card body doesn't clip tooltips */
-}
-
-/* Ensure tooltips appear above all other elements */
-:deep(.el-tooltip__popper) {
-  z-index: 9999 !important;
 }
 
 /* Card Header */

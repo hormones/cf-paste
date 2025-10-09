@@ -236,13 +236,6 @@ const handleKeyPress = (event: KeyboardEvent) => {
             >
               {{ t('admin.actions.search') || 'Search' }}
             </el-button>
-
-            <el-button
-              :icon="Refresh"
-              @click="handleReset"
-            >
-              {{ t('admin.actions.reset') || 'Reset' }}
-            </el-button>
           </el-space>
         </el-col>
       </el-row>

@@ -290,19 +290,13 @@ watch(() => props.data, () => {
               >
                 <!-- Stacked bars -->
                 <div class="stacked-bar">
-                  <div
+                  <el-tooltip
                     v-for="(series, seriesIndex) in chartData.series"
                     :key="series.metric"
-                    class="bar-segment"
-                    :style="{
-                      height: maxValue > 0 ? ((series.data[categoryIndex] || 0) / maxValue * 100) + '%' : '0%',
-                      backgroundColor: series.color,
-                      bottom: calculateStackBottom(categoryIndex, seriesIndex) + '%'
-                    }"
-                    @click="handleDataPointClick(category, series.metric)"
+                    placement="top"
+                    :show-after="200"
                   >
-                    <!-- Tooltip on hover -->
-                    <div class="bar-tooltip">
+                    <template #content>
                       <div class="tooltip-content">
                         <div class="tooltip-title">{{ formatDate(category) }}</div>
                         <div class="tooltip-item">
@@ -311,8 +305,17 @@ watch(() => props.data, () => {
                           <span class="tooltip-value">{{ series.data[categoryIndex] || 0 }}</span>
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    </template>
+                    <div
+                      class="bar-segment"
+                      :style="{
+                        height: maxValue > 0 ? ((series.data[categoryIndex] || 0) / maxValue * 100) + '%' : '0%',
+                        backgroundColor: series.color,
+                        bottom: calculateStackBottom(categoryIndex, seriesIndex) + '%'
+                      }"
+                      @click="handleDataPointClick(category, series.metric)"
+                    />
+                  </el-tooltip>
                 </div>
 
                 <!-- X-axis label -->
@@ -493,61 +496,38 @@ watch(() => props.data, () => {
   opacity: 0.8;
 }
 
-/* Tooltip */
-.bar-tooltip {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%) translateY(-100%);
-  background: var(--el-color-info-dark-2);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  z-index: 10;
-}
-
-.bar-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 4px solid transparent;
-  border-top-color: var(--el-color-info-dark-2);
-}
-
-.bar-segment:hover .bar-tooltip {
-  opacity: 1;
+/* Tooltip content styles (used in el-tooltip) */
+.tooltip-content {
+  min-width: 120px;
 }
 
 .tooltip-title {
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  font-size: 13px;
 }
 
 .tooltip-item {
   display: flex;
   align-items: center;
   gap: 6px;
+  font-size: 12px;
 }
 
 .tooltip-color {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .tooltip-label {
-  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .tooltip-value {
   font-weight: 600;
+  margin-left: auto;
 }
 
 /* X-axis labels */
