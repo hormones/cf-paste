@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { ElTabs, ElTabPane, ElButton } from 'element-plus'
-import { Moon, Sunny, TrendCharts, Document } from '@element-plus/icons-vue'
+import { ElButton, ElPageHeader } from 'element-plus'
+import { Moon, Sunny, SwitchButton } from '@element-plus/icons-vue'
 import { useAppStore } from '@/stores'
+import type { AdminTab } from '@/stores/admin'
 import { useAdminStore } from '@/stores/admin'
 import { useI18n } from '@/composables/useI18n'
-import type { AdminTab } from '@/stores/admin'
 
 // Define props and emits for v-model support
 const props = defineProps<{
   modelValue: AdminTab
-  showTitle?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -53,220 +52,175 @@ const themeTitle = computed(() => {
 const tabs = [
   {
     name: 'overview' as AdminTab,
-    label: t('admin.tabs.overview') || 'Overview',
-    icon: TrendCharts
+    label: t('admin.tabs.overview') || 'Overview'
   },
   {
     name: 'logs' as AdminTab,
-    label: t('admin.tabs.logs') || 'Detailed Logs',
-    icon: Document
+    label: t('admin.tabs.logs') || 'Detailed Logs'
   }
 ]
+
+// Handle tab click
+const handleTabClick = (tabName: AdminTab) => {
+  activeTab.value = tabName
+}
 </script>
 
 <template>
   <div class="admin-tab-bar">
-    <div class="tab-container">
-      <!-- App Title -->
-      <div v-if="showTitle" class="app-title">
-        <h1>{{ t('admin.dashboard.title') || 'Admin Dashboard' }}</h1>
-      </div>
+    <el-page-header class="page-header"
+                    icon=""
+                    :title="t('admin.dashboard.title') || 'Admin Dashboard'"
+    >
+      <!-- Left content: Title and Tabs -->
+      <template #content>
+        <div class="header-left">
+          <div class="tabs">
+            <div
+              v-for="tab in tabs"
+              :key="tab.name"
+              class="tab-item"
+              :class="{ 'is-active': activeTab === tab.name }"
+              @click="handleTabClick(tab.name)"
+            >
+              {{ tab.label }}
+            </div>
+          </div>
+        </div>
+      </template>
 
-      <!-- Tab Navigation -->
-      <div class="tab-navigation">
-        <el-tabs
-          v-model="activeTab"
-          type="border-card"
-          class="admin-tabs"
-        >
-          <el-tab-pane
-            v-for="tab in tabs"
-            :key="tab.name"
-            :name="tab.name"
-            :label="tab.label"
+      <!-- Right actions: Theme toggle and Logout -->
+      <template #extra>
+        <div class="header-actions">
+          <!-- Theme Toggle Button -->
+          <el-button
+            :icon="themeIcon"
+            circle
+            text
+            :title="themeTitle"
+            @click="toggleTheme"
+          />
+
+          <!-- Logout Button -->
+          <el-button
+            :icon="SwitchButton"
+            text
+            @click="emit('logout')"
+            class="logout-btn"
           >
-            <template #label>
-              <div class="tab-label">
-                <el-icon class="tab-icon">
-                  <component :is="tab.icon" />
-                </el-icon>
-                <span class="tab-text">{{ tab.label }}</span>
-              </div>
-            </template>
-          </el-tab-pane>
-        </el-tabs>
-      </div>
-
-      <!-- Header Actions -->
-      <div class="header-actions">
-        <!-- Theme Toggle Button (same as PageHeader) -->
-        <el-button
-          size="small"
-          :icon="themeIcon"
-          text
-          :title="themeTitle"
-          @click="toggleTheme"
-        />
-
-        <!-- Logout Button -->
-        <el-button
-          type="primary"
-          text
-          @click="emit('logout')"
-          class="logout-btn"
-        >
-          {{ t('admin.auth.logout') || 'Logout' }}
-        </el-button>
-      </div>
-    </div>
+            {{ t('admin.auth.logout') || 'Logout' }}
+          </el-button>
+        </div>
+      </template>
+    </el-page-header>
   </div>
 </template>
 
 <style scoped>
 .admin-tab-bar {
   background: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
-.tab-container {
+.page-header {
+  padding: 16px 32px;
+  --el-page-header-bg-color: transparent;
+}
+
+/* Left side: Title and Tabs */
+.header-left {
   display: flex;
   align-items: center;
-  gap: 2rem;
-  padding: 1rem 2rem;
-  min-height: 60px;
+  gap: 24px;
 }
 
-.app-title {
-  flex-shrink: 0;
+.tabs {
+  display: flex;
+  gap: 8px;
 }
 
-.app-title h1 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
+.tab-item {
+  padding: 6px 16px;
+  font-size: 14px;
+  color: var(--el-text-color-regular);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.tab-item:hover {
   color: var(--el-text-color-primary);
+  background-color: var(--el-fill-color-light);
 }
 
-.tab-navigation {
-  flex: 1;
+.tab-item.is-active {
+  color: var(--el-color-primary);
+  font-weight: 500;
+  background-color: var(--el-color-primary-light-9);
 }
 
+/* Right side: Actions */
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  flex-shrink: 0;
+  gap: 12px;
 }
 
-:deep(.admin-tabs .el-tabs__header) {
-  margin: 0;
-}
-
-:deep(.admin-tabs .el-tabs__item.is-active) {
-  border-color: var(--el-border-color);
-  border-bottom-color: transparent;
-}
-
-.tab-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tab-icon {
-  font-size: 1rem;
-}
-
-.tab-text {
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-/* Logout button */
 .logout-btn {
-  --el-button-text-color: var(--el-color-primary);
-  font-size: 0.9rem;
+  font-size: 14px;
+  color: var(--el-color-primary);
+}
+
+.logout-btn:hover {
+  color: var(--el-color-primary-light-3);
 }
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .tab-container {
+  .page-header {
+    padding: 12px 16px;
+  }
+
+  .header-left {
     flex-direction: column;
-    padding: 1rem;
-    gap: 1rem;
-    min-height: auto;
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .app-title {
-    order: 0;
-    align-self: flex-start;
-  }
-
-  .app-title h1 {
-    font-size: 1.1rem;
-  }
-
-  .tab-navigation {
+  .tabs {
     width: 100%;
-    order: 1;
+    gap: 4px;
+  }
+
+  .tab-item {
+    flex: 1;
+    text-align: center;
+    padding: 6px 12px;
+    font-size: 13px;
   }
 
   .header-actions {
-    width: 100%;
-    order: 2;
-    justify-content: space-between;
+    gap: 8px;
   }
 
-  /* Mobile tabs */
-  :deep(.admin-tabs .el-tabs__item) {
-    flex: 1;
-    text-align: center;
-    margin-right: 2px;
-    padding: 0 12px;
-  }
-
-  :deep(.admin-tabs .el-tabs__item:last-child) {
-    margin-right: 0;
-  }
-
-  .tab-text {
-    font-size: 0.8rem;
-  }
-
-  .tab-icon {
-    font-size: 0.9rem;
+  .logout-btn {
+    font-size: 13px;
   }
 }
 
 @media (max-width: 480px) {
-  .tab-container {
-    padding: 0.75rem;
+  .page-header {
+    padding: 10px 12px;
   }
 
-  .app-title h1 {
-    font-size: 1rem;
-  }
-
-  .tab-label {
-    gap: 4px;
-  }
-
-  .tab-text {
-    display: none; /* Hide text on very small screens, show only icons */
-  }
-
-  :deep(.admin-tabs .el-tabs__item) {
-    padding: 0 8px;
-    min-width: 44px;
+  .tab-item {
+    padding: 5px 10px;
+    font-size: 12px;
   }
 
   .logout-btn {
-    font-size: 0.8rem;
+    font-size: 12px;
   }
 }
-
-/* Animation for tab switching */
-:deep(.admin-tabs .el-tabs__content) {
-  padding: 0;
-}
-
 </style>

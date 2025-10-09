@@ -1,5 +1,5 @@
 import { IRequest, IContext, ApiResponse } from '../../types'
-import { AdminLogsRequest, AdminLogsResponse, Action, ActionLabels } from '../../../shared/types/admin'
+import { AdminLogsRequest, AdminLogsResponse, Action } from '../../../shared/types/admin'
 
 /**
  * Handle admin logs query

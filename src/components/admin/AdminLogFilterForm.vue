@@ -20,7 +20,6 @@ import {
 } from '@element-plus/icons-vue'
 import { useI18n } from '@/composables/useI18n'
 import type { AdminLogsRequest } from 'shared/types/admin'
-import { ActionLabels } from 'shared/types/admin'
 
 // Props
 const props = defineProps<{

@@ -42,7 +42,6 @@ const handleLogout = () => {
       <div class="modern-header">
         <AdminTabBar
           v-model="currentTab"
-          :show-title="true"
           @logout="handleLogout"
         />
       </div>

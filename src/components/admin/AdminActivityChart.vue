@@ -4,7 +4,6 @@ import { ElEmpty, ElSkeleton, ElButton, ElTooltip } from 'element-plus'
 import { Refresh, FullScreen } from '@element-plus/icons-vue'
 import { useI18n } from '@/composables/useI18n'
 import type { AdminActivityDataPoint } from 'shared/types/admin'
-import { ActionLabels } from 'shared/types/admin'
 
 // Props
 const props = defineProps<{

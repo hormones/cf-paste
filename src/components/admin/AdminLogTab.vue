@@ -16,7 +16,6 @@ import type {
   AdminLogsRequest,
   AdminLogItem
 } from 'shared/types/admin'
-import { ActionLabels } from 'shared/types/admin'
 
 // Import sub-components
 import AdminLogFilterForm from './AdminLogFilterForm.vue'
@@ -80,7 +79,7 @@ const appliedFilters = computed(() => {
   }
 
   if (currentFilters.action !== undefined) {
-    const actionLabel = ActionLabels[currentFilters.action as keyof typeof ActionLabels]
+    const actionLabel = t(`admin.actionLabels.${currentFilters.action}`) || 'Unknown'
     applied.push({
       key: 'action',
       label: t('admin.filters.action') || 'Action',

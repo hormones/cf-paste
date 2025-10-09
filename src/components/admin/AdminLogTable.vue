@@ -189,7 +189,7 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
               size="small"
               class="action-tag"
             >
-              {{ t(`admin.actionLabels.${row.action}`) || row.actionLabel || '-' }}
+              {{ t(`admin.actionLabels.${row.action}`) || '-' }}
             </el-tag>
           </template>
         </el-table-column>

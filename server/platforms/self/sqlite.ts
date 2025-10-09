@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3'
 import { DatabaseAdapter, WhereCondition, DatabaseOperation } from '../../types'
-import { AdminOverviewResponse, AdminActivityRequest, AdminActivityResponse, AdminActivityDataPoint, AdminRankingRequest, AdminRankingResponse, RankingItem, AdminLogsRequest, AdminLogsResponse, AdminLogItem, Action, ActionLabels } from '../../../shared/types/admin'
+import { AdminOverviewResponse, AdminActivityRequest, AdminActivityResponse, AdminActivityDataPoint, AdminRankingRequest, AdminRankingResponse, RankingItem, AdminLogsRequest, AdminLogsResponse, AdminLogItem, Action } from '../../../shared/types/admin'
 import { buildInsertSql, buildUpdateSql, buildDeleteSql, buildSelectSql } from '../../common/sql-builder'
 
 export function createSqliteAdapter(dbPath: string): DatabaseAdapter {
@@ -222,7 +222,7 @@ export function createSqliteAdapter(dbPath: string): DatabaseAdapter {
               WHEN 2 THEN 'update'
               WHEN 7 THEN 'delete'
               WHEN 6 THEN 'view'
-              ELSE 'unknown'
+              ELSE 'other'
             END as metric,
             COUNT(*) as count,
             COUNT(DISTINCT word) as uniqueKeywords
@@ -241,7 +241,7 @@ export function createSqliteAdapter(dbPath: string): DatabaseAdapter {
               WHEN 2 THEN 'update'
               WHEN 7 THEN 'delete'
               WHEN 6 THEN 'view'
-              ELSE 'unknown'
+              ELSE 'other'
             END as metric,
             COUNT(*) as count,
             COUNT(DISTINCT word) as uniqueKeywords
@@ -256,8 +256,8 @@ export function createSqliteAdapter(dbPath: string): DatabaseAdapter {
       const activityResults = stmt.all(queryParams)
 
       const data: AdminActivityDataPoint[] = (activityResults || []).map((row: any) => ({
-        bucket: row.bucket || 'unknown',
-        metric: row.metric || 'unknown',
+        bucket: row.bucket || 'other',
+        metric: row.metric || 'other',
         count: row.count || 0,
         uniqueKeywords: row.uniqueKeywords || 0
       }))
@@ -323,17 +323,17 @@ export function createSqliteAdapter(dbPath: string): DatabaseAdapter {
       const topRegionsData = topRegionsStmt.all(params)
 
       const topIps: RankingItem[] = (topIpsData || []).map((row: any) => ({
-        name: row.name || 'unknown',
+        name: row.name || 'other',
         count: row.count || 0
       }))
 
       const topCountries: RankingItem[] = (topCountriesData || []).map((row: any) => ({
-        name: row.name || 'unknown',
+        name: row.name || 'other',
         count: row.count || 0
       }))
 
       const topRegions: RankingItem[] = (topRegionsData || []).map((row: any) => ({
-        name: row.name || 'unknown',
+        name: row.name || 'other',
         count: row.count || 0
       }))
 
@@ -433,8 +433,7 @@ export function createSqliteAdapter(dbPath: string): DatabaseAdapter {
         region: row.region || '',
         action: row.action || Action.VIEW,
         desc: row.desc || undefined,
-        actionTime: row.action_time ? new Date(row.action_time).getTime() : Date.now(),
-        actionLabel: ActionLabels[row.action as Action] || '未知'
+        actionTime: row.action_time ? new Date(row.action_time).getTime() : Date.now()
       }))
 
       return {

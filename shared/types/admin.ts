@@ -119,7 +119,7 @@ export interface AdminLogsRequest {
 }
 
 export interface AdminLogItem extends ActivityLog {
-  actionLabel: string    // Friendly action type display text
+  // Action label is now handled by i18n on the frontend
 }
 
 export interface AdminLogsResponse {

@@ -1,5 +1,5 @@
 import { DatabaseAdapter, WhereCondition, DatabaseOperation } from '../../types'
-import { AdminOverviewResponse, AdminActivityRequest, AdminActivityResponse, AdminActivityDataPoint, AdminRankingRequest, AdminRankingResponse, RankingItem, AdminLogsRequest, AdminLogsResponse, AdminLogItem, Action, ActionLabels } from '../../../shared/types/admin'
+import { AdminOverviewResponse, AdminActivityRequest, AdminActivityResponse, AdminActivityDataPoint, AdminRankingRequest, AdminRankingResponse, RankingItem, AdminLogsRequest, AdminLogsResponse, AdminLogItem, Action } from '../../../shared/types/admin'
 import {
   buildInsertSql,
   buildUpdateSql,
@@ -201,7 +201,7 @@ export function createD1Adapter(d1: D1Database): DatabaseAdapter {
               WHEN 2 THEN 'update'
               WHEN 7 THEN 'delete'
               WHEN 6 THEN 'view'
-              ELSE 'unknown'
+              ELSE 'other'
             END as metric,
             COUNT(*) as count,
             COUNT(DISTINCT word) as uniqueKeywords
@@ -220,7 +220,7 @@ export function createD1Adapter(d1: D1Database): DatabaseAdapter {
               WHEN 2 THEN 'update'
               WHEN 7 THEN 'delete'
               WHEN 6 THEN 'view'
-              ELSE 'unknown'
+              ELSE 'other'
             END as metric,
             COUNT(*) as count,
             COUNT(DISTINCT word) as uniqueKeywords
@@ -236,8 +236,8 @@ export function createD1Adapter(d1: D1Database): DatabaseAdapter {
       const activityResults = await result.all()
 
       const data: AdminActivityDataPoint[] = (activityResults.results || []).map((row: any) => ({
-        bucket: row.bucket || 'unknown',
-        metric: row.metric || 'unknown',
+        bucket: row.bucket || 'other',
+        metric: row.metric || 'other',
         count: row.count || 0,
         uniqueKeywords: row.uniqueKeywords || 0
       }))
@@ -309,17 +309,17 @@ export function createD1Adapter(d1: D1Database): DatabaseAdapter {
       ])
 
       const topIps: RankingItem[] = (topIpsData.results || []).map((row: any) => ({
-        name: row.name || 'unknown',
+        name: row.name || 'other',
         count: row.count || 0
       }))
 
       const topCountries: RankingItem[] = (topCountriesData.results || []).map((row: any) => ({
-        name: row.name || 'unknown',
+        name: row.name || 'other',
         count: row.count || 0
       }))
 
       const topRegions: RankingItem[] = (topRegionsData.results || []).map((row: any) => ({
-        name: row.name || 'unknown',
+        name: row.name || 'other',
         count: row.count || 0
       }))
 
@@ -421,8 +421,7 @@ export function createD1Adapter(d1: D1Database): DatabaseAdapter {
         region: row.region || '',
         action: row.action || Action.VIEW,
         desc: row.desc || undefined,
-        actionTime: row.action_time ? new Date(row.action_time).getTime() : Date.now(),
-        actionLabel: ActionLabels[row.action as Action] || '未知'
+        actionTime: row.action_time ? new Date(row.action_time).getTime() : Date.now()
       }))
 
       return {
