@@ -1,5 +1,4 @@
-import { IRequest, IContext, ApiResponse, CommonConfig } from '../../types'
-import { CloudflareConfig } from '../../types/platforms'
+import { ApiResponse, CommonConfig, IContext, IRequest } from '../../types'
 import { DEFAULT_CONFIG } from '../../constants'
 import { createD1Adapter } from './d1'
 import { createR2Adapter } from './r2'
@@ -16,16 +15,14 @@ export function createContext(env: Env): IContext {
     LANGUAGE: env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
   }
 
-  const platformConfig: CloudflareConfig = {
-    DB: env.DB,
-    R2: env.R2,
-    ASSETS: env.ASSETS,
-  }
-
   return {
     platform: 'cloudflare',
     config: commonConfig,
-    platformConfig,
+    platformConfig: {
+      DB: env.DB,
+      R2: env.R2,
+      ASSETS: env.ASSETS
+    },
     original: env,
     db: createD1Adapter(env.DB),
     storage: createR2Adapter(env.R2),
@@ -33,7 +30,7 @@ export function createContext(env: Env): IContext {
   }
 }
 
-export function createRequest(request: Request, env: Env, context: IContext): IRequest {
+export function createRequest(request: Request, _env: Env, context: IContext): IRequest {
   const url = new URL(request.url)
   const edit = url.pathname.startsWith('/api/v/') ? 0 : 1
   const word = edit ? url.pathname.split('/')[2] : ''

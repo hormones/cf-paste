@@ -1,37 +1,37 @@
-import { Request as ExpressRequest, Response as ExpressResponse } from 'express'
-import { IRequest, IContext, ApiResponse, CommonConfig } from '../../types'
+import { Request as ExpressRequest } from 'express'
+import { CommonConfig, IContext, IRequest } from '../../types'
 import { createSqliteAdapter } from './sqlite'
 import { createLocalStorageAdapter } from './local-storage'
 import { createNodeTimerAdapter } from './node-timer'
 import { DEFAULT_CONFIG } from '../../constants'
-import { t as translate, detectLanguageFromRequest } from '../../i18n'
+import { detectLanguageFromRequest, t as translate } from '../../i18n'
 
-export function createContext(env: NodeJS.ProcessEnv): IContext {
-  const dbPath = env.DB_PATH || './data/database.sqlite'
-  const storagePath = env.STORAGE_PATH || './data/storage'
+const dbPath = process.env.DB_PATH || './data/database.sqlite'
+const storagePath = process.env.STORAGE_PATH || './data/storage'
 
-  const config: CommonConfig = {
-    AUTH_KEY: env.AUTH_KEY || '',
-    MAX_FILE_SIZE: parseInt(env.MAX_FILE_SIZE || DEFAULT_CONFIG.MAX_FILE_SIZE.toString()),
-    MAX_TOTAL_SIZE: parseInt(env.MAX_TOTAL_SIZE || DEFAULT_CONFIG.MAX_TOTAL_SIZE.toString()),
-    MAX_FILES: parseInt(env.MAX_FILES || DEFAULT_CONFIG.MAX_FILES.toString()),
-    CHUNK_SIZE: parseInt(env.CHUNK_SIZE || DEFAULT_CONFIG.CHUNK_SIZE.toString()),
-    CHUNK_THRESHOLD: parseInt(env.CHUNK_THRESHOLD || DEFAULT_CONFIG.CHUNK_THRESHOLD.toString()),
-    LANGUAGE: env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
-    ADMIN_DASH_PASSWORD: env.ADMIN_DASH_PASSWORD,
-  }
+const config: CommonConfig = {
+  AUTH_KEY: process.env.AUTH_KEY || '',
+  MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || DEFAULT_CONFIG.MAX_FILE_SIZE.toString()),
+  MAX_TOTAL_SIZE: parseInt(process.env.MAX_TOTAL_SIZE || DEFAULT_CONFIG.MAX_TOTAL_SIZE.toString()),
+  MAX_FILES: parseInt(process.env.MAX_FILES || DEFAULT_CONFIG.MAX_FILES.toString()),
+  CHUNK_SIZE: parseInt(process.env.CHUNK_SIZE || DEFAULT_CONFIG.CHUNK_SIZE.toString()),
+  CHUNK_THRESHOLD: parseInt(process.env.CHUNK_THRESHOLD || DEFAULT_CONFIG.CHUNK_THRESHOLD.toString()),
+  LANGUAGE: process.env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
+  ADMIN_DASH_PASSWORD: process.env.ADMIN_DASH_PASSWORD
+}
 
+export function createContext(_env: NodeJS.ProcessEnv): IContext {
   return {
     platform: 'selfhost',
     config,
     platformConfig: {
       database: {
         type: 'sqlite',
-        path: env.DB_PATH || './data/database.sqlite',
+        path: dbPath
       },
       storage: {
         type: 'local',
-        path: env.STORAGE_PATH || './data/storage',
+        path: storagePath
       },
     },
     db: createSqliteAdapter(dbPath),
@@ -85,22 +85,4 @@ export function createRequest(request: ExpressRequest, context: IContext): IRequ
       return Array.isArray(value) ? value[0] : value || null
     },
   }
-}
-
-export function createResponse(response: ApiResponse): ExpressResponse {
-  const res = response as any
-
-  if (res.headers) {
-    Object.entries(res.headers).forEach(([key, value]) => {
-      res.setHeader(key, value)
-    })
-  }
-
-  if (res.cookies) {
-    Object.entries(res.cookies).forEach(([key, value]) => {
-      res.cookie(key, value)
-    })
-  }
-
-  return res.status(response.status).json(response.data)
 }

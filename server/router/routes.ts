@@ -141,13 +141,6 @@ export function registerRoutes() {
     path: '/api/:word/pass/verify',
     method: 'POST',
     handler: passApi.handlePasswordVerify,
-    middleware: [authMiddleware]
-  })
-  router.register({
-    path: '/api/:word/pass/config',
-    method: 'GET',
-    handler: passApi.handleGetConfig,
-    middleware: [authMiddleware]
   })
 
   // View pass routes
@@ -157,7 +150,7 @@ export function registerRoutes() {
     handler: passApi.handlePasswordVerify,
   })
   router.register({
-    path: '/api/v/:view_word/pass/config',
+    path: '/api/pass/config',
     method: 'GET',
     handler: passApi.handleGetConfig,
   })
