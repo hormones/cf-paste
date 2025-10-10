@@ -28,7 +28,7 @@
 - [x] **Custom Expiration**: Automatic deletion after expiration, options from 1 hour to 2 years
 - [x] **Multi-language Support**: Currently supports Chinese and English only
 - [x] **Markdown Support**: Support Markdown with **real-time preview**, code syntax highlighting, flowchart rendering
-- [ ] **File Preview**: Support file preview
+- [x] **Data Statistics**
 - [ ] **Docker Deployment**
 
 ## 🚀 Live Demo
@@ -44,6 +44,9 @@
     Directly enter `https://www.example.com/your_word` in the browser address bar, where `your_word` is your custom keyword.
 
     > **Custom Keyword Rules**: 4-20 characters long, containing only letters, numbers, and underscores.
+
+3.  **Admin Dashboard**
+    Visit `https://www.example.com/admin` to access the admin dashboard. Login using the password configured in `ADMIN_DASH_PASSWORD`. The admin dashboard provides data statistics and content management features.
 
 ## ⚙️ Deployment Guide
 
