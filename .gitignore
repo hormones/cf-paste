@@ -31,6 +31,7 @@ coverage
 
 data
 .env
+AGENTS.md
 CLAUDE.md
 AI
 .cursor

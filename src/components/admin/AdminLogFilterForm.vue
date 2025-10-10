@@ -46,15 +46,15 @@ const formData = computed({
 
 // Action options for select
 const actionOptions = computed(() => [
-  { label: t('admin.actions.all') || 'All Actions', value: '' },
-  { label: t('admin.actionLabels.1') || 'Create', value: 1 },           // CREATE
-  { label: t('admin.actionLabels.2') || 'Update Content', value: 2 },   // UPDATE_CONTENT
-  { label: t('admin.actionLabels.3') || 'Upload File', value: 3 },       // UPLOAD_FILE
-  { label: t('admin.actionLabels.4') || 'Download File', value: 4 },     // DOWNLOAD_FILE
-  { label: t('admin.actionLabels.5') || 'Delete File', value: 5 },       // DELETE_FILE
-  { label: t('admin.actionLabels.6') || 'View', value: 6 },              // VIEW
-  { label: t('admin.actionLabels.7') || 'Delete', value: 7 },            // DELETE
-  { label: t('admin.actionLabels.99') || 'Auto Expire', value: 99 }      // AUTO_EXPIRE
+  { label: t('admin.actions.all'), value: '' },
+  { label: t('admin.actionLabels.1'), value: 1 },           // CREATE
+  { label: t('admin.actionLabels.2'), value: 2 },           // UPDATE_CONTENT
+  { label: t('admin.actionLabels.3'), value: 3 },           // UPLOAD_FILE
+  { label: t('admin.actionLabels.4'), value: 4 },           // DOWNLOAD_FILE
+  { label: t('admin.actionLabels.5'), value: 5 },           // DELETE_FILE
+  { label: t('admin.actionLabels.6'), value: 6 },           // VIEW
+  { label: t('admin.actionLabels.7'), value: 7 },           // DELETE
+  { label: t('admin.actionLabels.99'), value: 99 }          // AUTO_EXPIRE
 ])
 
 // Update individual form fields
@@ -127,14 +127,14 @@ const handleKeyPress = (event: KeyboardEvent) => {
       <div class="card-header">
         <div class="header-left">
           <el-icon><Filter /></el-icon>
-          <span class="header-title">{{ t('admin.logs.filters') || 'Search Filters' }}</span>
+          <span class="header-title">{{ t('admin.logs.filters') }}</span>
         </div>
         <el-button
           type="primary"
           text
           @click="handleReset"
         >
-          {{ t('admin.actions.reset') || 'Reset' }}
+          {{ t('admin.actions.reset') }}
         </el-button>
       </div>
     </template>
@@ -147,10 +147,10 @@ const handleKeyPress = (event: KeyboardEvent) => {
       <el-row :gutter="16">
         <!-- Keyword -->
         <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
-          <el-form-item :label="t('admin.filters.keyword') || 'Keyword'">
+          <el-form-item :label="t('admin.filters.keyword')">
             <el-input
               :model-value="formData.word"
-              :placeholder="t('admin.filters.keywordPlaceholder') || 'Enter keyword to search'"
+              :placeholder="t('admin.filters.keywordPlaceholder')"
               clearable
               @input="(value: string) => updateField('word', value)"
               @keypress="handleKeyPress"
@@ -164,10 +164,10 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
         <!-- IP Address -->
         <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
-          <el-form-item :label="t('admin.filters.ip') || 'IP Address'">
+          <el-form-item :label="t('admin.filters.ip')">
             <el-input
               :model-value="formData.ip"
-              :placeholder="t('admin.filters.ipPlaceholder') || 'Enter IP address'"
+              :placeholder="t('admin.filters.ipPlaceholder')"
               clearable
               @input="(value: string) => updateField('ip', value)"
               @keypress="handleKeyPress"
@@ -177,10 +177,10 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
         <!-- Action Type -->
         <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
-          <el-form-item :label="t('admin.filters.action') || 'Action Type'">
+          <el-form-item :label="t('admin.filters.action')">
             <el-select
               :model-value="formData.action"
-              :placeholder="t('admin.filters.actionPlaceholder') || 'Select action type'"
+              :placeholder="t('admin.filters.actionPlaceholder')"
               clearable
               class="w-full"
               @change="(value: number | undefined) => updateField('action', value)"
@@ -197,10 +197,10 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
         <!-- Country -->
         <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
-          <el-form-item :label="t('admin.filters.country') || 'Country'">
+          <el-form-item :label="t('admin.filters.country')">
             <el-input
               :model-value="formData.country"
-              :placeholder="t('admin.filters.countryPlaceholder') || 'Enter country name'"
+              :placeholder="t('admin.filters.countryPlaceholder')"
               clearable
               @input="(value: string) => updateField('country', value)"
               @keypress="handleKeyPress"
@@ -210,10 +210,10 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
         <!-- Region -->
         <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
-          <el-form-item :label="t('admin.filters.region') || 'Region'">
+          <el-form-item :label="t('admin.filters.region')">
             <el-input
               :model-value="formData.region"
-              :placeholder="t('admin.filters.regionPlaceholder') || 'Enter region name'"
+              :placeholder="t('admin.filters.regionPlaceholder')"
               clearable
               @input="(value: string) => updateField('region', value)"
               @keypress="handleKeyPress"
@@ -223,10 +223,10 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
         <!-- Description -->
         <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
-          <el-form-item :label="t('admin.filters.description') || 'Description'">
+          <el-form-item :label="t('admin.filters.description')">
             <el-input
               :model-value="formData.desc"
-              :placeholder="t('admin.filters.descriptionPlaceholder') || 'Enter description'"
+              :placeholder="t('admin.filters.descriptionPlaceholder')"
               clearable
               @input="(value: string) => updateField('desc', value)"
               @keypress="handleKeyPress"
@@ -236,12 +236,12 @@ const handleKeyPress = (event: KeyboardEvent) => {
 
         <!-- Date Range -->
         <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
-          <el-form-item :label="t('admin.filters.timeRange') || 'Time Range'">
+          <el-form-item :label="t('admin.filters.timeRange')">
             <el-date-picker
               v-model="dateRange"
               type="datetimerange"
-              :start-placeholder="t('admin.filters.startDate') || 'Start date'"
-              :end-placeholder="t('admin.filters.endDate') || 'End date'"
+              :start-placeholder="t('admin.filters.startDate')"
+              :end-placeholder="t('admin.filters.endDate')"
               format="YYYY-MM-DD HH:mm"
               value-format="YYYY-MM-DDTHH:mm"
               class="w-full"
@@ -261,7 +261,7 @@ const handleKeyPress = (event: KeyboardEvent) => {
               :loading="loading"
               @click="handleSearch"
             >
-              {{ t('admin.actions.search') || 'Search' }}
+              {{ t('admin.actions.search') }}
             </el-button>
           </el-space>
         </el-col>

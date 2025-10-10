@@ -102,9 +102,9 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
     <template #header>
       <div class="card-header">
         <div class="header-left">
-          <span class="header-title">{{ t('admin.logs.title') || 'Activity Logs' }}</span>
+          <span class="header-title">{{ t('admin.logs.title') }}</span>
           <el-tag v-if="totalCount > 0" type="info" size="small">
-            {{ t('admin.logs.totalCount') || 'Total' }}: {{ totalCount }}
+            {{ t('admin.logs.totalCount') }}: {{ totalCount }}
           </el-tag>
         </div>
       </div>
@@ -131,13 +131,13 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
     <!-- Empty State -->
     <div v-else-if="!hasData" class="table-empty">
       <el-empty
-        :description="t('admin.logs.noData') || 'No log data found'"
+        :description="t('admin.logs.noData')"
         :image-size="100"
       >
         <template #description>
           <div class="empty-description">
-            <p>{{ t('admin.logs.noDataDesc') || 'No activity logs match your current filters.' }}</p>
-            <p class="empty-hint">{{ t('admin.logs.tryAdjustFilters') || 'Try adjusting your search filters or time range.' }}</p>
+            <p>{{ t('admin.logs.noDataDesc') }}</p>
+            <p class="empty-hint">{{ t('admin.logs.tryAdjustFilters') }}</p>
           </div>
         </template>
       </el-empty>
@@ -149,12 +149,12 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
         :data="data"
         stripe
         class="logs-table"
-        :empty-text="t('admin.logs.noData') || 'No data'"
+        :empty-text="t('admin.logs.noData')"
       >
         <!-- ID Column -->
         <el-table-column
           prop="id"
-          :label="t('admin.logs.columns.id') || 'ID'"
+          :label="t('admin.logs.columns.id')"
           width="80"
           align="center"
           fixed="left"
@@ -167,7 +167,7 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
         <!-- Keyword Column -->
         <el-table-column
           prop="word"
-          :label="t('admin.logs.columns.keyword') || 'Keyword'"
+          :label="t('admin.logs.columns.keyword')"
           min-width="140"
           show-overflow-tooltip
         >
@@ -179,7 +179,7 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
         <!-- Action Type Column -->
         <el-table-column
           prop="action"
-          :label="t('admin.logs.columns.action') || 'Action'"
+          :label="t('admin.logs.columns.action')"
           width="110"
           align="center"
         >
@@ -189,7 +189,7 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
               size="small"
               class="action-tag"
             >
-              {{ t(`admin.actionLabels.${row.action}`) || '-' }}
+              {{ t(`admin.actionLabels.${row.action}`) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -197,7 +197,7 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
         <!-- IP Address Column -->
         <el-table-column
           prop="ip"
-          :label="t('admin.logs.columns.ip') || 'IP Address'"
+          :label="t('admin.logs.columns.ip')"
           width="140"
           align="center"
         >
@@ -208,7 +208,7 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
 
         <!-- Location Column (Country/Region) -->
         <el-table-column
-          :label="t('admin.logs.columns.location') || 'Location'"
+          :label="t('admin.logs.columns.location')"
           width="160"
           align="center"
         >
@@ -230,7 +230,7 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
         <!-- Description Column -->
         <el-table-column
           prop="desc"
-          :label="t('admin.logs.columns.description') || 'Description'"
+          :label="t('admin.logs.columns.description')"
           min-width="180"
           show-overflow-tooltip
         >
@@ -252,13 +252,13 @@ const totalCount = computed(() => props.total || props.pagination?.total || 0)
         <!-- Action Time Column -->
         <el-table-column
           prop="actionTime"
-          :label="t('admin.logs.columns.time') || 'Time'"
+          :label="t('admin.logs.columns.time')"
           width="160"
           align="center"
         >
           <template #default="{ row }">
             <el-tooltip
-              :content="t('admin.logs.exactTime') || 'Exact time'"
+              :content="t('admin.logs.exactTime')"
               placement="top"
               :show-after="300"
             >

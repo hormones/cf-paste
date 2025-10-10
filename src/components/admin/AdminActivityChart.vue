@@ -83,11 +83,11 @@ const chartData = computed(() => {
 // Get metric label
 const getMetricLabel = (metric: string): string => {
   const labels: Record<string, string> = {
-    'create': t('admin.metrics.create') || 'Creates',
-    'update': t('admin.metrics.update') || 'Updates',
-    'delete': t('admin.metrics.delete') || 'Deletes',
-    'view': t('admin.metrics.view') || 'Views',
-    'all': t('admin.metrics.all') || 'All Actions'
+    'create': t('admin.metrics.create'),
+    'update': t('admin.metrics.update'),
+    'delete': t('admin.metrics.delete'),
+    'view': t('admin.metrics.view'),
+    'all': t('admin.metrics.all')
   }
   return labels[metric] || metric
 }
@@ -196,14 +196,14 @@ watch(() => props.data, () => {
     <!-- Chart Header -->
     <div class="chart-header">
       <div class="chart-title">
-        <h4>{{ t('admin.chart.activityTrends') || 'Activity Trends' }}</h4>
+        <h4>{{ t('admin.chart.activityTrends') }}</h4>
         <p class="chart-subtitle">
-          {{ t('admin.chart.subtitle') || 'Activity trends over time' }}
+          {{ t('admin.chart.subtitle') }}
         </p>
       </div>
       <div class="chart-actions">
         <el-tooltip
-          :content="t('admin.actions.refresh') || 'Refresh'"
+          :content="t('admin.actions.refresh')"
           placement="top"
         >
           <el-button
@@ -238,11 +238,11 @@ watch(() => props.data, () => {
       <!-- Empty State -->
       <div v-else-if="!data || data.length === 0" class="chart-empty">
         <el-empty
-          :description="t('admin.chart.noData') || 'No activity data available'"
+          :description="t('admin.chart.noData')"
           :image-size="100"
         >
           <el-button type="primary" @click="handleRefresh">
-            {{ t('admin.actions.refresh') || 'Refresh' }}
+            {{ t('admin.actions.refresh') }}
           </el-button>
         </el-empty>
       </div>

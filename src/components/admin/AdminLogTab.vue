@@ -63,7 +63,7 @@ const appliedFilters = computed(() => {
   if (currentFilters.word) {
     applied.push({
       key: 'word',
-      label: t('admin.filters.keyword') || 'Keyword',
+      label: t('admin.filters.keyword'),
       value: currentFilters.word,
       type: 'filter'
     })
@@ -72,17 +72,17 @@ const appliedFilters = computed(() => {
   if (currentFilters.ip) {
     applied.push({
       key: 'ip',
-      label: t('admin.filters.ip') || 'IP',
+      label: t('admin.filters.ip'),
       value: currentFilters.ip,
       type: 'from-overview'
     })
   }
 
   if (currentFilters.action !== undefined) {
-    const actionLabel = t(`admin.actionLabels.${currentFilters.action}`) || 'Unknown'
+    const actionLabel = t(`admin.actionLabels.${currentFilters.action}`)
     applied.push({
       key: 'action',
-      label: t('admin.filters.action') || 'Action',
+      label: t('admin.filters.action'),
       value: actionLabel,
       type: 'from-overview'
     })
@@ -91,7 +91,7 @@ const appliedFilters = computed(() => {
   if (currentFilters.country) {
     applied.push({
       key: 'country',
-      label: t('admin.filters.country') || 'Country',
+      label: t('admin.filters.country'),
       value: currentFilters.country,
       type: 'from-overview'
     })
@@ -100,7 +100,7 @@ const appliedFilters = computed(() => {
   if (currentFilters.region) {
     applied.push({
       key: 'region',
-      label: t('admin.filters.region') || 'Region',
+      label: t('admin.filters.region'),
       value: currentFilters.region,
       type: 'from-overview'
     })
@@ -112,7 +112,7 @@ const appliedFilters = computed(() => {
     const endDate = new Date(end).toLocaleDateString()
     applied.push({
       key: 'timeRange',
-      label: t('admin.filters.timeRange') || 'Time Range',
+      label: t('admin.filters.timeRange'),
       value: startDate === endDate ? startDate : `${startDate} - ${endDate}`,
       type: 'from-overview'
     })
@@ -169,7 +169,7 @@ const fetchLogs = async () => {
 
   } catch (err: any) {
     console.error('Failed to fetch logs:', err)
-    error.value = err?.message || t('admin.errors.fetchLogsFailed') || 'Failed to fetch logs'
+    error.value = err?.message || t('admin.errors.fetchLogsFailed')
   } finally {
     adminStore.setLoading('logs', false)
   }
@@ -306,7 +306,7 @@ onMounted(async () => {
         <div class="filters-header">
           <span class="filters-title">
             <el-icon class="filters-icon"><InfoFilled /></el-icon>
-            {{ t('admin.logs.activeFilters') || 'Active Filters' }}:
+            {{ t('admin.logs.activeFilters') }}:
           </span>
         </div>
         <el-space wrap class="filters-tags" :size="8">
@@ -321,7 +321,7 @@ onMounted(async () => {
           >
             <el-tooltip
               v-if="filter.type === 'from-overview'"
-              :content="t('admin.logs.fromOverview') || 'Filter applied from overview page'"
+              :content="t('admin.logs.fromOverview')"
               placement="top"
             >
               <span class="filter-content">

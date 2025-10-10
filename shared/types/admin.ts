@@ -14,18 +14,6 @@ export enum Action {
   AUTO_EXPIRE = 99     // Auto expire
 }
 
-// Action label mapping
-export const ActionLabels = {
-  [Action.CREATE]: '新建',
-  [Action.UPDATE_CONTENT]: '修改正文',
-  [Action.UPLOAD_FILE]: '上传文件',
-  [Action.DOWNLOAD_FILE]: '下载文件',
-  [Action.DELETE_FILE]: '删除文件',
-  [Action.VIEW]: '访问',
-  [Action.DELETE]: '删除',
-  [Action.AUTO_EXPIRE]: '自动过期'
-} as const
-
 // Activity log record
 export interface ActivityLog {
   id?: number

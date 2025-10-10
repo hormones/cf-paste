@@ -41,46 +41,46 @@ const cardConfigs = computed(() => [
   {
     key: 'totalViews' as keyof AdminOverviewResponse,
     type: 'views' as const,
-    title: t('admin.stats.totalViews') || 'Total Views',
+    title: t('admin.stats.totalViews'),
     icon: View,
     color: '#409EFF',
     bgColor: '#ecf5ff',
-    actionText: t('admin.actions.viewDetails') || 'View Details',
+    actionText: t('admin.actions.viewDetails'),
     getValue: () => props.data?.totalViews || 0,
-    getDescription: () => t('admin.stats.totalViewsDesc') || 'All time page views'
+    getDescription: () => t('admin.stats.totalViewsDesc')
   },
   {
     key: 'totalCreates' as keyof AdminOverviewResponse,
     type: 'creates' as const,
-    title: t('admin.stats.totalCreates') || 'Total Creates',
+    title: t('admin.stats.totalCreates'),
     icon: DocumentAdd,
     color: '#67C23A',
     bgColor: '#f0f9ff',
-    actionText: t('admin.actions.viewDetails') || 'View Details',
+    actionText: t('admin.actions.viewDetails'),
     getValue: () => props.data?.totalCreates || 0,
-    getDescription: () => t('admin.stats.totalCreatesDesc') || 'All time paste creates'
+    getDescription: () => t('admin.stats.totalCreatesDesc')
   },
   {
     key: 'activeIPs' as keyof AdminOverviewResponse,
     type: 'activeIPs' as const,
-    title: t('admin.stats.activeIPs') || 'Active IPs',
+    title: t('admin.stats.activeIPs'),
     icon: User,
     color: '#E6A23C',
     bgColor: '#fdf6ec',
-    actionText: t('admin.actions.viewDetails') || 'View Details',
+    actionText: t('admin.actions.viewDetails'),
     getValue: () => props.data?.activeIPs || 0,
-    getDescription: () => t('admin.stats.activeIPsDesc') || 'Unique active IP addresses'
+    getDescription: () => t('admin.stats.activeIPsDesc')
   },
   {
     key: 'todayCreates' as keyof AdminOverviewResponse,
     type: 'todayCreates' as const,
-    title: t('admin.stats.todayCreates') || 'Today Creates',
+    title: t('admin.stats.todayCreates'),
     icon: TrendCharts,
     color: '#F56C6C',
     bgColor: '#fef0f0',
-    actionText: t('admin.actions.viewDetails') || 'View Details',
+    actionText: t('admin.actions.viewDetails'),
     getValue: () => props.data?.todayCreates || 0,
-    getDescription: () => t('admin.stats.todayCreatesDesc') || 'New pastes created today'
+    getDescription: () => t('admin.stats.todayCreatesDesc')
   }
 ])
 
@@ -105,21 +105,21 @@ const getTrendInfo = (current: number, type: string) => {
     return {
       icon: Minus,
       color: '#909399',
-      text: t('admin.trends.stable') || 'Stable',
+      text: t('admin.trends.stable'),
       value: '0%'
     }
   } else if (trendValue > 0) {
     return {
       icon: ArrowUp,
       color: '#67C23A',
-      text: t('admin.trends.increased') || 'Increased',
+      text: t('admin.trends.increased'),
       value: `+${trendValue.toFixed(1)}%`
     }
   } else {
     return {
       icon: ArrowDown,
       color: '#F56C6C',
-      text: t('admin.trends.decreased') || 'Decreased',
+      text: t('admin.trends.decreased'),
       value: `${trendValue.toFixed(1)}%`
     }
   }

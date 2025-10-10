@@ -42,7 +42,7 @@ const autoRefreshTimer = ref<number | null>(null)
 // Date range shortcuts
 const shortcuts = [
   {
-    text: t('admin.dateRange.today') || 'Today',
+    text: t('admin.dateRange.today'),
     value: () => {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -52,7 +52,7 @@ const shortcuts = [
     }
   },
   {
-    text: t('admin.dateRange.yesterday') || 'Yesterday',
+    text: t('admin.dateRange.yesterday'),
     value: () => {
       const yesterday = new Date()
       yesterday.setDate(yesterday.getDate() - 1)
@@ -63,7 +63,7 @@ const shortcuts = [
     }
   },
   {
-    text: t('admin.dateRange.last7Days') || 'Last 7 days',
+    text: t('admin.dateRange.last7Days'),
     value: () => {
       const end = new Date()
       const start = new Date()
@@ -72,7 +72,7 @@ const shortcuts = [
     }
   },
   {
-    text: t('admin.dateRange.last30Days') || 'Last 30 days',
+    text: t('admin.dateRange.last30Days'),
     value: () => {
       const end = new Date()
       const start = new Date()
@@ -81,7 +81,7 @@ const shortcuts = [
     }
   },
   {
-    text: t('admin.dateRange.thisMonth') || 'This month',
+    text: t('admin.dateRange.thisMonth'),
     value: () => {
       const start = new Date()
       start.setDate(1)
@@ -138,7 +138,7 @@ const timeRangeValue = computed({
 // Computed time range for display
 const timeRangeText = computed(() => {
   if (!filters.value.overviewTimeRange) {
-    return t('admin.dateRange.allTime') || 'All Time'
+    return t('admin.dateRange.allTime')
   }
 
   const [start, end] = filters.value.overviewTimeRange
@@ -184,7 +184,7 @@ const fetchOverviewData = async () => {
 
   } catch (err: any) {
     console.error('Failed to fetch overview data:', err)
-    error.value = err?.message || t('admin.errors.fetchFailed') || 'Failed to fetch data'
+    error.value = err?.message || t('admin.errors.fetchFailed')
   } finally {
     adminStore.setLoading('overview', false)
     adminStore.setLoading('activity', false)
@@ -346,9 +346,9 @@ onUnmounted(() => {
           v-model="timeRangeValue"
           type="datetimerange"
           :shortcuts="shortcuts"
-          :placeholder="t('admin.dateRange.selectRange') || 'Select date range'"
-          :start-placeholder="t('admin.dateRange.startDate') || 'Start date'"
-          :end-placeholder="t('admin.dateRange.endDate') || 'End date'"
+          :placeholder="t('admin.dateRange.selectRange')"
+          :start-placeholder="t('admin.dateRange.startDate')"
+          :end-placeholder="t('admin.dateRange.endDate')"
           :prefix-icon="Calendar"
           format="YYYY-MM-DD HH:mm"
           value-format="YYYY-MM-DDTHH:mm"
@@ -377,7 +377,7 @@ onUnmounted(() => {
           @click="refreshData"
           class="refresh-btn"
         >
-          {{ t('admin.actions.refresh') || 'Refresh' }}
+          {{ t('admin.actions.refresh') }}
         </el-button>
       </div>
     </div>
@@ -398,7 +398,7 @@ onUnmounted(() => {
       <!-- Stats Cards Section -->
       <div class="stats-section">
         <h3 class="section-title">
-          {{ t('admin.overview.keyMetrics') || 'Key Metrics' }}
+          {{ t('admin.overview.keyMetrics') }}
         </h3>
 
         <!-- Loading skeleton -->
@@ -430,7 +430,7 @@ onUnmounted(() => {
       <!-- Activity Chart Section -->
       <div class="chart-section">
         <h3 class="section-title">
-          {{ t('admin.overview.activityTrends') || 'Activity Trends' }}
+          {{ t('admin.overview.activityTrends') }}
         </h3>
 
         <!-- Loading skeleton -->
@@ -459,7 +459,7 @@ onUnmounted(() => {
       <!-- Top Rankings Section -->
       <div class="rankings-section">
         <h3 class="section-title">
-          {{ t('admin.overview.topRankings') || 'Top Rankings' }}
+          {{ t('admin.overview.topRankings') }}
         </h3>
 
         <!-- Loading skeleton -->

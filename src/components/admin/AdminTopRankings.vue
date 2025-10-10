@@ -40,28 +40,28 @@ const rankingConfigs = computed(() => [
   {
     key: 'topIps',
     type: 'ip' as const,
-    title: t('admin.rankings.topIPs') || 'Top IPs',
+    title: t('admin.rankings.topIPs'),
     icon: Monitor,
     color: '#409EFF',
-    emptyText: t('admin.rankings.noIPs') || 'No IP data',
+    emptyText: t('admin.rankings.noIPs'),
     items: props.data?.topIps || []
   },
   {
     key: 'topCountries',
     type: 'country' as const,
-    title: t('admin.rankings.topCountries') || 'Top Countries',
+    title: t('admin.rankings.topCountries'),
     icon: Location,
     color: '#67C23A',
-    emptyText: t('admin.rankings.noCountries') || 'No country data',
+    emptyText: t('admin.rankings.noCountries'),
     items: props.data?.topCountries || []
   },
   {
     key: 'topRegions',
     type: 'region' as const,
-    title: t('admin.rankings.topRegions') || 'Top Regions',
+    title: t('admin.rankings.topRegions'),
     icon: Position,
     color: '#E6A23C',
-    emptyText: t('admin.rankings.noRegions') || 'No region data',
+    emptyText: t('admin.rankings.noRegions'),
     items: props.data?.topRegions || []
   }
 ])
@@ -183,7 +183,7 @@ const truncateText = (text: string, maxLength: number = 20): string => {
               <!-- Ranking Position -->
               <div class="item-rank">
                 <el-tooltip
-                  :content="`${t('admin.rankings.rank') || 'Rank'} #${index + 1}`"
+                  :content="`${t('admin.rankings.rank')} #${index + 1}`"
                   placement="left"
                 >
                   <div class="rank-badge" :style="{ color: getRankingColor(index) }">

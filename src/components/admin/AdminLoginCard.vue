@@ -32,8 +32,8 @@ const errorMessage = ref('')
 // Form validation rules
 const rules: FormRules = {
   password: [
-    { required: true, message: t('admin.auth.passwordRequired') || 'Password is required', trigger: 'blur' },
-    { min: 6, message: t('admin.auth.passwordMinLength') || 'Password must be at least 6 characters', trigger: 'blur' }
+    { required: true, message: t('admin.auth.passwordRequired'), trigger: 'blur' },
+    { min: 6, message: t('admin.auth.passwordMinLength'), trigger: 'blur' }
   ]
 }
 
@@ -55,7 +55,7 @@ const handleSubmit = async () => {
 
     if (result.success) {
       // Login successful
-      ElMessage.success(t('admin.auth.loginSuccess') || 'Login successful')
+      ElMessage.success(t('admin.auth.loginSuccess'))
 
       // Emit success event to parent
       emit('loginSuccess')
@@ -65,11 +65,11 @@ const handleSubmit = async () => {
       formRef.value.resetFields()
     } else {
       // Login failed
-      errorMessage.value = result.message || t('admin.auth.loginFailed') || 'Login failed'
+      errorMessage.value = result.message || t('admin.auth.loginFailed')
     }
   } catch (error: any) {
     console.error('Login error:', error)
-    errorMessage.value = error?.message || t('admin.auth.loginError') || 'Login error occurred'
+    errorMessage.value = error?.message || t('admin.auth.loginError')
   } finally {
     loading.value = false
   }
@@ -97,8 +97,8 @@ const clearError = () => {
         <el-icon class="header-icon">
           <User />
         </el-icon>
-        <h3 class="header-title">{{ t('admin.auth.title') || 'Admin Login' }}</h3>
-        <p class="header-subtitle">{{ t('admin.auth.description') || 'Enter admin password to continue' }}</p>
+        <h3 class="header-title">{{ t('admin.auth.title') }}</h3>
+        <p class="header-subtitle">{{ t('admin.auth.description') }}</p>
       </div>
     </template>
 
@@ -123,12 +123,12 @@ const clearError = () => {
     >
       <el-form-item
         prop="password"
-        :label="t('admin.auth.password') || 'Password'"
+        :label="t('admin.auth.password')"
       >
         <el-input
           v-model="loginForm.password"
           type="password"
-          :placeholder="t('admin.auth.passwordPlaceholder') || 'Enter admin password'"
+          :placeholder="t('admin.auth.passwordPlaceholder')"
           :prefix-icon="Lock"
           show-password
           :disabled="loading"
@@ -146,8 +146,8 @@ const clearError = () => {
           @click="handleSubmit"
           class="login-button"
         >
-          <span v-if="loading">{{ t('admin.auth.loggingIn') || 'Logging in...' }}</span>
-          <span v-else>{{ t('admin.auth.login') || 'Login' }}</span>
+          <span v-if="loading">{{ t('admin.auth.loggingIn') }}</span>
+          <span v-else>{{ t('admin.auth.login') }}</span>
         </el-button>
       </el-form-item>
     </el-form>
@@ -155,7 +155,7 @@ const clearError = () => {
     <!-- Security Notice -->
     <div class="security-notice">
       <p class="notice-text">
-        {{ t('admin.auth.securityNotice') || 'For security reasons, admin sessions will expire after 24 hours of inactivity.' }}
+        {{ t('admin.auth.securityNotice') }}
       </p>
     </div>
   </el-card>

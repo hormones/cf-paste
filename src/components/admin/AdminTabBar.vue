@@ -52,11 +52,11 @@ const themeTitle = computed(() => {
 const tabs = [
   {
     name: 'overview' as AdminTab,
-    label: t('admin.tabs.overview') || 'Overview'
+    label: t('admin.tabs.overview')
   },
   {
     name: 'logs' as AdminTab,
-    label: t('admin.tabs.logs') || 'Detailed Logs'
+    label: t('admin.tabs.logs')
   }
 ]
 
@@ -70,7 +70,7 @@ const handleTabClick = (tabName: AdminTab) => {
   <div class="admin-tab-bar">
     <el-page-header class="page-header"
                     icon=""
-                    :title="t('admin.dashboard.title') || 'Admin Dashboard'"
+                    :title="t('admin.dashboard.title')"
     >
       <!-- Left content: Title and Tabs -->
       <template #content>
@@ -108,7 +108,7 @@ const handleTabClick = (tabName: AdminTab) => {
             @click="emit('logout')"
             class="logout-btn"
           >
-            {{ t('admin.auth.logout') || 'Logout' }}
+            {{ t('admin.auth.logout') }}
           </el-button>
         </div>
       </template>
