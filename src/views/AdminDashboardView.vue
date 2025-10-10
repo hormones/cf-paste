@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { ElContainer, ElHeader, ElMain, ElButton } from 'element-plus'
+import { ElContainer, ElMain } from 'element-plus'
+import { useAppStore } from '@/stores'
 import { useAdminStore } from '@/stores/admin'
 import { adminApi } from '@/api/admin'
+import { passApi } from '@/api/pass'
 import { useI18n } from '@/composables/useI18n'
 
 // Components
@@ -11,9 +14,26 @@ import AdminTabBar from '@/components/admin/AdminTabBar.vue'
 import AdminOverviewTab from '@/components/admin/AdminOverviewTab.vue'
 import AdminLogTab from '@/components/admin/AdminLogTab.vue'
 
-const { t } = useI18n()
+const { t, initializeLanguage } = useI18n()
+const appStore = useAppStore()
 const adminStore = useAdminStore()
 const { showLogin, currentTab } = storeToRefs(adminStore)
+
+// Ensure admin dashboard respects server config (language etc.)
+const loadAdminConfig = async () => {
+  try {
+    const config = await passApi.getPasteConfig()
+    appStore.setPasteConfig(config)
+  } catch (error) {
+    console.error('Failed to fetch admin config:', error)
+  } finally {
+    initializeLanguage()
+  }
+}
+
+onMounted(() => {
+  loadAdminConfig()
+})
 
 // Handle successful login
 const handleLoginSuccess = () => {
@@ -149,4 +169,3 @@ const handleLogout = () => {
   }
 }
 </style>
-

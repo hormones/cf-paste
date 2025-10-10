@@ -38,7 +38,7 @@ export async function handleVerify(req: IRequest, ctx: IContext): Promise<ApiRes
       await new Promise(resolve => setTimeout(resolve, 1000))
       return {
         code: 401,
-        msg: 'Invalid admin password',
+        msg: req.t('errors.incorrectPassword'),
         status: 401
       }
     }

@@ -65,11 +65,11 @@ const handleSubmit = async () => {
       formRef.value.resetFields()
     } else {
       // Login failed
-      errorMessage.value = result.message || t('admin.auth.loginFailed')
+      errorMessage.value = result.message || t('errors.incorrectPassword')
     }
   } catch (error: any) {
     console.error('Login error:', error)
-    errorMessage.value = error?.message || t('admin.auth.loginError')
+    errorMessage.value = error?.message || t('errors.server')
   } finally {
     loading.value = false
   }
