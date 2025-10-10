@@ -2,54 +2,6 @@ import { IRequest } from "../types"
 
 export const Utils = {
   /**
-   * Generate random ID with different formats
-   * Universal solution to replace crypto.randomUUID()
-   */
-  generateId(
-    format: 'uuid' | 'short' | 'long' | 'timestamp' | 'custom' = 'uuid',
-    length = 8
-  ): string {
-    const chars = '0123456789abcdefghijklmnopqrstuvwxyz'
-    const hexChars = '0123456789abcdef'
-
-    const randomString = (len: number, charset = chars): string => {
-      let result = ''
-      for (let i = 0; i < len; i++) {
-        result += charset.charAt(Math.floor(Math.random() * charset.length))
-      }
-      return result
-    }
-
-    switch (format) {
-      case 'uuid':
-        // Simulate UUID format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-        return [
-          randomString(8, hexChars),
-          randomString(4, hexChars),
-          '4' + randomString(3, hexChars), // Version fixed to 4
-          (Math.floor(Math.random() * 4) + 8).toString(16) + randomString(3, hexChars), // Variant bits
-          randomString(12, hexChars),
-        ].join('-')
-
-      case 'short':
-        return randomString(8, hexChars)
-
-      case 'long':
-        return randomString(32, hexChars)
-
-      case 'timestamp':
-        // Timestamp + 7 random characters
-        return Date.now().toString() + '-' + randomString(7, hexChars)
-
-      case 'custom':
-        return randomString(length, hexChars)
-
-      default:
-        return randomString(8, hexChars)
-    }
-  },
-
-  /**
    * Generate random alphanumeric string with configurable options
    */
   getRandomWord(
@@ -157,6 +109,10 @@ export const Utils = {
   setCookie: (name: string, value: string, req: IRequest) => {
     const path = req.edit ? req.word : 'v/' + req.view_word
     return `${name}=${value}; Path=/api/${path}; HttpOnly; SameSite=Lax; Max-Age=86400`
+  },
+  clearCookie: (name: string, req: IRequest) => {
+    const path = req.edit ? req.word : 'v/' + req.view_word
+    return `${name}=; Path=/api/${path}; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
   },
   setAdminCookie: (name: string, value: string) => {
     return `${name}=${value}; Path=/api/admin; HttpOnly; SameSite=Lax; Max-Age=86400`
