@@ -7,10 +7,9 @@ export interface CloudflareConfig {
 }
 
 export interface SelfHostConfig {
+  PORT: number
   DB_PATH: string
   STORAGE_PATH: string
-  PORT: number
-  HOST: string
 }
 
 export type PlatformConfig = CloudflareConfig | SelfHostConfig
