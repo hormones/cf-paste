@@ -55,7 +55,7 @@ export const useAdminStore = defineStore('admin', {
   state: () => ({
     // UI state
     currentTab: 'overview' as AdminTab,
-    showLogin: false, // 控制是否显示登录界面
+    showLogin: false,
     loading: {
       auth: false,
       overview: false,

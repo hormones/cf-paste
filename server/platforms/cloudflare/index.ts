@@ -13,6 +13,7 @@ export function createContext(env: Env): IContext {
     CHUNK_SIZE: parseInt(env.CHUNK_SIZE || DEFAULT_CONFIG.CHUNK_SIZE.toString()),
     CHUNK_THRESHOLD: parseInt(env.CHUNK_THRESHOLD || DEFAULT_CONFIG.CHUNK_THRESHOLD.toString()),
     LANGUAGE: env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
+    ADMIN_DASH_PASSWORD: env.ADMIN_DASH_PASSWORD
   }
 
   return {
@@ -54,7 +55,7 @@ export function createRequest(request: Request, _env: Env, context: IContext): I
     t: (key: string, params?: Record<string, string | number>) =>
       translate(detectedLanguage, key, params),
     ip: request.headers.get('cf-connecting-ip') || 'unknown',
-    location: request.cf?.country?.toString() || 'unknown',
+    location: request.cf?.country?.toString() || '',
     params: params,
     request,
     json: () => request.json(),
