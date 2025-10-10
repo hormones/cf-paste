@@ -1,29 +1,28 @@
 import { request } from './request'
 import type {
+  AdminActivityRequest,
+  AdminActivityResponse,
   AdminAuthRequest,
   AdminAuthResponse,
   AdminLogoutResponse,
-  AdminOverviewRequest,
-  AdminOverviewResponse,
-  AdminActivityRequest,
-  AdminActivityResponse,
-  AdminRankingRequest,
-  AdminRankingResponse,
   AdminLogsRequest,
   AdminLogsResponse,
+  AdminOverviewRequest,
+  AdminOverviewResponse,
+  AdminRankingRequest,
+  AdminRankingResponse
 } from 'shared/types/admin'
 
 export const adminApi = {
   // Admin authentication
   async login(data: AdminAuthRequest): Promise<AdminAuthResponse> {
     try {
-      const response = await request.post('/admin/auth', data, {
+      return await request.post('/pass/admin/verify', data, {
         added: {
           logError: false, // Handle auth errors manually
           skipUrlPrefix: true, // Skip urlPrefix for admin routes
         },
       })
-      return response
     } catch (error: any) {
       console.error('Admin login failed:', error)
       // Handle auth-specific errors

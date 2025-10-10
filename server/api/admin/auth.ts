@@ -7,7 +7,7 @@ import { Utils } from '../../utils'
  * Handle admin authentication
  * POST /api/admin/auth
  */
-export async function handleAuth(req: IRequest, ctx: IContext): Promise<ApiResponse> {
+export async function handleVerify(req: IRequest, ctx: IContext): Promise<ApiResponse> {
   try {
     const { password }: AdminAuthRequest = await req.json()
 

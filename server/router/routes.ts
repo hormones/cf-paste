@@ -157,9 +157,9 @@ export function registerRoutes() {
 
   // Admin routes - Authentication endpoints (no middleware required)
   router.register({
-    path: '/api/admin/auth',
+    path: '/api/pass/admin/verify',
     method: 'POST',
-    handler: adminAuthApi.handleAuth
+    handler: adminAuthApi.handleVerify
   })
   router.register({
     path: '/api/admin/logout',
