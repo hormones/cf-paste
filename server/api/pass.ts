@@ -3,7 +3,7 @@ import { IRequest, IContext, ApiResponse } from '../types'
 import { Utils } from '../utils'
 import { Crypto } from '../utils/crypto'
 
-export async function handlePasswordVerify(req: IRequest, ctx: IContext): Promise<ApiResponse> {
+export async function handleVerify(req: IRequest, ctx: IContext): Promise<ApiResponse> {
   const { password } = await req.json()
   const keyword = await getKeyword(req, ctx)
 

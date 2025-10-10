@@ -1,11 +1,10 @@
-import { IRequest, IContext, ApiResponse } from '../../types'
+import { ApiResponse, IContext, IRequest } from '../../types'
 import { AdminAuthRequest, AdminAuthResponse } from '../../../shared/types/admin'
 import { Crypto } from '../../utils/crypto'
 import { Utils } from '../../utils'
 
 /**
  * Handle admin authentication
- * POST /api/admin/auth
  */
 export async function handleVerify(req: IRequest, ctx: IContext): Promise<ApiResponse> {
   try {
@@ -101,31 +100,11 @@ async function constantTimeCompare(input: string, expected: string): Promise<boo
 
 /**
  * Handle admin logout
- * POST /api/admin/logout
  */
-export async function handleLogout(req: IRequest, ctx: IContext): Promise<ApiResponse> {
-  try {
-    // Clear admin cookie by setting it to expire immediately
-    const expiredCookieHeader = Utils.clearAdminCookie('admin_token')
-
-    const response = {
-      success: true,
-      message: 'Admin logout successful'
-    }
-
+export async function handleLogout(_req: IRequest, _ctx: IContext): Promise<ApiResponse> {
     console.log('Admin logout successful')
-
     return {
       code: 0,
-      data: response,
-      headers: { 'Set-Cookie': expiredCookieHeader }
+      headers: { 'Set-Cookie': Utils.clearAdminCookie('admin_token') }
     }
-  } catch (error) {
-    console.error('Admin logout error:', error)
-    return {
-      code: 500,
-      msg: 'Internal server error',
-      status: 500
-    }
-  }
 }

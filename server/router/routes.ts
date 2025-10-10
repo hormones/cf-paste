@@ -140,14 +140,14 @@ export function registerRoutes() {
   router.register({
     path: '/api/:word/pass/verify',
     method: 'POST',
-    handler: passApi.handlePasswordVerify,
+    handler: passApi.handleVerify,
   })
 
   // View pass routes
   router.register({
     path: '/api/v/:view_word/pass/verify',
     method: 'POST',
-    handler: passApi.handlePasswordVerify,
+    handler: passApi.handleVerify,
   })
   router.register({
     path: '/api/pass/config',

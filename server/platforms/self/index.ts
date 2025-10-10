@@ -6,21 +6,20 @@ import { createNodeTimerAdapter } from './node-timer'
 import { DEFAULT_CONFIG } from '../../constants'
 import { detectLanguageFromRequest, t as translate } from '../../i18n'
 
-const dbPath = process.env.DB_PATH || './data/database.sqlite'
-const storagePath = process.env.STORAGE_PATH || './data/storage'
-
-const config: CommonConfig = {
-  AUTH_KEY: process.env.AUTH_KEY || '',
-  MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || DEFAULT_CONFIG.MAX_FILE_SIZE.toString()),
-  MAX_TOTAL_SIZE: parseInt(process.env.MAX_TOTAL_SIZE || DEFAULT_CONFIG.MAX_TOTAL_SIZE.toString()),
-  MAX_FILES: parseInt(process.env.MAX_FILES || DEFAULT_CONFIG.MAX_FILES.toString()),
-  CHUNK_SIZE: parseInt(process.env.CHUNK_SIZE || DEFAULT_CONFIG.CHUNK_SIZE.toString()),
-  CHUNK_THRESHOLD: parseInt(process.env.CHUNK_THRESHOLD || DEFAULT_CONFIG.CHUNK_THRESHOLD.toString()),
-  LANGUAGE: process.env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
-  ADMIN_DASH_PASSWORD: process.env.ADMIN_DASH_PASSWORD
-}
-
 export function createContext(_env: NodeJS.ProcessEnv): IContext {
+  const dbPath = process.env.DB_PATH || './data/database.sqlite'
+  const storagePath = process.env.STORAGE_PATH || './data/storage'
+  const config: CommonConfig = {
+    AUTH_KEY: process.env.AUTH_KEY || '',
+    MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE || DEFAULT_CONFIG.MAX_FILE_SIZE.toString()),
+    MAX_TOTAL_SIZE: parseInt(process.env.MAX_TOTAL_SIZE || DEFAULT_CONFIG.MAX_TOTAL_SIZE.toString()),
+    MAX_FILES: parseInt(process.env.MAX_FILES || DEFAULT_CONFIG.MAX_FILES.toString()),
+    CHUNK_SIZE: parseInt(process.env.CHUNK_SIZE || DEFAULT_CONFIG.CHUNK_SIZE.toString()),
+    CHUNK_THRESHOLD: parseInt(process.env.CHUNK_THRESHOLD || DEFAULT_CONFIG.CHUNK_THRESHOLD.toString()),
+    LANGUAGE: process.env.LANGUAGE || DEFAULT_CONFIG.LANGUAGE,
+    ADMIN_DASH_PASSWORD: process.env.ADMIN_DASH_PASSWORD
+  }
+
   return {
     platform: 'selfhost',
     config,
