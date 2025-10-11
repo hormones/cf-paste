@@ -1,7 +1,8 @@
-import { createRequest, createContext, createResponse } from './platforms/cloudflare'
+﻿import { createRequest, createContext, createResponse } from './platforms/cloudflare'
 import { registerRoutes } from './router/routes'
 import { router } from './router'
 import { Utils } from './utils'
+import { cleanupExpiredKeywords } from './common/expiryCleanup'
 
 registerRoutes()
 
@@ -42,18 +43,14 @@ export default {
 
 async function runScheduledTasks(ctx: any): Promise<void> {
   try {
-    const expiredKeywords = await ctx.db.query(
-      'SELECT word FROM keyword WHERE expire_time <= ? AND expire_time > 0',
-      [Date.now()]
-    )
+    const removedCount = await cleanupExpiredKeywords(ctx, {
+      logContext: {
+        ip: 'cloudflare-scheduler',
+        userAgent: 'cloudflare-worker-scheduled-event',
+      },
+    })
 
-    for (const keyword of expiredKeywords) {
-      await ctx.storage.delete({ prefix: keyword.word, name: 'index.txt' })
-      await ctx.storage.deleteFolder({ prefix: `${keyword.word}/files` })
-      await ctx.db.delete('keyword', [{ key: 'word', value: keyword.word }])
-    }
-
-    console.log(`Cleaned up ${expiredKeywords.length} expired keywords`)
+    console.log(`Cleaned up ${removedCount} expired keywords`)
   } catch (error) {
     console.error('Scheduled task failed:', error)
   }

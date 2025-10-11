@@ -1,8 +1,7 @@
-import { Request as ExpressRequest } from 'express'
+﻿import { Request as ExpressRequest } from 'express'
 import { CommonConfig, IContext, IRequest } from '../../types'
 import { createSqliteAdapter } from './sqlite'
 import { createLocalStorageAdapter } from './local-storage'
-import { createNodeTimerAdapter } from './node-timer'
 import { DEFAULT_CONFIG } from '../../constants'
 import { detectLanguageFromRequest, t as translate } from '../../i18n'
 
@@ -35,7 +34,6 @@ export function createContext(_env: NodeJS.ProcessEnv): IContext {
     },
     db: createSqliteAdapter(dbPath),
     storage: createLocalStorageAdapter(storagePath),
-    timer: createNodeTimerAdapter(),
   }
 }
 
@@ -85,3 +83,6 @@ export function createRequest(request: ExpressRequest, context: IContext): IRequ
     },
   }
 }
+
+
+

@@ -1,4 +1,5 @@
-import express from 'express'
+﻿import express from 'express'
+import { schedule, validate } from 'node-cron'
 import { createRequest, createContext } from './platforms/self'
 import { IContext } from './types'
 import { registerRoutes } from './router/routes'
@@ -6,6 +7,7 @@ import { router } from './router'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
+import { cleanupExpiredKeywords } from './common/expiryCleanup'
 
 // Load environment variables from .env file
 dotenv.config()
@@ -21,6 +23,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 registerRoutes()
+initializeAutoExpireScheduler()
 
 const app = express()
 
@@ -116,4 +119,45 @@ app.listen(port, () => {
   console.log(`Server running at prot: ${port}`)
 })
 
+function initializeAutoExpireScheduler(): void {
+  const cronExpression = process.env.AUTO_EXPIRE_CRON || '0 0 * * *'
+
+  if (!validate(cronExpression)) {
+    console.warn(`Auto expire scheduler disabled: invalid cron expression "${cronExpression}"`)
+    return
+  }
+
+  const schedulerContext = createContext(process.env) as IContext
+
+  const runCleanup = async (trigger: 'startup' | 'scheduled') => {
+    try {
+      const removedCount = await cleanupExpiredKeywords(schedulerContext, {
+        logContext: {
+          ip: 'selfhost-scheduler',
+          userAgent: `selfhost-node-cron-${trigger}`,
+        },
+      })
+
+      console.log(`Auto expire cleanup (${trigger}) removed ${removedCount} expired keywords`)
+    } catch (error) {
+      console.error(`Auto expire cleanup (${trigger}) failed:`, error)
+    }
+  }
+
+  runCleanup('startup').catch((error) => {
+    console.error('Initial auto expire cleanup failed:', error)
+  })
+
+  try {
+    schedule(cronExpression, () => {
+      void runCleanup('scheduled')
+    })
+
+    console.log(`Auto expire scheduler registered with cron "${cronExpression}"`)
+  } catch (error) {
+    console.error('Failed to register auto expire scheduler:', error)
+  }
+}
+
 export default app
+

@@ -1,4 +1,4 @@
-import { ApiResponse, CommonConfig, IContext, IRequest } from '../../types'
+﻿import { ApiResponse, CommonConfig, IContext, IRequest } from '../../types'
 import { DEFAULT_CONFIG } from '../../constants'
 import { createD1Adapter } from './d1'
 import { createR2Adapter } from './r2'
@@ -27,7 +27,6 @@ export function createContext(env: Env): IContext {
     original: env,
     db: createD1Adapter(env.DB),
     storage: createR2Adapter(env.R2),
-    timer: null as any,
   }
 }
 
@@ -99,3 +98,4 @@ export function createResponse(apiResponse: ApiResponse): Response {
     headers,
   })
 }
+

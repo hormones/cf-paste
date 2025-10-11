@@ -1,4 +1,4 @@
-// Core business interfaces for platform-agnostic architecture
+﻿// Core business interfaces for platform-agnostic architecture
 import type { AdminOverviewResponse, AdminActivityResponse, AdminActivityRequest, AdminRankingResponse, AdminRankingRequest, AdminLogsRequest, AdminLogsResponse } from '../../shared/types/admin'
 
 export interface IRequest {
@@ -47,7 +47,6 @@ export interface IContext {
   // Business capabilities injected via adapters
   db: DatabaseAdapter
   storage: StorageAdapter
-  timer?: TimerAdapter
 }
 
 export interface ApiResponse<T = any> {
@@ -91,12 +90,6 @@ export interface StorageAdapter {
   abortMultipartUpload(options: AbortMultipartUploadOptions): Promise<void>
 }
 
-export interface TimerAdapter {
-  schedule(cron: string, handler: () => Promise<void>): Promise<string>
-  cancel(taskId: string): Promise<void>
-  list(): Promise<TimerTask[]>
-}
-
 // Configuration interfaces
 
 export interface CommonConfig {
@@ -107,7 +100,7 @@ export interface CommonConfig {
   CHUNK_SIZE: number
   CHUNK_THRESHOLD: number
   LANGUAGE: string
-  ADMIN_DASH_PASSWORD?: string
+  ADMIN_DASH_PASSWORD: string
 }
 
 // Routing and middleware interfaces
@@ -233,15 +226,6 @@ export interface AbortMultipartUploadOptions {
   key: string
 }
 
-// Timer types
-
-export interface TimerTask {
-  id: string
-  cron: string
-  nextRun: Date
-  isActive: boolean
-}
-
 // Business data types
 
 export interface Keyword {
@@ -264,4 +248,7 @@ export type ExpiryOption = {
   label: string
   value: number
 }
+
+
+
 
