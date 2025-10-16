@@ -52,13 +52,23 @@ export function activityLogMiddleware(action?: Action): Middleware {
 function extractDescription(req: IRequest, response: ApiResponse): string | undefined {
   // For file operations, try to extract filename from request or response
   if (req.path.includes('/file')) {
-    // Check if there's filename in query parameters
+    // Check if there's filename/name in query parameters (actual parameter name is 'name')
+    if (req.params?.name) {
+      return decodeURIComponent(req.params.name)
+    }
     if (req.params?.filename) {
-      return req.params.filename
+      return decodeURIComponent(req.params.filename)
     }
 
     // Check if there's filename in response data
     if (response.data && typeof response.data === 'object') {
+      // For upload operations, prefer originalFilename or uniqueFilename
+      if (response.data.originalFilename) {
+        return response.data.originalFilename
+      }
+      if (response.data.uniqueFilename) {
+        return response.data.uniqueFilename
+      }
       if (response.data.filename) {
         return response.data.filename
       }

@@ -52,7 +52,6 @@ export async function cleanupExpiredKeywords(
         action: Action.AUTO_EXPIRE,
         word: keyword.word,
         wordId: keyword.id ?? null,
-        desc: 'Auto expired by scheduler',
         context: logContext,
       })
     } catch (error) {
