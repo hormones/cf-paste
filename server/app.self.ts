@@ -133,7 +133,7 @@ function initializeAutoExpireScheduler(): void {
     try {
       const removedCount = await cleanupExpiredKeywords(schedulerContext, {
         logContext: {
-          ip: 'selfhost-scheduler',
+          ip: '-',
           userAgent: `selfhost-node-cron-${trigger}`,
         },
       })
