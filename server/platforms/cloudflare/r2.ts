@@ -47,6 +47,7 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
       console.log(
         `upload file: ${decodeURIComponent(key)}, size: ${Utils.humanReadableSize(options.length)}`
       )
+      const contentType = options.contentType || Utils.detectMimeType(options.name)
 
       if (!options.stream || options.length <= 0) {
         throw new Error('file upload failed: stream or length empty')
@@ -57,7 +58,7 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
 
       // Direct upload to R2
       const result = await r2.put(key, options.stream, {
-        httpMetadata: { contentType: 'application/octet-stream' },
+        httpMetadata: { contentType },
       })
 
       return {
@@ -113,6 +114,9 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
         headers.set('Content-Length', (end - start + 1).toString())
         headers.set('Accept-Ranges', 'bytes')
         object.writeHttpMetadata(headers)
+        if (!headers.get('Content-Type')) {
+          headers.set('Content-Type', Utils.detectMimeType(options.name))
+        }
         headers.set('ETag', object.httpEtag)
 
         return {
@@ -139,6 +143,8 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
       headers.set('Accept-Ranges', 'bytes')
       if (object.httpMetadata?.contentType) {
         headers.set('Content-Type', object.httpMetadata.contentType)
+      } else {
+        headers.set('Content-Type', Utils.detectMimeType(options.name))
       }
       headers.set('Content-Length', object.size.toString())
       headers.set('ETag', object.etag)
@@ -169,6 +175,7 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
           size: obj.size,
           lastModified: obj.uploaded.getTime(),
           etag: obj.etag,
+          contentType: obj.httpMetadata?.contentType || Utils.detectMimeType(obj.key),
         })),
       }
     },
@@ -221,10 +228,11 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
     ): Promise<CreateMultipartUploadResult> {
       const key = `${options.prefix}/${options.name}`
       console.log(`create multipart upload: ${key}`)
+      const contentType = options.contentType || Utils.detectMimeType(options.name)
 
       try {
         const multipartUpload = await r2.createMultipartUpload(key, {
-          httpMetadata: { contentType: 'application/octet-stream' },
+          httpMetadata: { contentType },
           customMetadata: { uploadedAt: new Date().toISOString() },
         })
 

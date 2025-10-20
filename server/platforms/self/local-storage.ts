@@ -20,12 +20,50 @@ import {
   UploadPartResult,
   UploadResult,
 } from '../../types'
+import { Utils } from '../../utils'
+
+const METADATA_SUFFIX = '.meta.json'
 
 const ensureDir = async (path: string) => {
   try {
     await fs.access(path)
   } catch {
     await fs.mkdir(path, { recursive: true })
+  }
+}
+
+const getMetadataPath = (filePath: string) => `${filePath}${METADATA_SUFFIX}`
+
+const writeMetadata = async (filePath: string, metadata: { contentType?: string }) => {
+  const metadataPath = getMetadataPath(filePath)
+  const contentType = metadata.contentType || Utils.detectMimeType(filePath)
+  const payload = JSON.stringify({
+    contentType,
+    updatedAt: new Date().toISOString(),
+  })
+  await fs.writeFile(metadataPath, payload)
+}
+
+const readMetadata = async (
+  filePath: string
+): Promise<{ contentType?: string }> => {
+  try {
+    const metadataRaw = await fs.readFile(getMetadataPath(filePath), 'utf-8')
+    const metadata = JSON.parse(metadataRaw)
+    if (metadata && typeof metadata.contentType === 'string') {
+      return { contentType: metadata.contentType }
+    }
+  } catch {
+    // ignore missing metadata
+  }
+  return {}
+}
+
+const removeMetadata = async (filePath: string) => {
+  try {
+    await fs.rm(getMetadataPath(filePath), { force: true })
+  } catch {
+    // ignore remove error
   }
 }
 
@@ -98,6 +136,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
     async upload(options: UploadOptions): Promise<UploadResult> {
       const filePath = join(storagePath, options.prefix, options.name)
       await ensureDir(dirname(filePath))
+      const contentType = options.contentType || Utils.detectMimeType(options.name)
 
       // 使用流式写入，避免将整个文件加载到内存
       if (options.stream && typeof (options.stream as any).pipe === 'function') {
@@ -109,7 +148,12 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
           writeStream.on('error', reject)
           readableStream.on('error', reject)
 
-          writeStream.on('finish', () => {
+          writeStream.on('finish', async () => {
+            try {
+              await writeMetadata(filePath, { contentType })
+            } catch (metadataError) {
+              console.error('Failed to write metadata:', metadataError)
+            }
             resolve({
               key: `${options.prefix}/${options.name}`,
             })
@@ -122,6 +166,11 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
         // 对于其他类型（Buffer、ArrayBuffer等），保持原有逻辑
         const buffer = await streamToBuffer(options.stream)
         await fs.writeFile(filePath, buffer)
+        try {
+          await writeMetadata(filePath, { contentType })
+        } catch (metadataError) {
+          console.error('Failed to write metadata:', metadataError)
+        }
 
         return {
           key: `${options.prefix}/${options.name}`,
@@ -130,11 +179,15 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
     },
 
     async download(options: DownloadOptions): Promise<DownloadResult> {
-      const filePath = join(storagePath, options.prefix, decodeURIComponent(options.name))
+      const decodedName = decodeURIComponent(options.name)
+      const filePath = join(storagePath, options.prefix, decodedName)
 
       try {
         const stats = await fs.stat(filePath)
         const totalSize = stats.size
+        const metadata = await readMetadata(filePath)
+        const resolvedContentType =
+          metadata.contentType || Utils.detectMimeType(decodedName)
 
         if (options.range) {
           // Handle range request for resumable download
@@ -171,7 +224,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
           headers.set('Content-Range', `bytes ${start}-${actualEnd}/${totalSize}`)
           headers.set('Content-Length', contentLength.toString())
           headers.set('Accept-Ranges', 'bytes')
-          headers.set('Content-Type', 'application/octet-stream')
+          headers.set('Content-Type', resolvedContentType)
 
           // Use streaming for better memory efficiency
           const body = new ReadableStream<Uint8Array>({
@@ -219,7 +272,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
         // Full file download with streaming
         const headers = new Headers()
         headers.set('Accept-Ranges', 'bytes')
-        headers.set('Content-Type', 'application/octet-stream')
+        headers.set('Content-Type', resolvedContentType)
         headers.set('Content-Length', stats.size.toString())
 
         // Use streaming for better memory efficiency
@@ -279,6 +332,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
       // delete file if exists
       if (await fs.access(filePath).then(() => true).catch(() => false)) {
         await fs.unlink(filePath)
+        await removeMetadata(filePath)
       }
     },
 
@@ -290,14 +344,19 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
         const fileList = []
 
         for (const file of files) {
+          if (file.name.endsWith(METADATA_SUFFIX)) {
+            continue
+          }
           if (file.isFile()) {
             const filePath = join(dirPath, file.name)
             const stats = await fs.stat(filePath)
+            const metadata = await readMetadata(filePath)
 
             fileList.push({
               name: file.name,
               size: stats.size,
               lastModified: stats.mtime.getTime(),
+              contentType: metadata.contentType || Utils.detectMimeType(file.name),
             })
           }
         }
@@ -318,12 +377,17 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
         for (const file of files) {
           if (file.isFile()) {
             const filePath = join(dirPath, file.name)
+            if (file.name.endsWith(METADATA_SUFFIX)) {
+              await fs.unlink(filePath)
+              continue
+            }
             await fs.unlink(filePath)
+            await removeMetadata(filePath)
             deletedCount++
           }
         }
 
-        await fs.rmdir(dirPath)
+        await fs.rm(dirPath, { recursive: true, force: true })
         return { deletedCount }
       } catch {
         return { deletedCount: 0 }
@@ -343,6 +407,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
           key: `${options.prefix}/${options.name}`,
           uploadId,
           createdAt: new Date().toISOString(),
+          contentType: options.contentType || Utils.detectMimeType(options.name),
         })
       )
 
@@ -420,6 +485,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
 
       const metadata = JSON.parse(await fs.readFile(metadataPath, 'utf-8'))
       const filePath = join(storagePath, metadata.key)
+      const contentType = metadata.contentType as string | undefined
 
       await ensureDir(dirname(filePath))
 
@@ -472,6 +538,13 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
 
       // 清理临时文件和目录
       await fs.rm(uploadDir, { recursive: true, force: true })
+      try {
+        await writeMetadata(filePath, {
+          contentType: contentType || Utils.detectMimeType(metadata.key.split('/').pop() || ''),
+        })
+      } catch (metadataError) {
+        console.error('Failed to write metadata after multipart completion:', metadataError)
+      }
 
       return {
         success: true,

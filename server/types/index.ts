@@ -139,6 +139,7 @@ export interface UploadOptions {
   name: string
   length: number
   stream: ReadableStream | ArrayBuffer | Uint8Array | any
+  contentType?: string
 }
 
 export interface UploadResult {
@@ -177,6 +178,7 @@ export interface ListResult {
     size: number
     lastModified: number
     etag?: string
+    contentType?: string
   }>
 }
 
@@ -191,6 +193,7 @@ export interface DeleteFolderResult {
 export interface CreateMultipartUploadOptions {
   prefix: string
   name: string
+  contentType?: string
 }
 
 export interface CreateMultipartUploadResult {
@@ -214,6 +217,7 @@ export interface CompleteMultipartUploadOptions {
   uploadId: string
   key: string
   parts: Array<{ partNumber: number; etag: string }>
+  contentType?: string
 }
 
 export interface CompleteMultipartUploadResult {

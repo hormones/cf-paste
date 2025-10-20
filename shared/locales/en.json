@@ -91,7 +91,11 @@
     "deleteConfirm": "Are you sure you want to delete the file \"{filename}\"?",
     "dragHint": "Drop files here or click to upload",
     "noFiles": "No files uploaded yet",
-    "uploadLimitReached": "Cannot upload: file count or size limit reached"
+    "uploadLimitReached": "Cannot upload: file count or size limit reached",
+    "previewLoading": "Loading preview...",
+    "previewUnsupported": "Preview is not available for this file type. Please download instead.",
+    "previewLoadError": "Failed to load preview. You can try downloading the file.",
+    "previewUnknownType": "Unknown type"
   },
   "auth": {
     "passwordRequired": "Password Required",

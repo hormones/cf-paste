@@ -24,8 +24,16 @@
           {{ new Date(row.lastModified).toLocaleString() }}
         </template>
       </el-table-column>
-      <el-table-column :label="t('common.table.actions')" fixed="right" align="center" width="100">
+      <el-table-column :label="t('common.table.actions')" fixed="right" align="center" width="140">
         <template #default="{ row }">
+          <el-button
+            v-if="canPreview(row)"
+            class="action-btn"
+            type="primary"
+            :icon="View"
+            @click="handleFilePreview(row, $event)"
+            text
+          />
           <el-button
             class="action-btn"
             type="primary"
@@ -44,24 +52,54 @@
         </template>
       </el-table-column>
     </el-table>
+    <FilePreview
+      v-if="previewFile"
+      :visible="previewVisible"
+      :file="previewFile"
+      @close="handlePreviewClose"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { ElMessageBox } from 'element-plus'
-import { Download, Delete } from '@element-plus/icons-vue'
+import { View, Download, Delete } from '@element-plus/icons-vue'
 import { useFileUpload } from '@/composables/useFileUpload'
 import type { FileInfo } from '@/types'
 import { fileApi } from '@/api/file'
+import api from '@/api'
 import { useAppStore } from '@/stores'
 import { Utils } from '@/utils'
 import { useI18n } from '@/composables/useI18n'
+import { isPreviewSupported } from 'shared/utils/mime'
+import FilePreview from './FilePreview.vue'
 
 const emit = defineEmits(['delete-success'])
 
 const { deleteFile } = useFileUpload()
 const appStore = useAppStore()
 const { t } = useI18n()
+const previewVisible = ref(false)
+const previewFile = ref<FileInfo | null>(null)
+
+const handleFilePreview = (file: FileInfo, event?: MouseEvent) => {
+  if (event?.ctrlKey || event?.metaKey) {
+    openFileInNewTab(file)
+    return
+  }
+  if (!isPreviewSupported(file.name, file.contentType)) {
+    handleFileDownload(file)
+    return
+  }
+  previewFile.value = file
+  previewVisible.value = true
+}
+
+const handlePreviewClose = () => {
+  previewVisible.value = false
+  previewFile.value = null
+}
 
 const handleFileDownload = async (file: FileInfo) => {
   fileApi.download(file.name)
@@ -79,6 +117,13 @@ const handleFileDelete = async (file: FileInfo) => {
   } catch (error) {
     // ElMessageBox.confirm handles cancellation exceptions, no additional handling needed
   }
+}
+
+const canPreview = (file: FileInfo) => isPreviewSupported(file.name, file.contentType)
+
+const openFileInNewTab = (file: FileInfo) => {
+  const url = `${api.getUrlPrefix()}/file/download?name=${encodeURIComponent(file.name)}`
+  window.open(url, '_blank', 'noopener')
 }
 </script>
 

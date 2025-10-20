@@ -1,4 +1,5 @@
 import { IRequest } from "../types"
+import { detectMimeType as detectMimeFromShared, FALLBACK_MIME } from "../../shared/utils/mime"
 
 export const Utils = {
   /**
@@ -119,5 +120,8 @@ export const Utils = {
   },
   clearAdminCookie: (name: string) => {
     return `${name}=; Path=/api/admin; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`
+  },
+  detectMimeType(filename: string, fallback = 'application/octet-stream'): string {
+    return detectMimeFromShared(filename, fallback || FALLBACK_MIME)
   },
 }

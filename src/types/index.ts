@@ -18,6 +18,7 @@ export interface FileInfo {
   size: number
   lastModified: number
   etag?: string
+  contentType?: string
 }
 
 export interface UploadState {

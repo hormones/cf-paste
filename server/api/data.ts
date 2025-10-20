@@ -188,6 +188,7 @@ async function uploadContent(
     name: Constant.PASTE_FILE,
     length: contentBuffer.length,
     stream: contentBuffer, // 直接传递ArrayBuffer，更高效
+    contentType: 'text/plain; charset=utf-8',
   })
 }
 

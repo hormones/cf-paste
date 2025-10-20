@@ -72,6 +72,7 @@ export async function handleFileUpload(req: IRequest, ctx: IContext): Promise<Ap
   const decodedName = decodeURIComponent(name)
   const length = req.getHeader('content-length')
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
+  const contentType = Utils.detectMimeType(decodedName)
 
   // For file uploads, use the raw request stream if body is undefined
   const stream =
@@ -82,6 +83,7 @@ export async function handleFileUpload(req: IRequest, ctx: IContext): Promise<Ap
     name: decodedName,
     length: Number(length),
     stream,
+    contentType,
   })
 
   return {
@@ -156,10 +158,12 @@ export async function handleMultipartInit(req: IRequest, ctx: IContext): Promise
 
     const uniqueFilename = filename
     const prefix = `${req.word}/${Constant.FILE_FOLDER}`
+    const contentType = Utils.detectMimeType(filename)
 
     const result = await ctx.storage.createMultipartUpload({
       prefix,
       name: uniqueFilename,
+      contentType,
     })
 
     const totalChunks = Math.ceil(fileSize / chunkSize)
@@ -174,6 +178,7 @@ export async function handleMultipartInit(req: IRequest, ctx: IContext): Promise
         totalChunks,
         chunkSize,
         fileSize,
+        contentType,
       },
     }
   } catch (err) {
@@ -350,6 +355,7 @@ export async function handleMultipartComplete(req: IRequest, ctx: IContext): Pro
       uploadId,
       key: fileKey,
       parts,
+      contentType: Utils.detectMimeType(fileKey.split('/').pop() || ''),
     })
 
     const pathParts = fileKey.split('/')

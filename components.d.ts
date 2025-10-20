@@ -35,6 +35,7 @@ declare module 'vue' {
     ElTag: typeof import('element-plus/es')['ElTag']
     ElText: typeof import('element-plus/es')['ElText']
     ElUpload: typeof import('element-plus/es')['ElUpload']
+    FilePreview: typeof import('./src/components/FilePreview.vue')['default']
     FileTable: typeof import('./src/components/FileTable.vue')['default']
     FileUploadPanel: typeof import('./src/components/FileUploadPanel.vue')['default']
     InfoPanel: typeof import('./src/components/InfoPanel.vue')['default']
