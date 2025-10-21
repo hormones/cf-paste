@@ -124,4 +124,17 @@ export const Utils = {
   detectMimeType(filename: string, fallback = 'application/octet-stream'): string {
     return detectMimeFromShared(filename, fallback || FALLBACK_MIME)
   },
+
+  buildContentDisposition(filename: string): string {
+    const sanitized = filename
+      .normalize('NFKD')
+      .replace(/[^\x20-\x7E]+/g, '')
+      .replace(/["\\]/g, '_')
+      .trim()
+    const fallbackName = sanitized.length > 0 ? sanitized : 'download'
+    const encoded = encodeURIComponent(filename)
+      .replace(/['()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
+      .replace(/%(7C|5E|60)/g, (match) => match.toLowerCase())
+    return `attachment; filename="${fallbackName}"; filename*=UTF-8''${encoded}`
+  },
 }

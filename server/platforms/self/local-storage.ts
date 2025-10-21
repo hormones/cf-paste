@@ -225,6 +225,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
           headers.set('Content-Length', contentLength.toString())
           headers.set('Accept-Ranges', 'bytes')
           headers.set('Content-Type', resolvedContentType)
+          headers.set('Content-Disposition', Utils.buildContentDisposition(decodedName))
 
           // Use streaming for better memory efficiency
           const body = new ReadableStream<Uint8Array>({
@@ -274,6 +275,7 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
         headers.set('Accept-Ranges', 'bytes')
         headers.set('Content-Type', resolvedContentType)
         headers.set('Content-Length', stats.size.toString())
+        headers.set('Content-Disposition', Utils.buildContentDisposition(decodedName))
 
         // Use streaming for better memory efficiency
         const body = new ReadableStream<Uint8Array>({

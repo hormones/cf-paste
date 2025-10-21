@@ -118,6 +118,7 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
           headers.set('Content-Type', Utils.detectMimeType(options.name))
         }
         headers.set('ETag', object.httpEtag)
+        headers.set('Content-Disposition', Utils.buildContentDisposition(options.name))
 
         return {
           status: 206,
@@ -148,6 +149,7 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
       }
       headers.set('Content-Length', object.size.toString())
       headers.set('ETag', object.etag)
+      headers.set('Content-Disposition', Utils.buildContentDisposition(options.name))
 
       return {
         status: 200,
