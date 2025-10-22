@@ -87,10 +87,10 @@ const category = computed<PreviewCategory>(() =>
   getPreviewCategory(props.file.name, props.file.contentType)
 )
 
-// Generate file URL
+// Generate file URL for preview (with preview=true parameter)
 const fileUrl = computed(
   () =>
-    `${api.getUrlPrefix()}/file/download?name=${encodeURIComponent(props.file.name)}`
+    `${api.getUrlPrefix()}/file/download?name=${encodeURIComponent(props.file.name)}&preview=true`
 )
 
 /**

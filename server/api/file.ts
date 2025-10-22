@@ -13,7 +13,7 @@ export async function handleFileList(req: IRequest, ctx: IContext): Promise<ApiR
 }
 
 export async function handleFileDownload(req: IRequest, ctx: IContext): Promise<ApiResponse> {
-  const { name } = req.params || {}
+  const { name, preview } = req.params || {}
   if (!name) {
     return {
       code: 400,
@@ -40,12 +40,19 @@ export async function handleFileDownload(req: IRequest, ctx: IContext): Promise<
 
   // For streaming downloads, we need to handle the response differently
   if (result.status === 206 || result.status === 200) {
+    const headers = Object.fromEntries(result.headers.entries())
+
+    // Determine Content-Disposition based on preview parameter
+    // Default: attachment (download), preview=true: inline (preview in browser)
+    const disposition = preview === 'true' ? 'inline' : 'attachment'
+    headers['Content-Disposition'] = Utils.buildContentDisposition(name, disposition)
+
     // Return the stream directly for efficient streaming
     return {
       code: 0,
       data: result.body,
       status: result.status,
-      headers: Object.fromEntries(result.headers.entries()),
+      headers,
       // Add streaming flag to indicate this is a stream response
       streaming: true,
     }

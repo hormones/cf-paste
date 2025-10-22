@@ -26,6 +26,17 @@
     </template>
 
     <div class="image-container" :style="containerStyle">
+      <img
+        ref="imageRef"
+        class="image-element"
+        :class="{ 'is-hidden': loading || !!error }"
+        :src="fileUrl"
+        :alt="file.name"
+        :style="imageStyle"
+        @load="handleImageLoad"
+        @error="handleImageError"
+      />
+
       <div v-if="loading" class="image-loading">
         <el-icon class="rotating" :size="40">
           <Loading />
@@ -39,16 +50,6 @@
         </el-icon>
         <span>{{ error }}</span>
       </div>
-
-      <img
-        v-else
-        ref="imageRef"
-        :src="fileUrl"
-        :alt="file.name"
-        :style="imageStyle"
-        @load="handleImageLoad"
-        @error="handleImageError"
-      />
     </div>
 
     <template #footer>
@@ -193,13 +194,26 @@ const imageStyle = computed(() => ({
   position: relative;
 }
 
+.image-element {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.image-element.is-hidden {
+  visibility: hidden;
+}
+
 .image-loading,
 .image-error {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
   gap: 12px;
   color: var(--el-text-color-secondary);
+  background: var(--el-fill-color-lighter);
 }
 
 .image-error {
@@ -218,12 +232,6 @@ const imageStyle = computed(() => ({
     transform: rotate(360deg);
   }
 }
-
-img {
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-}
-
 .preview-footer {
   display: flex;
   justify-content: space-between;

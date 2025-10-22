@@ -25,20 +25,21 @@
     </template>
 
     <div class="document-container">
+      <iframe
+        class="document-frame"
+        :class="{ 'is-hidden': loading }"
+        :src="fileUrl"
+        :style="iframeStyle"
+        frameborder="0"
+        @load="handleLoad"
+      />
+
       <div v-if="loading" class="document-loading">
         <el-icon class="rotating" :size="40">
           <Loading />
         </el-icon>
         <span>{{ t('file.previewLoading') }}</span>
       </div>
-
-      <iframe
-        v-else
-        :src="fileUrl"
-        :style="iframeStyle"
-        frameborder="0"
-        @load="handleLoad"
-      />
     </div>
 
     <template #footer>
@@ -153,13 +154,24 @@ const handleDownload = () => {
   position: relative;
 }
 
+.document-frame {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.document-frame.is-hidden {
+  visibility: hidden;
+}
+
 .document-loading {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
   gap: 12px;
   color: var(--el-text-color-secondary);
-  padding: 60px 0;
+  background: var(--el-fill-color-lighter);
 }
 
 .rotating {
@@ -174,11 +186,6 @@ const handleDownload = () => {
     transform: rotate(360deg);
   }
 }
-
-iframe {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-}
-
 .preview-footer {
   display: flex;
   justify-content: space-between;
