@@ -2,10 +2,9 @@
   <component
     :is="previewComponent"
     v-if="props.visible && previewComponent"
-    :file="file"
-    :file-url="fileUrl"
-    :category="category"
+    v-bind="previewAttrs"
     @close="handleClose"
+    v-on="previewListeners"
   />
 
   <!-- Fallback for unsupported files -->
@@ -49,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, ref } from 'vue'
+import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import { Warning, Download } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
 import api from '@/api'
@@ -112,7 +111,57 @@ const previewComponent = computed(() => {
   return componentMap[category.value] || null
 })
 
+const fullscreen = ref(false)
+
+const supportsFullscreen = computed(() => ['image', 'pdf', 'video'].includes(category.value))
+
+const previewAttrs = computed(() => {
+  const attrs: Record<string, any> = {
+    file: props.file,
+    fileUrl: fileUrl.value,
+  }
+
+  if (['markdown', 'text', 'video', 'audio'].includes(category.value)) {
+    attrs.category = category.value
+  }
+
+  if (supportsFullscreen.value) {
+    attrs.fullscreen = fullscreen.value
+  }
+
+  return attrs
+})
+
+const previewListeners = computed(() =>
+  supportsFullscreen.value
+    ? {
+        'toggle-fullscreen': () => {
+          fullscreen.value = !fullscreen.value
+        },
+      }
+    : {}
+)
+
+watch(
+  () => props.visible,
+  (visible) => {
+    if (!visible) {
+      fullscreen.value = false
+    }
+  }
+)
+
+watch(
+  () => supportsFullscreen.value,
+  (supported) => {
+    if (!supported) {
+      fullscreen.value = false
+    }
+  }
+)
+
 const handleClose = () => {
+  fullscreen.value = false
   emit('close')
 }
 

@@ -2,7 +2,7 @@
   <el-dialog
     :model-value="true"
     :width="dialogWidth"
-    :fullscreen="isFullscreen"
+    :fullscreen="fullscreen"
     class="document-preview-dialog"
     append-to-body
     destroy-on-close
@@ -13,8 +13,8 @@
         <span class="preview-title">{{ file.name }}</span>
         <div class="preview-actions">
           <el-button-group size="small">
-            <el-button :icon="FullScreen" @click="toggleFullscreen">
-              {{ isFullscreen ? t('common.buttons.exitFullscreen') : t('common.buttons.fullscreen') }}
+            <el-button :icon="FullScreen" @click="handleFullscreenToggle">
+              {{ fullscreen ? t('common.buttons.exitFullscreen') : t('common.buttons.fullscreen') }}
             </el-button>
             <el-button :icon="Download" @click="handleDownload">
               {{ t('common.buttons.download') }}
@@ -66,19 +66,21 @@ import { Utils } from '@/utils'
 const props = defineProps<{
   file: FileInfo
   fileUrl: string
+  fullscreen?: boolean
 }>()
 
 const emit = defineEmits<{
   close: []
+  'toggle-fullscreen': []
 }>()
 
 const { t } = useI18n()
 const loading = ref(true)
-const isFullscreen = ref(false)
+const fullscreen = computed(() => !!props.fullscreen)
 
 // PDF uses fixed large size for comfortable document reading
 const dialogWidth = computed(() => {
-  if (isFullscreen.value) return '100%'
+  if (fullscreen.value) return '100%'
 
   const viewportWidth = window.innerWidth
   return `${Math.min(1200, viewportWidth * 0.9)}px`
@@ -89,7 +91,7 @@ const iframeStyle = computed(() => {
 
   return {
     width: '100%',
-    height: isFullscreen.value
+    height: fullscreen.value
       ? `calc(100vh - 140px)` // Full viewport minus header and footer
       : `${Math.round(viewportHeight * 0.85)}px`,
     border: 'none',
@@ -106,8 +108,8 @@ const handleClose = () => {
   emit('close')
 }
 
-const toggleFullscreen = () => {
-  isFullscreen.value = !isFullscreen.value
+const handleFullscreenToggle = () => {
+  emit('toggle-fullscreen')
 }
 
 const handleDownload = () => {

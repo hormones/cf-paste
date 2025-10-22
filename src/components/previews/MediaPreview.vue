@@ -2,7 +2,7 @@
   <el-dialog
     :model-value="true"
     :width="dialogWidth"
-    :fullscreen="isFullscreen"
+    :fullscreen="fullscreen"
     class="media-preview-dialog"
     append-to-body
     destroy-on-close
@@ -16,9 +16,9 @@
             <el-button
               v-if="isVideo"
               :icon="FullScreen"
-              @click="toggleFullscreen"
+              @click="handleFullscreenToggle"
             >
-              {{ isFullscreen ? t('common.buttons.exitFullscreen') : t('common.buttons.fullscreen') }}
+              {{ fullscreen ? t('common.buttons.exitFullscreen') : t('common.buttons.fullscreen') }}
             </el-button>
             <el-button :icon="Download" @click="handleDownload">
               {{ t('common.buttons.download') }}
@@ -88,15 +88,16 @@ const props = defineProps<{
   file: FileInfo
   fileUrl: string
   category: 'video' | 'audio'
+  fullscreen?: boolean
 }>()
 
 const emit = defineEmits<{
   close: []
+  'toggle-fullscreen': []
 }>()
 
 const { t } = useI18n()
 const loading = ref(true)
-const isFullscreen = ref(false)
 const mediaRef = ref<HTMLVideoElement | HTMLAudioElement>()
 const duration = ref(0)
 
@@ -105,7 +106,7 @@ const isVideo = computed(() => props.category === 'video')
 // Video uses 16:9 aspect ratio with medium-large size
 // Audio uses compact size
 const dialogWidth = computed(() => {
-  if (isFullscreen.value) return '100%'
+  if (props.fullscreen) return '100%'
 
   const viewportWidth = window.innerWidth
 
@@ -122,7 +123,7 @@ const mediaStyle = computed(() => {
   const viewportWidth = window.innerWidth
   const viewportHeight = window.innerHeight
 
-  if (isFullscreen.value) {
+  if (props.fullscreen) {
     return {
       width: '100%',
       height: 'calc(100vh - 140px)',
@@ -157,16 +158,8 @@ const handleClose = () => {
   emit('close')
 }
 
-const toggleFullscreen = () => {
-  if (isVideo.value && mediaRef.value) {
-    if (!document.fullscreenElement) {
-      mediaRef.value.requestFullscreen?.()
-      isFullscreen.value = true
-    } else {
-      document.exitFullscreen?.()
-      isFullscreen.value = false
-    }
-  }
+const handleFullscreenToggle = () => {
+  emit('toggle-fullscreen')
 }
 
 const handleDownload = () => {

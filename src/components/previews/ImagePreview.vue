@@ -1,7 +1,8 @@
 <template>
   <el-dialog
     :model-value="true"
-    :width="dialogSize.width"
+    :width="dialogWidth"
+    :fullscreen="fullscreen"
     :close-on-click-modal="true"
     :close-on-press-escape="true"
     class="image-preview-dialog"
@@ -19,7 +20,7 @@
             </el-button>
             <el-button :icon="ZoomIn" @click="handleZoom(1.25)" :disabled="scale >= 5" />
             <el-button :icon="RefreshLeft" @click="handleReset" />
-            <el-button :icon="FullScreen" @click="handleFullscreen" />
+            <el-button :icon="FullScreen" @click="handleFullscreenToggle" />
           </el-button-group>
         </div>
       </div>
@@ -74,16 +75,18 @@ import { ref, computed, watch } from 'vue'
 import { Loading, Warning, ZoomIn, ZoomOut, FullScreen, RefreshLeft } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
 import { useI18n } from '@/composables/useI18n'
-import { usePreviewSize, useContentMeasurement } from '@/composables/usePreviewSize'
+import { usePreviewSize } from '@/composables/usePreviewSize'
 import { Utils } from '@/utils'
 
 const props = defineProps<{
   file: FileInfo
   fileUrl: string
+  fullscreen?: boolean
 }>()
 
 const emit = defineEmits<{
   close: []
+  'toggle-fullscreen': []
 }>()
 
 const { t } = useI18n()
@@ -134,16 +137,14 @@ const handleReset = () => {
   }
 }
 
-const handleFullscreen = () => {
-  if (imageRef.value) {
-    imageRef.value.requestFullscreen?.()
-  }
+const handleFullscreenToggle = () => {
+  emit('toggle-fullscreen')
 }
 
 // Container fills the dialog body
 const containerStyle = computed(() => ({
   width: '100%',
-  height: `calc(${dialogSize.value.height} - 160px)`, // Subtract header + footer
+  height: props.fullscreen ? 'calc(100vh - 160px)' : `calc(${dialogSize.value.height} - 160px)`, // Subtract header + footer
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
@@ -162,6 +163,8 @@ const imageStyle = computed(() => ({
   transition: 'transform 0.3s ease',
   cursor: scale.value > 1 ? 'grab' : 'default',
 }))
+
+const dialogWidth = computed(() => (props.fullscreen ? '100%' : dialogSize.value.width))
 </script>
 
 <style scoped>
