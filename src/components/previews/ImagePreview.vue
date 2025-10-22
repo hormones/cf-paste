@@ -15,11 +15,17 @@
         <span class="preview-title">{{ file.name }}</span>
         <div class="preview-actions">
           <el-button-group size="small">
-            <el-button :icon="ZoomOut" @click="handleZoom(0.8)" :disabled="scale <= 0.2">
-              {{ Math.round(scale * 100) }}%
-            </el-button>
-            <el-button :icon="ZoomIn" @click="handleZoom(1.25)" :disabled="scale >= 5" />
-            <el-button :icon="RefreshLeft" @click="handleReset" />
+            <template v-if="props.fullscreen">
+              <el-button
+                :icon="ZoomOut"
+                @click="handleZoom(0.8)"
+                :disabled="scale <= 0.2"
+              >
+                {{ displayScale }}%
+              </el-button>
+              <el-button :icon="ZoomIn" @click="handleZoom(1.25)" :disabled="scale >= 5" />
+              <el-button :icon="RefreshLeft" @click="handleReset" />
+            </template>
             <el-button :icon="FullScreen" @click="handleFullscreenToggle" />
           </el-button-group>
         </div>
@@ -96,9 +102,11 @@ const imageRef = ref<HTMLImageElement>()
 const imageSize = ref({ width: 0, height: 0 })
 
 // Smart sizing with content awareness
-const { dialogSize, scale, zoom, updateContentSize } = usePreviewSize({
+const { dialogSize, scale, zoom, updateContentSize, updateScale } = usePreviewSize({
   category: 'image',
 })
+
+const displayScale = computed(() => Math.round((props.fullscreen ? scale.value : 1) * 100))
 
 // Update dialog size when image loads
 const handleImageLoad = (event: Event) => {
@@ -127,13 +135,15 @@ const handleClose = () => {
 }
 
 const handleZoom = (factor: number) => {
+  if (!props.fullscreen) return
   zoom(factor)
 }
 
 const handleReset = () => {
+  if (!props.fullscreen) return
   if (imageSize.value.width && imageSize.value.height) {
     updateContentSize(imageSize.value)
-    zoom(1 / scale.value) // Reset to 1
+    updateScale(1)
   }
 }
 
@@ -154,17 +164,29 @@ const containerStyle = computed(() => ({
 }))
 
 // Image sizing
-const imageStyle = computed(() => ({
-  maxWidth: '100%',
-  maxHeight: '100%',
-  objectFit: 'contain' as const,
-  transform: `scale(${scale.value})`,
-  transformOrigin: 'center',
-  transition: 'transform 0.3s ease',
-  cursor: scale.value > 1 ? 'grab' : 'default',
-}))
+const imageStyle = computed(() => {
+  const currentScale = props.fullscreen ? scale.value : 1
+  return {
+    maxWidth: '100%',
+    maxHeight: '100%',
+    objectFit: 'contain' as const,
+    transform: `scale(${currentScale})`,
+    transformOrigin: 'center',
+    transition: 'transform 0.3s ease',
+    cursor: currentScale > 1 ? 'grab' : 'default',
+  }
+})
 
 const dialogWidth = computed(() => (props.fullscreen ? '100%' : dialogSize.value.width))
+
+watch(
+  () => props.fullscreen,
+  (value) => {
+    if (!value) {
+      updateScale(1)
+    }
+  }
+)
 </script>
 
 <style scoped>
