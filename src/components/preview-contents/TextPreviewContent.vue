@@ -1,7 +1,7 @@
 <template>
   <div class="text-content-wrapper">
     <!-- Type-specific action buttons (rendered in parent's header via Teleport) -->
-    <Teleport :to="actionsSlot" :disabled="!mounted || !actionsSlot">
+    <Teleport v-if="!isMobile" :to="actionsSlot" :disabled="!mounted || !actionsSlot">
       <el-button :icon="CopyDocument" @click="handleCopy">
         {{ t('common.buttons.copy') }}
       </el-button>
@@ -51,6 +51,7 @@ const { t } = useI18n()
 const appStore = useAppStore()
 
 const actionsSlot = inject<Ref<HTMLElement | null>>('actionsSlot', ref(null))
+const isMobile = inject<Ref<boolean>>('isMobilePreview', ref(false))
 
 // Component state
 const textContent = ref('')

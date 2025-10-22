@@ -1,7 +1,7 @@
 <template>
   <div class="document-content-wrapper">
     <!-- Type-specific action buttons (rendered in parent's header via Teleport) -->
-    <Teleport :to="actionsSlot" :disabled="!mounted || !actionsSlot">
+    <Teleport v-if="!isMobile" :to="actionsSlot" :disabled="!mounted || !actionsSlot">
       <el-button :icon="FullScreen" @click="toggleFullscreen">
         {{ fullscreen ? t('common.buttons.exitFullscreen') : t('common.buttons.fullscreen') }}
       </el-button>
@@ -44,16 +44,19 @@ const { t } = useI18n()
 const toggleFullscreen = inject<() => void>('toggleFullscreen', () => {})
 
 const actionsSlot = inject<Ref<HTMLElement | null>>('actionsSlot', ref(null))
+const isMobile = inject<Ref<boolean>>('isMobilePreview', ref(false))
 
 // Component state
 const iframeRef = ref<HTMLIFrameElement>()
 const mounted = ref(false)
 
 const applyDefaultSize = () => {
+  const contentHeight = 'clamp(300px, calc(90vh - 160px), 90vh)'
   const payload: PreviewResizePayload = {
     width: 'min(1200px, 90vw)',
-    maxHeight: '90vh',
-    minHeight: '300px',
+    height: '90vh',
+    minHeight: contentHeight,
+    maxHeight: contentHeight,
   }
   emit('resize', payload)
 }

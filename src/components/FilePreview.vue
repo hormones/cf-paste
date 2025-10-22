@@ -4,6 +4,7 @@
     v-if="props.visible"
     :model-value="true"
     :width="dialogWidth"
+    :style="dialogStyle"
     :fullscreen="fullscreen"
     :align-center="!fullscreen"
     :close-on-click-modal="true"
@@ -93,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, provide, defineAsyncComponent, watchEffect } from 'vue'
+import { computed, ref, watch, provide, defineAsyncComponent, watchEffect, onMounted, onBeforeUnmount } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import type { PreviewResizePayload } from '@/types/preview'
 import { Download, Loading, Warning } from '@element-plus/icons-vue'
@@ -152,6 +153,8 @@ const componentMap: Record<PreviewCategory, any> = {
 
 const contentComponent = computed(() => componentMap[category.value] || null)
 
+const MOBILE_BREAKPOINT = 768
+
 // State management
 const fullscreen = ref(false)
 const loading = ref(false)
@@ -160,6 +163,8 @@ const typeMeta = ref<string>('')
 const actionsSlotRef = ref<ComponentPublicInstance | HTMLElement | null>(null)
 const actionsSlotTarget = ref<HTMLElement | null>(null)
 const customSize = ref<PreviewResizePayload | null>(null)
+const isMobile = ref(false)
+const lastDesktopFullscreen = ref(false)
 
 watchEffect(() => {
   const current = actionsSlotRef.value as ComponentPublicInstance | HTMLElement | null
@@ -204,8 +209,38 @@ const resolvedSize = computed<PreviewResizePayload>(() => ({
 }))
 
 const handleResize = (payload?: PreviewResizePayload | null) => {
+  if (isMobile.value) return
   customSize.value = payload ? { ...payload } : null
 }
+
+const updateMobileState = () => {
+  if (typeof window === 'undefined') return
+  isMobile.value = window.innerWidth <= MOBILE_BREAKPOINT
+}
+
+if (typeof window !== 'undefined') {
+  updateMobileState()
+}
+
+onMounted(() => {
+  if (typeof window === 'undefined') return
+  window.addEventListener('resize', updateMobileState)
+  updateMobileState()
+})
+
+onBeforeUnmount(() => {
+  if (typeof window === 'undefined') return
+  window.removeEventListener('resize', updateMobileState)
+})
+
+watch(isMobile, (mobile) => {
+  if (mobile) {
+    fullscreen.value = true
+    customSize.value = null
+  } else {
+    fullscreen.value = lastDesktopFullscreen.value
+  }
+})
 
 
 // Check if current type supports custom actions
@@ -216,6 +251,16 @@ const dialogWidth = computed(() => {
   return normalizeDimension(resolvedSize.value.width) || '600px'
 })
 
+const dialogStyle = computed(() => {
+  if (fullscreen.value) return {}
+  const height = normalizeDimension(resolvedSize.value.height)
+  if (!height) return {}
+  return {
+    maxHeight: height,
+    height,
+  }
+})
+
 // Body style uses resolved size or fullscreen override
 const bodyStyle = computed(() => {
   if (fullscreen.value) {
@@ -223,6 +268,7 @@ const bodyStyle = computed(() => {
     return {
       minHeight: fillHeight,
       maxHeight: fillHeight,
+      height: fillHeight,
       overflow: 'auto',
     }
   }
@@ -230,11 +276,17 @@ const bodyStyle = computed(() => {
   const minHeight = normalizeDimension(resolvedSize.value.minHeight) || '300px'
   const maxHeight = normalizeDimension(resolvedSize.value.maxHeight) || '80vh'
 
-  return {
+  const style: Record<string, string> = {
     minHeight,
     maxHeight,
     overflow: 'auto',
   }
+
+  if (maxHeight) {
+    style.height = maxHeight
+  }
+
+  return style
 })
 
 // Event handlers
@@ -253,7 +305,12 @@ const handleMetaUpdate = (meta: string) => {
 }
 
 const handleClose = () => {
-  fullscreen.value = false
+  if (isMobile.value) {
+    fullscreen.value = true
+  } else {
+    fullscreen.value = false
+    lastDesktopFullscreen.value = false
+  }
   customSize.value = null
   emit('close')
 }
@@ -267,23 +324,36 @@ const handleDownload = () => {
 
 // Provide functions to content components
 const toggleFullscreen = () => {
+  if (isMobile.value) return
   fullscreen.value = !fullscreen.value
+  lastDesktopFullscreen.value = fullscreen.value
 }
 
 provide('toggleFullscreen', toggleFullscreen)
 provide('actionsSlot', actionsSlotTarget)
+provide('isMobilePreview', isMobile)
 
 // Reset state when dialog closes
 watch(
   () => props.visible,
   (visible) => {
     if (!visible) {
-      fullscreen.value = false
+      if (isMobile.value) {
+        fullscreen.value = true
+      } else {
+        fullscreen.value = false
+        lastDesktopFullscreen.value = false
+      }
       loading.value = false
       error.value = null
       customSize.value = null
       typeMeta.value = ''
     } else {
+      if (isMobile.value) {
+        fullscreen.value = true
+      } else {
+        fullscreen.value = lastDesktopFullscreen.value
+      }
       // Set initial loading state for supported types
       if (contentComponent.value) {
         loading.value = true
@@ -294,7 +364,12 @@ watch(
 
 // Reset fullscreen when category changes
 watch(category, () => {
-  fullscreen.value = false
+  if (isMobile.value) {
+    fullscreen.value = true
+  } else {
+    fullscreen.value = false
+    lastDesktopFullscreen.value = false
+  }
   customSize.value = null
 })
 </script>

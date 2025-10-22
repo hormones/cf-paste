@@ -1,7 +1,7 @@
 <template>
   <div class="media-content-wrapper" :class="{ 'is-audio': isAudio }">
     <!-- Type-specific action buttons (rendered in parent's header via Teleport) -->
-    <Teleport :to="actionsSlot" :disabled="!mounted || !actionsSlot">
+    <Teleport v-if="!isMobile" :to="actionsSlot" :disabled="!mounted || !actionsSlot">
       <el-button v-if="isVideo" :icon="FullScreen" @click="toggleFullscreen">
         {{ fullscreen ? t('common.buttons.exitFullscreen') : t('common.buttons.fullscreen') }}
       </el-button>
@@ -65,6 +65,7 @@ const { t } = useI18n()
 const toggleFullscreen = inject<() => void>('toggleFullscreen', () => {})
 
 const actionsSlot = inject<Ref<HTMLElement | null>>('actionsSlot', ref(null))
+const isMobile = inject<Ref<boolean>>('isMobilePreview', ref(false))
 
 // Component state
 const mediaRef = ref<HTMLVideoElement | HTMLAudioElement>()
@@ -95,28 +96,30 @@ const handleLoadedMetadata = (event: Event) => {
     emit('meta', formatDuration(media.duration))
   }
 
-  if (isVideo.value && media instanceof HTMLVideoElement) {
-    const viewportWidth = window.innerWidth || media.videoWidth || 0
-    const viewportHeight = window.innerHeight || media.videoHeight || 0
-    const widthPixels = Math.round(
-      Math.max(480, Math.min(media.videoWidth || viewportWidth, viewportWidth * 0.85))
-    )
-    const heightPixels = Math.round(
-      Math.max(280, Math.min(media.videoHeight || widthPixels / (16 / 9), viewportHeight * 0.75))
-    )
-    const payload: PreviewResizePayload = {
-      width: `${widthPixels}px`,
-      minHeight: '300px',
-      maxHeight: `${heightPixels}px`,
+  if (!isMobile.value) {
+    if (isVideo.value && media instanceof HTMLVideoElement) {
+      const viewportWidth = window.innerWidth || media.videoWidth || 0
+      const viewportHeight = window.innerHeight || media.videoHeight || 0
+      const widthPixels = Math.round(
+        Math.max(480, Math.min(media.videoWidth || viewportWidth, viewportWidth * 0.85))
+      )
+      const heightPixels = Math.round(
+        Math.max(280, Math.min(media.videoHeight || widthPixels / (16 / 9), viewportHeight * 0.75))
+      )
+      const payload: PreviewResizePayload = {
+        width: `${widthPixels}px`,
+        minHeight: '300px',
+        maxHeight: `${heightPixels}px`,
+      }
+      emit('resize', payload)
+    } else {
+      const audioPayload: PreviewResizePayload = {
+        width: 520,
+        minHeight: 120,
+        maxHeight: 200,
+      }
+      emit('resize', audioPayload)
     }
-    emit('resize', payload)
-  } else {
-    const audioPayload: PreviewResizePayload = {
-      width: 520,
-      minHeight: 120,
-      maxHeight: 200,
-    }
-    emit('resize', audioPayload)
   }
 
   emit('loaded')

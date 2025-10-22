@@ -1,7 +1,7 @@
 <template>
   <div class="image-content-wrapper">
     <!-- Type-specific action buttons (rendered in parent's header via Teleport) -->
-    <Teleport :to="actionsSlot" :disabled="!mounted || !actionsSlot">
+    <Teleport v-if="!isMobile" :to="actionsSlot" :disabled="!mounted || !actionsSlot">
       <template v-if="fullscreen">
         <el-button :icon="ZoomOut" @click="handleZoom(0.8)" :disabled="scale <= 0.2">
           {{ displayScale }}%
@@ -54,6 +54,7 @@ const { t } = useI18n()
 const toggleFullscreen = inject<() => void>('toggleFullscreen', () => {})
 
 const actionsSlot = inject<Ref<HTMLElement | null>>('actionsSlot', ref(null))
+const isMobile = inject<Ref<boolean>>('isMobilePreview', ref(false))
 
 // Component state
 const imageRef = ref<HTMLImageElement>()
@@ -93,16 +94,18 @@ const handleLoad = (event: Event) => {
   // Notify parent of image size for dialog sizing
   emit('loaded', { size })
 
-  const viewportWidth = window.innerWidth || size.width
-  const viewportHeight = window.innerHeight || size.height
-  const widthPixels = Math.round(Math.max(400, Math.min(size.width, viewportWidth * 0.9)))
-  const heightPixels = Math.round(Math.max(300, Math.min(size.height, viewportHeight * 0.85)))
-  const resizePayload: PreviewResizePayload = {
-    width: `${widthPixels}px`,
-    minHeight: '300px',
-    maxHeight: `${heightPixels}px`,
+  if (!isMobile.value) {
+    const viewportWidth = window.innerWidth || size.width
+    const viewportHeight = window.innerHeight || size.height
+    const widthPixels = Math.round(Math.max(400, Math.min(size.width, viewportWidth * 0.9)))
+    const heightPixels = Math.round(Math.max(300, Math.min(size.height, viewportHeight * 0.85)))
+    const resizePayload: PreviewResizePayload = {
+      width: `${widthPixels}px`,
+      minHeight: '300px',
+      maxHeight: `${heightPixels}px`,
+    }
+    emit('resize', resizePayload)
   }
-  emit('resize', resizePayload)
 
   // Provide metadata for footer
   emit('meta', `${size.width} × ${size.height}`)
