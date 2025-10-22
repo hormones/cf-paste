@@ -11,7 +11,14 @@
       "edit": "Edit",
       "preview": "Preview",
       "fullscreen": "Fullscreen",
+      "exitFullscreen": "Exit Fullscreen",
+      "download": "Download",
+      "copy": "Copy",
       "info": "Info"
+    },
+    "messages": {
+      "copySuccess": "Copied to clipboard",
+      "copyFailed": "Copy failed"
     },
     "states": {
       "loading": "Loading...",
@@ -95,7 +102,8 @@
     "previewLoading": "Loading preview...",
     "previewUnsupported": "Preview is not available for this file type. Please download instead.",
     "previewLoadError": "Failed to load preview. You can try downloading the file.",
-    "previewUnknownType": "Unknown type"
+    "previewUnknownType": "Unknown type",
+    "lines": "lines"
   },
   "auth": {
     "passwordRequired": "Password Required",

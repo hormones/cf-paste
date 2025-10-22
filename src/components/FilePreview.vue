@@ -1,58 +1,41 @@
 <template>
+  <component
+    :is="previewComponent"
+    v-if="props.visible && previewComponent"
+    :file="file"
+    :file-url="fileUrl"
+    :category="category"
+    @close="handleClose"
+  />
+
+  <!-- Fallback for unsupported files -->
   <el-dialog
-    class="file-preview-dialog"
-    :model-value="visible"
-    :title="file.name"
-    width="70%"
+    v-else-if="props.visible"
+    :model-value="true"
+    width="500px"
+    class="unsupported-preview-dialog"
     append-to-body
     destroy-on-close
     @close="handleClose"
   >
     <template #header>
-      <div class="dialog-header">
-        <span class="dialog-title">{{ file.name }}</span>
+      <div class="preview-header">
+        <span class="preview-title">{{ file.name }}</span>
       </div>
     </template>
-    <section class="preview-body">
-      <div v-if="loading" class="preview-status">
-        <el-icon class="preview-status__icon" :size="20">
-          <Loading />
-        </el-icon>
-        <span>{{ t('file.previewLoading') }}</span>
-      </div>
-      <div v-else-if="previewError" class="preview-status">
-        <el-icon class="preview-status__icon" :size="20">
-          <Warning />
-        </el-icon>
-        <span>{{ previewError }}</span>
-      </div>
-      <div v-else-if="category === 'image'" class="preview-image">
-        <img :src="fileUrl" :alt="file.name" />
-      </div>
-      <div v-else-if="category === 'video'" class="preview-media">
-        <video :src="fileUrl" controls />
-      </div>
-      <div v-else-if="category === 'audio'" class="preview-audio">
-        <audio :src="fileUrl" controls />
-      </div>
-      <div v-else-if="category === 'pdf'" class="preview-pdf">
-        <iframe :src="fileUrl" />
-      </div>
-      <div v-else-if="category === 'markdown'" class="preview-markdown">
-        <MdPreview :model-value="textContent" :theme="appStore.theme" preview-theme="github" />
-      </div>
-      <div v-else-if="category === 'text'" class="preview-text">
-        <pre>{{ textContent }}</pre>
-      </div>
-      <div v-else class="preview-status">
-        <el-icon class="preview-status__icon" :size="20">
-          <Warning />
-        </el-icon>
-        <span>{{ t('file.previewUnsupported') }}</span>
-      </div>
-    </section>
+
+    <div class="unsupported-content">
+      <el-icon :size="48" color="var(--el-color-warning)">
+        <Warning />
+      </el-icon>
+      <span class="unsupported-text">{{ t('file.previewUnsupported') }}</span>
+      <el-button type="primary" :icon="Download" @click="handleDownload">
+        {{ t('common.buttons.download') }}
+      </el-button>
+    </div>
+
     <template #footer>
-      <div class="dialog-footer">
+      <div class="preview-footer">
         <span class="file-meta">
           {{ Utils.humanReadableSize(file.size) }} •
           {{ file.contentType || t('file.previewUnknownType') }}
@@ -66,20 +49,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { Loading, Warning } from '@element-plus/icons-vue'
-import { MdPreview } from 'md-editor-v3'
-import 'md-editor-v3/lib/preview.css'
+import { computed, defineAsyncComponent, ref } from 'vue'
+import { Warning, Download } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
 import api from '@/api'
 import { useI18n } from '@/composables/useI18n'
-import { useAppStore } from '@/stores'
 import { Utils } from '@/utils'
-import {
-  getPreviewCategory,
-  isTextCategory,
-  type PreviewCategory,
-} from 'shared/utils/mime'
+import { getPreviewCategory, type PreviewCategory } from 'shared/utils/mime'
+
+// Lazy load specialized preview components
+const ImagePreview = defineAsyncComponent(
+  () => import('./previews/ImagePreview.vue')
+)
+const DocumentPreview = defineAsyncComponent(
+  () => import('./previews/DocumentPreview.vue')
+)
+const MediaPreview = defineAsyncComponent(
+  () => import('./previews/MediaPreview.vue')
+)
+const TextPreview = defineAsyncComponent(
+  () => import('./previews/TextPreview.vue')
+)
 
 const props = defineProps<{
   visible: boolean
@@ -91,210 +81,88 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const appStore = useAppStore()
-const loading = ref(false)
-const previewError = ref<string | null>(null)
-const textContent = ref('')
+
+// Determine file category
 const category = computed<PreviewCategory>(() =>
   getPreviewCategory(props.file.name, props.file.contentType)
 )
+
+// Generate file URL
 const fileUrl = computed(
   () =>
     `${api.getUrlPrefix()}/file/download?name=${encodeURIComponent(props.file.name)}`
 )
 
-let abortController: AbortController | null = null
-const loadedKey = ref('')
-
-const resetState = () => {
-  if (abortController) {
-    abortController.abort()
-    abortController = null
-  }
-  loading.value = false
-  previewError.value = null
-  if (!isTextCategory(category.value)) {
-    textContent.value = ''
-  }
+/**
+ * Component routing map
+ * Routes different file types to specialized preview components
+ */
+const componentMap: Record<PreviewCategory, any> = {
+  image: ImagePreview,
+  pdf: DocumentPreview,
+  video: MediaPreview,
+  audio: MediaPreview,
+  markdown: TextPreview,
+  text: TextPreview,
+  unsupported: null, // Use fallback dialog
 }
 
-const fetchTextContent = async () => {
-  const currentKey = `${props.file.name}:${props.file.lastModified}`
-  if (loadedKey.value === currentKey && textContent.value) {
-    return
-  }
-
-  if (abortController) {
-    abortController.abort()
-  }
-
-  abortController = new AbortController()
-  loading.value = true
-  previewError.value = null
-
-  try {
-    const response = await fetch(fileUrl.value, {
-      signal: abortController.signal,
-      headers: {
-        Accept: 'text/plain, text/markdown, application/json;q=0.9, */*;q=0.5',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`Preview request failed with status ${response.status}`)
-    }
-
-    textContent.value = await response.text()
-    loadedKey.value = currentKey
-  } catch (error) {
-    if (abortController?.signal.aborted) {
-      return
-    }
-    console.error('Failed to load preview content:', error)
-    previewError.value = t('file.previewLoadError')
-  } finally {
-    if (!abortController?.signal.aborted) {
-      loading.value = false
-      abortController = null
-    }
-  }
-}
-
-watch(
-  () => ({
-    visible: props.visible,
-    key: `${props.file.name}:${props.file.lastModified}`,
-    category: category.value,
-  }),
-  (state) => {
-    if (!state.visible) {
-      resetState()
-      return
-    }
-
-    if (isTextCategory(state.category)) {
-      void fetchTextContent()
-    } else {
-      resetState()
-    }
-  },
-  { immediate: true }
-)
-
-onBeforeUnmount(() => {
-  if (abortController) {
-    abortController.abort()
-  }
+// Smart component selection based on file type
+const previewComponent = computed(() => {
+  return componentMap[category.value] || null
 })
 
 const handleClose = () => {
   emit('close')
 }
 
+const handleDownload = () => {
+  const link = document.createElement('a')
+  link.href = fileUrl.value
+  link.download = props.file.name
+  link.click()
+}
 </script>
 
 <style scoped>
-.file-preview-dialog :deep(.el-dialog__body) {
-  padding: 0;
-}
-
-.dialog-header {
+.preview-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
 }
 
-.dialog-title {
+.preview-title {
   font-weight: 600;
   font-size: 16px;
-  margin-right: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
 }
 
-.preview-body {
-  min-height: 320px;
-  max-height: 70vh;
-  padding: 16px;
-  overflow: auto;
+.unsupported-content {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  gap: 20px;
+  padding: 40px 20px;
+  text-align: center;
 }
 
-.preview-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.unsupported-text {
+  font-size: 15px;
   color: var(--el-text-color-secondary);
 }
 
-.preview-status__icon {
-  color: var(--el-color-primary);
-}
-
-.preview-image img,
-.preview-media video,
-.preview-audio audio,
-.preview-pdf iframe {
-  max-width: 100%;
-  max-height: 65vh;
-  border: none;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.preview-media,
-.preview-image,
-.preview-pdf {
-  width: 100%;
+.preview-footer {
   display: flex;
-  justify-content: center;
-}
-
-.preview-audio {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-.preview-text {
-  width: 100%;
-  max-height: 65vh;
-  overflow: auto;
-  background: var(--el-fill-color-lighter);
-  border-radius: 8px;
-  padding: 16px;
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-  color: var(--el-text-color-primary);
-}
-
-.preview-text pre {
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.preview-markdown {
-  width: 100%;
-}
-
-.preview-markdown :deep(.md-editor-preview-wrapper) {
-  max-height: 65vh;
-  overflow: auto;
-}
-
-.dialog-footer {
-  width: 100%;
-  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
+  width: 100%;
 }
 
 .file-meta {
-  margin-right: auto;
   color: var(--el-text-color-secondary);
   font-size: 13px;
 }

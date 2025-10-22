@@ -18,7 +18,9 @@ declare module 'vue' {
     AdminTabBar: typeof import('./src/components/admin/AdminTabBar.vue')['default']
     AdminTopRankings: typeof import('./src/components/admin/AdminTopRankings.vue')['default']
     ClipboardPanel: typeof import('./src/components/ClipboardPanel.vue')['default']
+    DocumentPreview: typeof import('./src/components/previews/DocumentPreview.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
+    ElButtonGroup: typeof import('element-plus/es')['ElButtonGroup']
     ElCard: typeof import('element-plus/es')['ElCard']
     ElDialog: typeof import('element-plus/es')['ElDialog']
     ElementLocaleProvider: typeof import('./src/components/ElementLocaleProvider.vue')['default']
@@ -38,8 +40,10 @@ declare module 'vue' {
     FilePreview: typeof import('./src/components/FilePreview.vue')['default']
     FileTable: typeof import('./src/components/FileTable.vue')['default']
     FileUploadPanel: typeof import('./src/components/FileUploadPanel.vue')['default']
+    ImagePreview: typeof import('./src/components/previews/ImagePreview.vue')['default']
     InfoPanel: typeof import('./src/components/InfoPanel.vue')['default']
     MarkdownEditor: typeof import('./src/components/MarkdownEditor.vue')['default']
+    MediaPreview: typeof import('./src/components/previews/MediaPreview.vue')['default']
     PageHeader: typeof import('./src/components/PageHeader.vue')['default']
     PasswordDialog: typeof import('./src/components/PasswordDialog.vue')['default']
     QRCodePanel: typeof import('./src/components/QRCodePanel.vue')['default']
@@ -47,6 +51,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SettingsDialog: typeof import('./src/components/SettingsDialog.vue')['default']
     TabsContainer: typeof import('./src/components/TabsContainer.vue')['default']
+    TextPreview: typeof import('./src/components/previews/TextPreview.vue')['default']
     UploadProgress: typeof import('./src/components/UploadProgress.vue')['default']
   }
 }

@@ -11,7 +11,14 @@
       "edit": "编辑",
       "preview": "预览",
       "fullscreen": "全屏",
+      "exitFullscreen": "退出全屏",
+      "download": "下载",
+      "copy": "复制",
       "info": "信息"
+    },
+    "messages": {
+      "copySuccess": "已复制到剪贴板",
+      "copyFailed": "复制失败"
     },
     "states": {
       "loading": "加载中...",
@@ -95,7 +102,8 @@
     "previewLoading": "预览加载中...",
     "previewUnsupported": "暂不支持该文件类型的预览，请下载查看。",
     "previewLoadError": "预览加载失败，请尝试下载文件。",
-    "previewUnknownType": "未知类型"
+    "previewUnknownType": "未知类型",
+    "lines": "行"
   },
   "auth": {
     "passwordRequired": "需要密码",
