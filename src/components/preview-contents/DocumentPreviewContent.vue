@@ -1,7 +1,7 @@
 <template>
   <div class="document-content-wrapper">
     <!-- Type-specific action buttons (rendered in parent's header via Teleport) -->
-    <Teleport to="[data-preview-actions]" :disabled="!mounted">
+    <Teleport :to="actionsSlot" :disabled="!mounted || !actionsSlot">
       <el-button :icon="FullScreen" @click="toggleFullscreen">
         {{ fullscreen ? t('common.buttons.exitFullscreen') : t('common.buttons.fullscreen') }}
       </el-button>
@@ -20,6 +20,7 @@
 
 <script setup lang="ts">
 import { ref, inject, onMounted, onBeforeUnmount } from 'vue'
+import type { Ref } from 'vue'
 import type { PreviewResizePayload } from '@/types/preview'
 import { FullScreen } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
@@ -41,6 +42,8 @@ const { t } = useI18n()
 
 // Inject toggle function from parent
 const toggleFullscreen = inject<() => void>('toggleFullscreen', () => {})
+
+const actionsSlot = inject<Ref<HTMLElement | null>>('actionsSlot', ref(null))
 
 // Component state
 const iframeRef = ref<HTMLIFrameElement>()

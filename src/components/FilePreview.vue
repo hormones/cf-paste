@@ -19,15 +19,9 @@
       <div class="preview-header">
         <span class="preview-title">{{ file.name }}</span>
         <div class="preview-actions">
-          <el-button-group size="small">
-            <!-- Type-specific action buttons placeholder -->
-            <template v-if="typeActionsEnabled">
-              <component
-                :is="'span'"
-                ref="actionsSlotRef"
-                data-preview-actions
-              />
-            </template>
+          <el-button-group
+            ref="actionsSlotRef"
+          >
             <!-- Common download button -->
             <el-button :icon="Download" @click="handleDownload">
               {{ t('common.buttons.download') }}
@@ -99,7 +93,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, provide, defineAsyncComponent } from 'vue'
+import { computed, ref, watch, provide, defineAsyncComponent, watchEffect } from 'vue'
+import type { ComponentPublicInstance } from 'vue'
 import type { PreviewResizePayload } from '@/types/preview'
 import { Download, Loading, Warning } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
@@ -162,8 +157,21 @@ const fullscreen = ref(false)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const typeMeta = ref<string>('')
-const actionsSlotRef = ref<HTMLElement>()
+const actionsSlotRef = ref<ComponentPublicInstance | HTMLElement | null>(null)
+const actionsSlotTarget = ref<HTMLElement | null>(null)
 const customSize = ref<PreviewResizePayload | null>(null)
+
+watchEffect(() => {
+  const current = actionsSlotRef.value as ComponentPublicInstance | HTMLElement | null
+  if (!current) {
+    actionsSlotTarget.value = null
+    return
+  }
+
+  const maybeComponent = current as ComponentPublicInstance
+  const el = (maybeComponent as any)?.$el || current
+  actionsSlotTarget.value = (el as HTMLElement) || null
+})
 
 const normalizeDimension = (value?: number | string): string | undefined => {
   if (value === undefined) return undefined
@@ -201,9 +209,6 @@ const handleResize = (payload?: PreviewResizePayload | null) => {
 
 
 // Check if current type supports custom actions
-const typeActionsEnabled = computed(() =>
-  ['image', 'pdf', 'video', 'text', 'markdown'].includes(category.value)
-)
 
 // Dialog width derived from resolved size or fullscreen
 const dialogWidth = computed(() => {
@@ -266,7 +271,7 @@ const toggleFullscreen = () => {
 }
 
 provide('toggleFullscreen', toggleFullscreen)
-provide('actionsSlot', actionsSlotRef)
+provide('actionsSlot', actionsSlotTarget)
 
 // Reset state when dialog closes
 watch(

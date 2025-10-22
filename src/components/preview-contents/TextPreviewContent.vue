@@ -1,7 +1,7 @@
 <template>
   <div class="text-content-wrapper">
     <!-- Type-specific action buttons (rendered in parent's header via Teleport) -->
-    <Teleport to="[data-preview-actions]" :disabled="!mounted">
+    <Teleport :to="actionsSlot" :disabled="!mounted || !actionsSlot">
       <el-button :icon="CopyDocument" @click="handleCopy">
         {{ t('common.buttons.copy') }}
       </el-button>
@@ -23,7 +23,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { ref, computed, inject, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import type { Ref } from 'vue'
 import type { PreviewResizePayload } from '@/types/preview'
 import { CopyDocument } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -48,6 +49,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const appStore = useAppStore()
+
+const actionsSlot = inject<Ref<HTMLElement | null>>('actionsSlot', ref(null))
 
 // Component state
 const textContent = ref('')
