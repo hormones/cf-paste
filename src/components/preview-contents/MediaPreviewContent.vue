@@ -39,6 +39,7 @@
 
 <script setup lang="ts">
 import { ref, computed, inject, onMounted, onBeforeUnmount } from 'vue'
+import type { PreviewResizePayload } from '@/types/preview'
 import { FullScreen } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
 import { useI18n } from '@/composables/useI18n'
@@ -54,6 +55,7 @@ const emit = defineEmits<{
   loaded: []
   error: [string]
   meta: [string]
+  resize: [PreviewResizePayload | null]
 }>()
 
 const { t } = useI18n()
@@ -78,6 +80,7 @@ onBeforeUnmount(() => {
   if (mediaRef.value && !mediaRef.value.paused) {
     mediaRef.value.pause()
   }
+  emit('resize', null)
 })
 
 // Event handlers
@@ -89,11 +92,36 @@ const handleLoadedMetadata = (event: Event) => {
     emit('meta', formatDuration(media.duration))
   }
 
+  if (isVideo.value && media instanceof HTMLVideoElement) {
+    const viewportWidth = window.innerWidth || media.videoWidth || 0
+    const viewportHeight = window.innerHeight || media.videoHeight || 0
+    const widthPixels = Math.round(
+      Math.max(480, Math.min(media.videoWidth || viewportWidth, viewportWidth * 0.85))
+    )
+    const heightPixels = Math.round(
+      Math.max(280, Math.min(media.videoHeight || widthPixels / (16 / 9), viewportHeight * 0.75))
+    )
+    const payload: PreviewResizePayload = {
+      width: `${widthPixels}px`,
+      minHeight: '300px',
+      maxHeight: `${heightPixels}px`,
+    }
+    emit('resize', payload)
+  } else {
+    const audioPayload: PreviewResizePayload = {
+      width: 520,
+      minHeight: 120,
+      maxHeight: 200,
+    }
+    emit('resize', audioPayload)
+  }
+
   emit('loaded')
 }
 
 const handleError = () => {
   emit('error', t('file.previewLoadError'))
+  emit('resize', null)
 }
 
 // Format duration as HH:MM:SS or MM:SS

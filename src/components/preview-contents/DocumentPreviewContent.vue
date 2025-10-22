@@ -19,7 +19,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted } from 'vue'
+import { ref, inject, onMounted, onBeforeUnmount } from 'vue'
+import type { PreviewResizePayload } from '@/types/preview'
 import { FullScreen } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
 import { useI18n } from '@/composables/useI18n'
@@ -33,6 +34,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   loaded: []
   error: [string]
+  resize: [PreviewResizePayload | null]
 }>()
 
 const { t } = useI18n()
@@ -44,8 +46,22 @@ const toggleFullscreen = inject<() => void>('toggleFullscreen', () => {})
 const iframeRef = ref<HTMLIFrameElement>()
 const mounted = ref(false)
 
+const applyDefaultSize = () => {
+  const payload: PreviewResizePayload = {
+    width: 'min(1200px, 90vw)',
+    maxHeight: '90vh',
+    minHeight: '300px',
+  }
+  emit('resize', payload)
+}
+
 onMounted(() => {
   mounted.value = true
+  applyDefaultSize()
+})
+
+onBeforeUnmount(() => {
+  emit('resize', null)
 })
 
 // Event handlers

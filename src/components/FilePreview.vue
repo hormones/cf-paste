@@ -5,6 +5,7 @@
     :model-value="true"
     :width="dialogWidth"
     :fullscreen="fullscreen"
+    :align-center="!fullscreen"
     :close-on-click-modal="true"
     :close-on-press-escape="true"
     class="file-preview-dialog"
@@ -49,6 +50,7 @@
         @loaded="handleContentLoaded"
         @error="handleContentError"
         @meta="handleMetaUpdate"
+        @resize="handleResize"
       />
 
       <!-- Unsupported file type fallback -->
@@ -98,6 +100,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch, provide, defineAsyncComponent } from 'vue'
+import type { PreviewResizePayload } from '@/types/preview'
 import { Download, Loading, Warning } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
 import api from '@/api'
@@ -158,94 +161,69 @@ const contentComponent = computed(() => componentMap[category.value] || null)
 const fullscreen = ref(false)
 const loading = ref(false)
 const error = ref<string | null>(null)
-const contentSize = ref<{ width: number; height: number } | null>(null)
 const typeMeta = ref<string>('')
 const actionsSlotRef = ref<HTMLElement>()
+const customSize = ref<PreviewResizePayload | null>(null)
+
+const normalizeDimension = (value?: number | string): string | undefined => {
+  if (value === undefined) return undefined
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return undefined
+    return `${value}px`
+  }
+  const trimmed = value.trim()
+  return trimmed || undefined
+}
+
+const defaultSize: PreviewResizePayload = {
+  width: 600,
+  minHeight: 300,
+  maxHeight: '80vh',
+}
+
+const categoryFallbacks: Partial<Record<PreviewCategory, PreviewResizePayload>> = {
+  audio: {
+    width: 520,
+    minHeight: 120,
+    maxHeight: 200,
+  },
+}
+
+const resolvedSize = computed<PreviewResizePayload>(() => ({
+  ...defaultSize,
+  ...(categoryFallbacks[category.value] || {}),
+  ...(customSize.value || {}),
+}))
+
+const handleResize = (payload?: PreviewResizePayload | null) => {
+  customSize.value = payload ? { ...payload } : null
+}
+
 
 // Check if current type supports custom actions
 const typeActionsEnabled = computed(() =>
   ['image', 'pdf', 'video', 'text', 'markdown'].includes(category.value)
 )
 
-// Dialog width calculation based on category and content
+// Dialog width derived from resolved size or fullscreen
 const dialogWidth = computed(() => {
   if (fullscreen.value) return '100%'
-
-  const viewportWidth = window.innerWidth
-
-  switch (category.value) {
-    case 'image':
-      if (!contentSize.value) return '600px'
-      const imageWidth = Math.min(contentSize.value.width, viewportWidth * 0.9)
-      return `${Math.max(400, imageWidth)}px`
-
-    case 'pdf':
-      return `${Math.min(1200, viewportWidth * 0.9)}px`
-
-    case 'video':
-      return `${Math.min(960, viewportWidth * 0.85)}px`
-
-    case 'audio':
-      return '520px'
-
-    case 'text':
-    case 'markdown':
-      return `${Math.min(800, viewportWidth * 0.85)}px`
-
-    case 'unsupported':
-      return '500px'
-
-    default:
-      return '600px'
-  }
+  return normalizeDimension(resolvedSize.value.width) || '600px'
 })
 
-// Body style based on category
+// Body style uses resolved size or fullscreen override
 const bodyStyle = computed(() => {
-  const viewportHeight = window.innerHeight
-
-  let minHeight = '300px'
-  let maxHeight = 'auto'
-
   if (fullscreen.value) {
-    maxHeight = 'calc(100vh - 160px)'
-  } else {
-    switch (category.value) {
-      case 'image':
-        if (contentSize.value) {
-          const imageHeight = Math.min(contentSize.value.height, viewportHeight * 0.85)
-          maxHeight = `${Math.max(300, imageHeight)}px`
-        } else {
-          maxHeight = '400px'
-        }
-        break
-
-      case 'pdf':
-        maxHeight = `${Math.round(viewportHeight * 0.85)}px`
-        break
-
-      case 'video':
-        const width = Math.min(960, window.innerWidth * 0.85)
-        const height = Math.min(width / (16 / 9), viewportHeight * 0.75)
-        maxHeight = `${height}px`
-        break
-
-      case 'audio':
-        minHeight = '120px'
-        maxHeight = '200px'
-        break
-
-      case 'text':
-      case 'markdown':
-        maxHeight = `${Math.round(viewportHeight * 0.75)}px`
-        break
-
-      case 'unsupported':
-        minHeight = '200px'
-        maxHeight = '300px'
-        break
+    const fillHeight = 'calc(100vh - 160px)'
+    return {
+      minHeight: fillHeight,
+      maxHeight: fillHeight,
+      overflow: 'auto',
     }
   }
+
+  const minHeight = normalizeDimension(resolvedSize.value.minHeight) || '300px'
+  const maxHeight = normalizeDimension(resolvedSize.value.maxHeight) || '80vh'
 
   return {
     minHeight,
@@ -255,17 +233,14 @@ const bodyStyle = computed(() => {
 })
 
 // Event handlers
-const handleContentLoaded = (data?: { size?: { width: number; height: number } }) => {
+const handleContentLoaded = () => {
   loading.value = false
-
-  if (data?.size) {
-    contentSize.value = data.size
-  }
 }
 
 const handleContentError = (message: string) => {
   loading.value = false
   error.value = message || t('file.previewLoadError')
+  customSize.value = null
 }
 
 const handleMetaUpdate = (meta: string) => {
@@ -274,6 +249,7 @@ const handleMetaUpdate = (meta: string) => {
 
 const handleClose = () => {
   fullscreen.value = false
+  customSize.value = null
   emit('close')
 }
 
@@ -300,7 +276,7 @@ watch(
       fullscreen.value = false
       loading.value = false
       error.value = null
-      contentSize.value = null
+      customSize.value = null
       typeMeta.value = ''
     } else {
       // Set initial loading state for supported types
@@ -314,6 +290,7 @@ watch(
 // Reset fullscreen when category changes
 watch(category, () => {
   fullscreen.value = false
+  customSize.value = null
 })
 </script>
 

@@ -28,7 +28,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, onMounted, watch } from 'vue'
+import { ref, computed, inject, onMounted, onBeforeUnmount, watch } from 'vue'
+import type { PreviewResizePayload } from '@/types/preview'
 import { ZoomIn, ZoomOut, FullScreen, RefreshLeft } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
 import { useI18n } from '@/composables/useI18n'
@@ -43,6 +44,7 @@ const emit = defineEmits<{
   loaded: [{ size: { width: number; height: number } }]
   error: [string]
   meta: [string]
+  resize: [PreviewResizePayload | null]
 }>()
 
 const { t } = useI18n()
@@ -54,10 +56,12 @@ const toggleFullscreen = inject<() => void>('toggleFullscreen', () => {})
 const imageRef = ref<HTMLImageElement>()
 const scale = ref(1)
 const mounted = ref(false)
-const imageSize = ref<{ width: number; height: number } | null>(null)
-
 onMounted(() => {
   mounted.value = true
+})
+
+onBeforeUnmount(() => {
+  emit('resize', null)
 })
 
 const displayScale = computed(() => Math.round(scale.value * 100))
@@ -83,10 +87,19 @@ const handleLoad = (event: Event) => {
     height: img.naturalHeight,
   }
 
-  imageSize.value = size
-
   // Notify parent of image size for dialog sizing
   emit('loaded', { size })
+
+  const viewportWidth = window.innerWidth || size.width
+  const viewportHeight = window.innerHeight || size.height
+  const widthPixels = Math.round(Math.max(400, Math.min(size.width, viewportWidth * 0.9)))
+  const heightPixels = Math.round(Math.max(300, Math.min(size.height, viewportHeight * 0.85)))
+  const resizePayload: PreviewResizePayload = {
+    width: `${widthPixels}px`,
+    minHeight: '300px',
+    maxHeight: `${heightPixels}px`,
+  }
+  emit('resize', resizePayload)
 
   // Provide metadata for footer
   emit('meta', `${size.width} × ${size.height}`)
@@ -94,6 +107,7 @@ const handleLoad = (event: Event) => {
 
 const handleError = () => {
   emit('error', t('file.previewLoadError'))
+  emit('resize', null)
 }
 
 const handleZoom = (factor: number) => {
