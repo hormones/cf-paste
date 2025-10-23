@@ -2,91 +2,83 @@
   <el-dialog
     v-if="props.visible"
     :model-value="true"
-    :width="dialogWidth"
-    :style="dialogStyle"
-    :fullscreen="fullscreen"
-    :align-center="!fullscreen"
+    :show-close="false"
+    :fullscreen="true"
     :close-on-click-modal="true"
     :close-on-press-escape="true"
-    class="file-preview-dialog"
-    :class="`preview-type-${category}`"
     append-to-body
     destroy-on-close
+    class="file-preview-modal"
+    body-class="file-preview-body"
     @close="handleClose"
   >
     <template #header>
       <div class="preview-header">
-        <span class="preview-title">{{ file.name }}</span>
+        <div class="preview-info">
+          <span class="preview-name" :title="file.name">{{ file.name }}</span>
+          <span class="preview-meta">{{ Utils.humanReadableSize(file.size) }}</span>
+          <span v-if="typeMeta" class="preview-meta">{{ typeMeta }}</span>
+          <span class="preview-meta">{{ file.contentType || t('file.previewUnknownType') }}</span>
+        </div>
         <div class="preview-actions">
-          <el-button-group ref="actionsSlotRef">
+          <el-button-group ref="actionsSlotRef" class="preview-extra-actions" />
+          <el-button-group>
             <el-button :icon="Download" @click="handleDownload">
               {{ t('common.buttons.download') }}
+            </el-button>
+            <el-button type="primary" @click="handleClose">
+              {{ t('common.buttons.close') }}
             </el-button>
           </el-button-group>
         </div>
       </div>
     </template>
 
-    <div class="preview-body" :style="bodyStyle">
-      <component
-        :is="contentComponent"
-        v-if="contentComponent"
-        :file="file"
-        :file-url="fileUrl"
-        :fullscreen="fullscreen"
-        :category="category"
-        @loaded="handleContentLoaded"
-        @error="handleContentError"
-        @meta="handleMetaUpdate"
-      />
+    <section class="preview-content">
+      <div class="preview-stage" :class="`preview-type-${category}`">
+        <component
+          :is="contentComponent"
+          v-if="contentComponent"
+          :file="file"
+          :file-url="fileUrl"
+          v-bind="contentProps"
+          @loaded="handleContentLoaded"
+          @error="handleContentError"
+          @meta="handleMetaUpdate"
+        />
 
-      <div v-else-if="category === 'unsupported'" class="unsupported-content">
-        <el-icon :size="48" color="var(--el-color-warning)">
-          <Warning />
-        </el-icon>
-        <span class="unsupported-text">{{ t('file.previewUnsupported') }}</span>
-      </div>
+        <div v-else class="unsupported-content">
+          <el-icon :size="48" color="var(--el-color-warning)">
+            <Warning />
+          </el-icon>
+          <span class="unsupported-text">{{ t('file.previewUnsupported') }}</span>
+        </div>
 
-      <div v-if="loading" class="preview-loading">
-        <el-icon class="rotating" :size="40">
-          <Loading />
-        </el-icon>
-        <span>{{ t('file.previewLoading') }}</span>
-      </div>
+        <div v-if="loading" class="preview-overlay">
+          <el-icon class="rotating" :size="40">
+            <Loading />
+          </el-icon>
+          <span>{{ t('file.previewLoading') }}</span>
+        </div>
 
-      <div v-else-if="error" class="preview-error">
-        <el-icon :size="40">
-          <Warning />
-        </el-icon>
-        <span>{{ error }}</span>
+        <div v-else-if="error" class="preview-overlay is-error">
+          <el-icon :size="40">
+            <Warning />
+          </el-icon>
+          <span>{{ error }}</span>
+        </div>
       </div>
-    </div>
-
-    <template #footer>
-      <div class="preview-footer">
-        <span class="file-meta">
-          <template v-if="typeMeta">
-            {{ typeMeta }} •
-          </template>
-          {{ Utils.humanReadableSize(file.size) }} •
-          {{ file.contentType || t('file.previewUnknownType') }}
-        </span>
-        <el-button @click="handleClose">
-          {{ t('common.buttons.close') }}
-        </el-button>
-      </div>
-    </template>
+    </section>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, provide, defineAsyncComponent, watchEffect } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
+import { computed, defineAsyncComponent, provide, ref, watch } from 'vue'
 import { Download, Loading, Warning } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
 import api from '@/api'
 import { useI18n } from '@/composables/useI18n'
-import { usePreviewSizing } from '@/composables/usePreviewSizing'
 import { Utils } from '@/utils'
 import { getPreviewCategory, type PreviewCategory } from 'shared/utils/mime'
 
@@ -135,121 +127,67 @@ const componentMap: Record<PreviewCategory, any> = {
 
 const contentComponent = computed(() => componentMap[category.value] || null)
 
-const fullscreen = ref(false)
-const desktopFullscreen = ref(false)
+const contentProps = computed(() => {
+  if (category.value === 'video' || category.value === 'audio') {
+    return { category: category.value as 'video' | 'audio' }
+  }
+  if (category.value === 'text' || category.value === 'markdown') {
+    return { category: category.value as 'text' | 'markdown' }
+  }
+  return {}
+})
+
 const loading = ref(false)
 const error = ref<string | null>(null)
-const typeMeta = ref<string>('')
+const typeMeta = ref('')
 const actionsSlotRef = ref<ComponentPublicInstance | HTMLElement | null>(null)
 const actionsSlotTarget = ref<HTMLElement | null>(null)
-const contentSize = ref<{ width: number; height: number } | null>(null)
 
-const {
-  dialogWidth,
-  dialogStyle,
-  bodyStyle,
-  isMobile,
-  shouldFullscreenForSize,
-  contentExceedsViewport,
-} = usePreviewSizing({
-  category,
-  fullscreen,
-  contentSize,
-})
-
-watchEffect(() => {
-  const current = actionsSlotRef.value as ComponentPublicInstance | HTMLElement | null
-  if (!current) {
-    actionsSlotTarget.value = null
-    return
-  }
-
-  const maybeComponent = current as ComponentPublicInstance
-  const el = (maybeComponent as any)?.$el || current
-  actionsSlotTarget.value = (el as HTMLElement) || null
-})
-
-watch(isMobile, (mobile) => {
-  if (mobile) {
-    desktopFullscreen.value = false
-    fullscreen.value = true
-  } else {
-    fullscreen.value = desktopFullscreen.value
-  }
-})
-
-watch(contentExceedsViewport, (exceeds) => {
-  if (!props.visible || isMobile.value) return
-  if (exceeds) {
-    desktopFullscreen.value = true
-    fullscreen.value = true
-  }
-})
+const resetState = () => {
+  loading.value = !!contentComponent.value
+  error.value = null
+  typeMeta.value = ''
+}
 
 watch(
   () => props.visible,
   (visible) => {
-    if (!visible) {
-      fullscreen.value = isMobile.value
-      desktopFullscreen.value = false
+    if (visible) {
+      resetState()
+    } else {
       loading.value = false
       error.value = null
       typeMeta.value = ''
-      contentSize.value = null
-      return
     }
-
-    fullscreen.value = isMobile.value ? true : desktopFullscreen.value
-    loading.value = !!contentComponent.value
-    error.value = null
-    typeMeta.value = ''
-    contentSize.value = null
   },
   { immediate: true }
 )
 
-watch(contentComponent, (component) => {
+watch(contentComponent, () => {
   if (!props.visible) return
-  loading.value = !!component
+  resetState()
 })
 
-watch(category, () => {
-  desktopFullscreen.value = false
-  fullscreen.value = isMobile.value
-  if (props.visible) {
-    loading.value = !!contentComponent.value
-  }
-  error.value = null
-  typeMeta.value = ''
-  contentSize.value = null
-})
+watch(
+  () => actionsSlotRef.value,
+  (current) => {
+    if (!current) {
+      actionsSlotTarget.value = null
+      return
+    }
 
-type LoadedPayload = {
-  size?: { width: number; height: number }
-}
+    const maybeComponent = current as ComponentPublicInstance
+    const el = (maybeComponent as any)?.$el || current
+    actionsSlotTarget.value = (el as HTMLElement) || null
+  },
+  { immediate: true }
+)
 
-const handleContentLoaded = (payload?: LoadedPayload) => {
+provide('actionsSlot', actionsSlotTarget)
+
+const handleContentLoaded = () => {
   loading.value = false
   error.value = null
-  if (!props.visible) return
-
-  if (isMobile.value) {
-    contentSize.value = null
-    return
-  }
-
-  if (payload?.size) {
-    contentSize.value = payload.size
-    if (shouldFullscreenForSize(payload.size)) {
-      desktopFullscreen.value = true
-      fullscreen.value = true
-    } else {
-      desktopFullscreen.value = false
-      fullscreen.value = false
-    }
-  } else {
-    contentSize.value = null
-  }
 }
 
 const handleContentError = (message: string) => {
@@ -262,15 +200,9 @@ const handleMetaUpdate = (meta: string) => {
 }
 
 const handleClose = () => {
-  if (isMobile.value) {
-    fullscreen.value = true
-    desktopFullscreen.value = false
-  } else {
-    fullscreen.value = false
-    desktopFullscreen.value = false
-  }
   loading.value = false
-  contentSize.value = null
+  error.value = null
+  typeMeta.value = ''
   emit('close')
 }
 
@@ -280,56 +212,86 @@ const handleDownload = () => {
   link.download = props.file.name
   link.click()
 }
-
-const toggleFullscreen = () => {
-  if (isMobile.value) return
-  desktopFullscreen.value = !desktopFullscreen.value
-  fullscreen.value = desktopFullscreen.value
-}
-
-provide('toggleFullscreen', toggleFullscreen)
-provide('actionsSlot', actionsSlotTarget)
-provide('isMobilePreview', isMobile)
 </script>
 
-<style scoped>
-.file-preview-dialog :deep(.el-dialog__body) {
-  padding: 0;
+<style>
+.file-preview-modal {
   display: flex;
   flex-direction: column;
 }
 
+.file-preview-body {
+  flex: 1;
+}
+</style>
+
+<style scoped>
 .preview-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  width: 100%;
+  justify-content: space-between;
   gap: 16px;
 }
 
-.preview-title {
+.preview-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.preview-name {
   font-weight: 600;
   font-size: 16px;
+  max-width: 480px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1;
+}
+
+.preview-meta {
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
 }
 
 .preview-actions {
-  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.preview-body {
-  position: relative;
+.preview-extra-actions {
+  display: flex;
+}
+
+.preview-content {
+  height: 100%;
+}
+
+.preview-stage {
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  flex: 1;
-  width: 100%;
-  box-sizing: border-box;
   background: var(--el-fill-color-lighter);
-  padding: 16px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.preview-stage.preview-type-text,
+.preview-stage.preview-type-markdown {
+  align-items: stretch;
+}
+
+.preview-stage.preview-type-video,
+.preview-stage.preview-type-audio,
+.preview-stage.preview-type-pdf {
+  background: var(--el-bg-color);
+}
+
+.preview-stage.preview-type-image {
+  background: var(--el-bg-color-overlay);
 }
 
 .unsupported-content {
@@ -339,15 +301,14 @@ provide('isMobilePreview', isMobile)
   gap: 20px;
   padding: 40px 20px;
   text-align: center;
+  color: var(--el-text-color-secondary);
 }
 
 .unsupported-text {
   font-size: 15px;
-  color: var(--el-text-color-secondary);
 }
 
-.preview-loading,
-.preview-error {
+.preview-overlay {
   position: absolute;
   inset: 0;
   display: flex;
@@ -355,12 +316,12 @@ provide('isMobilePreview', isMobile)
   justify-content: center;
   align-items: center;
   gap: 12px;
+  background: rgba(255, 255, 255, 0.85);
   color: var(--el-text-color-secondary);
-  background: var(--el-fill-color-lighter);
   z-index: 10;
 }
 
-.preview-error {
+.preview-overlay.is-error {
   color: var(--el-color-danger);
 }
 
@@ -375,44 +336,5 @@ provide('isMobilePreview', isMobile)
   to {
     transform: rotate(360deg);
   }
-}
-
-.preview-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  gap: 16px;
-  padding-top: 12px;
-  border-top: 1px solid var(--el-border-color-lighter);
-  flex-wrap: wrap;
-}
-
-.file-meta {
-  flex: 1;
-  min-width: 0;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--el-text-color-secondary);
-  word-break: break-word;
-}
-
-.preview-type-text .preview-body,
-.preview-type-markdown .preview-body {
-  align-items: stretch;
-}
-
-.preview-type-video .preview-body,
-.preview-type-audio .preview-body,
-.preview-type-pdf .preview-body {
-  background: var(--el-bg-color);
-}
-
-.preview-type-image .preview-body {
-  background: var(--el-bg-color-overlay);
-}
-
-.preview-type-unsupported .preview-body {
-  background: transparent;
 }
 </style>

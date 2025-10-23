@@ -1,12 +1,5 @@
 <template>
   <div class="media-content-wrapper" :class="{ 'is-audio': isAudio }">
-    <!-- Type-specific action buttons (rendered in parent's header via Teleport) -->
-    <Teleport v-if="!isMobile" :to="actionsSlot" :disabled="!mounted || !actionsSlot">
-      <el-button v-if="isVideo" :icon="FullScreen" @click="toggleFullscreen">
-        {{ fullscreen ? t('common.buttons.exitFullscreen') : t('common.buttons.fullscreen') }}
-      </el-button>
-    </Teleport>
-
     <!-- Video player -->
     <video
       v-if="isVideo"
@@ -38,9 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, onMounted, onBeforeUnmount } from 'vue'
-import type { Ref } from 'vue'
-import { FullScreen } from '@element-plus/icons-vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import type { FileInfo } from '@/types'
 import { useI18n } from '@/composables/useI18n'
 
@@ -48,7 +39,6 @@ const props = defineProps<{
   file: FileInfo
   fileUrl: string
   category: 'video' | 'audio'
-  fullscreen: boolean
 }>()
 
 const emit = defineEmits<{
@@ -59,15 +49,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Inject toggle function from parent
-const toggleFullscreen = inject<() => void>('toggleFullscreen', () => {})
-
-const actionsSlot = inject<Ref<HTMLElement | null>>('actionsSlot', ref(null))
-const isMobile = inject<Ref<boolean>>('isMobilePreview', ref(false))
-
 // Component state
 const mediaRef = ref<HTMLVideoElement | HTMLAudioElement>()
-const mounted = ref(false)
 const isVideo = computed(() => props.category === 'video')
 const isAudio = computed(() => props.category === 'audio')
 
@@ -78,7 +61,6 @@ const pauseMedia = () => {
 }
 
 onMounted(() => {
-  mounted.value = true
   if (mediaRef.value) {
     mediaRef.value.addEventListener('ended', pauseMedia)
   }

@@ -18,7 +18,6 @@ import type { FileInfo } from '@/types'
 defineProps<{
   file: FileInfo
   fileUrl: string
-  fullscreen: boolean
 }>()
 
 const emit = defineEmits<{
