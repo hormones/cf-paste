@@ -1,5 +1,4 @@
 <template>
-  <!-- Main preview dialog -->
   <el-dialog
     v-if="props.visible"
     :model-value="true"
@@ -15,15 +14,11 @@
     destroy-on-close
     @close="handleClose"
   >
-    <!-- Header: file name + type-specific actions + download -->
     <template #header>
       <div class="preview-header">
         <span class="preview-title">{{ file.name }}</span>
         <div class="preview-actions">
-          <el-button-group
-            ref="actionsSlotRef"
-          >
-            <!-- Common download button -->
+          <el-button-group ref="actionsSlotRef">
             <el-button :icon="Download" @click="handleDownload">
               {{ t('common.buttons.download') }}
             </el-button>
@@ -32,9 +27,7 @@
       </div>
     </template>
 
-    <!-- Body: content area with dynamic component -->
     <div class="preview-body" :style="bodyStyle">
-      <!-- Content component -->
       <component
         :is="contentComponent"
         v-if="contentComponent"
@@ -45,10 +38,8 @@
         @loaded="handleContentLoaded"
         @error="handleContentError"
         @meta="handleMetaUpdate"
-        @resize="handleResize"
       />
 
-      <!-- Unsupported file type fallback -->
       <div v-else-if="category === 'unsupported'" class="unsupported-content">
         <el-icon :size="48" color="var(--el-color-warning)">
           <Warning />
@@ -56,7 +47,6 @@
         <span class="unsupported-text">{{ t('file.previewUnsupported') }}</span>
       </div>
 
-      <!-- Loading state -->
       <div v-if="loading" class="preview-loading">
         <el-icon class="rotating" :size="40">
           <Loading />
@@ -64,7 +54,6 @@
         <span>{{ t('file.previewLoading') }}</span>
       </div>
 
-      <!-- Error state -->
       <div v-else-if="error" class="preview-error">
         <el-icon :size="40">
           <Warning />
@@ -73,15 +62,12 @@
       </div>
     </div>
 
-    <!-- Footer: file metadata + close button -->
     <template #footer>
       <div class="preview-footer">
         <span class="file-meta">
-          <!-- Type-specific metadata (dimensions, duration, etc.) -->
           <template v-if="typeMeta">
             {{ typeMeta }} •
           </template>
-          <!-- Common file info -->
           {{ Utils.humanReadableSize(file.size) }} •
           {{ file.contentType || t('file.previewUnknownType') }}
         </span>
@@ -94,17 +80,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, provide, defineAsyncComponent, watchEffect, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, watch, provide, defineAsyncComponent, watchEffect } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
-import type { PreviewResizePayload } from '@/types/preview'
 import { Download, Loading, Warning } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
 import api from '@/api'
 import { useI18n } from '@/composables/useI18n'
+import { usePreviewSizing } from '@/composables/usePreviewSizing'
 import { Utils } from '@/utils'
 import { getPreviewCategory, type PreviewCategory } from 'shared/utils/mime'
 
-// Lazy load content components
 const ImagePreviewContent = defineAsyncComponent(
   () => import('./preview-contents/ImagePreviewContent.vue')
 )
@@ -129,18 +114,15 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-// Determine file category
 const category = computed<PreviewCategory>(() =>
   getPreviewCategory(props.file.name, props.file.contentType)
 )
 
-// Generate file URL for preview
 const fileUrl = computed(
   () =>
     `${api.getUrlPrefix()}/file/download?name=${encodeURIComponent(props.file.name)}&preview=true`
 )
 
-// Component mapping
 const componentMap: Record<PreviewCategory, any> = {
   image: ImagePreviewContent,
   pdf: DocumentPreviewContent,
@@ -153,18 +135,18 @@ const componentMap: Record<PreviewCategory, any> = {
 
 const contentComponent = computed(() => componentMap[category.value] || null)
 
-const MOBILE_BREAKPOINT = 768
-
-// State management
 const fullscreen = ref(false)
+const desktopFullscreen = ref(false)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const typeMeta = ref<string>('')
 const actionsSlotRef = ref<ComponentPublicInstance | HTMLElement | null>(null)
 const actionsSlotTarget = ref<HTMLElement | null>(null)
-const customSize = ref<PreviewResizePayload | null>(null)
-const isMobile = ref(false)
-const lastDesktopFullscreen = ref(false)
+
+const { dialogWidth, dialogStyle, bodyStyle, isMobile } = usePreviewSizing({
+  category,
+  fullscreen,
+})
 
 watchEffect(() => {
   const current = actionsSlotRef.value as ComponentPublicInstance | HTMLElement | null
@@ -178,126 +160,58 @@ watchEffect(() => {
   actionsSlotTarget.value = (el as HTMLElement) || null
 })
 
-const normalizeDimension = (value?: number | string): string | undefined => {
-  if (value === undefined) return undefined
-  if (typeof value === 'number') {
-    if (!Number.isFinite(value)) return undefined
-    return `${value}px`
-  }
-  const trimmed = value.trim()
-  return trimmed || undefined
-}
-
-const defaultSize: PreviewResizePayload = {
-  width: 600,
-  minHeight: 300,
-  maxHeight: '80vh',
-}
-
-const categoryFallbacks: Partial<Record<PreviewCategory, PreviewResizePayload>> = {
-  audio: {
-    width: 520,
-    minHeight: 120,
-    maxHeight: 200,
-  },
-}
-
-const resolvedSize = computed<PreviewResizePayload>(() => ({
-  ...defaultSize,
-  ...(categoryFallbacks[category.value] || {}),
-  ...(customSize.value || {}),
-}))
-
-const handleResize = (payload?: PreviewResizePayload | null) => {
-  if (isMobile.value) return
-  customSize.value = payload ? { ...payload } : null
-}
-
-const updateMobileState = () => {
-  if (typeof window === 'undefined') return
-  isMobile.value = window.innerWidth <= MOBILE_BREAKPOINT
-}
-
-if (typeof window !== 'undefined') {
-  updateMobileState()
-}
-
-onMounted(() => {
-  if (typeof window === 'undefined') return
-  window.addEventListener('resize', updateMobileState)
-  updateMobileState()
-})
-
-onBeforeUnmount(() => {
-  if (typeof window === 'undefined') return
-  window.removeEventListener('resize', updateMobileState)
-})
-
 watch(isMobile, (mobile) => {
   if (mobile) {
+    desktopFullscreen.value = false
     fullscreen.value = true
-    customSize.value = null
   } else {
-    fullscreen.value = lastDesktopFullscreen.value
+    fullscreen.value = desktopFullscreen.value
   }
 })
 
-
-// Check if current type supports custom actions
-
-// Dialog width derived from resolved size or fullscreen
-const dialogWidth = computed(() => {
-  if (fullscreen.value) return '100%'
-  return normalizeDimension(resolvedSize.value.width) || '600px'
-})
-
-const dialogStyle = computed(() => {
-  if (fullscreen.value) return {}
-  const height = normalizeDimension(resolvedSize.value.height)
-  if (!height) return {}
-  return {
-    maxHeight: height,
-    height,
-  }
-})
-
-// Body style uses resolved size or fullscreen override
-const bodyStyle = computed(() => {
-  if (fullscreen.value) {
-    const fillHeight = 'calc(100vh - 160px)'
-    return {
-      minHeight: fillHeight,
-      maxHeight: fillHeight,
-      height: fillHeight,
-      overflow: 'auto',
+watch(
+  () => props.visible,
+  (visible) => {
+    if (!visible) {
+      fullscreen.value = isMobile.value
+      desktopFullscreen.value = false
+      loading.value = false
+      error.value = null
+      typeMeta.value = ''
+      return
     }
-  }
 
-  const minHeight = normalizeDimension(resolvedSize.value.minHeight) || '300px'
-  const maxHeight = normalizeDimension(resolvedSize.value.maxHeight) || '80vh'
+    fullscreen.value = isMobile.value ? true : desktopFullscreen.value
+    loading.value = !!contentComponent.value
+    error.value = null
+    typeMeta.value = ''
+  },
+  { immediate: true }
+)
 
-  const style: Record<string, string> = {
-    minHeight,
-    maxHeight,
-    overflow: 'auto',
-  }
-
-  if (maxHeight) {
-    style.height = maxHeight
-  }
-
-  return style
+watch(contentComponent, (component) => {
+  if (!props.visible) return
+  loading.value = !!component
 })
 
-// Event handlers
+watch(category, () => {
+  desktopFullscreen.value = false
+  fullscreen.value = isMobile.value
+  if (props.visible) {
+    loading.value = !!contentComponent.value
+  }
+  error.value = null
+  typeMeta.value = ''
+})
+
 const handleContentLoaded = () => {
   loading.value = false
+  error.value = null
 }
 
 const handleContentError = (message: string) => {
   loading.value = false
   error.value = message || t('file.previewLoadError')
-  customSize.value = null
 }
 
 const handleMetaUpdate = (meta: string) => {
@@ -307,11 +221,12 @@ const handleMetaUpdate = (meta: string) => {
 const handleClose = () => {
   if (isMobile.value) {
     fullscreen.value = true
+    desktopFullscreen.value = false
   } else {
     fullscreen.value = false
-    lastDesktopFullscreen.value = false
+    desktopFullscreen.value = false
   }
-  customSize.value = null
+  loading.value = false
   emit('close')
 }
 
@@ -322,61 +237,22 @@ const handleDownload = () => {
   link.click()
 }
 
-// Provide functions to content components
 const toggleFullscreen = () => {
   if (isMobile.value) return
-  fullscreen.value = !fullscreen.value
-  lastDesktopFullscreen.value = fullscreen.value
+  desktopFullscreen.value = !desktopFullscreen.value
+  fullscreen.value = desktopFullscreen.value
 }
 
 provide('toggleFullscreen', toggleFullscreen)
 provide('actionsSlot', actionsSlotTarget)
 provide('isMobilePreview', isMobile)
-
-// Reset state when dialog closes
-watch(
-  () => props.visible,
-  (visible) => {
-    if (!visible) {
-      if (isMobile.value) {
-        fullscreen.value = true
-      } else {
-        fullscreen.value = false
-        lastDesktopFullscreen.value = false
-      }
-      loading.value = false
-      error.value = null
-      customSize.value = null
-      typeMeta.value = ''
-    } else {
-      if (isMobile.value) {
-        fullscreen.value = true
-      } else {
-        fullscreen.value = lastDesktopFullscreen.value
-      }
-      // Set initial loading state for supported types
-      if (contentComponent.value) {
-        loading.value = true
-      }
-    }
-  }
-)
-
-// Reset fullscreen when category changes
-watch(category, () => {
-  if (isMobile.value) {
-    fullscreen.value = true
-  } else {
-    fullscreen.value = false
-    lastDesktopFullscreen.value = false
-  }
-  customSize.value = null
-})
 </script>
 
 <style scoped>
 .file-preview-dialog :deep(.el-dialog__body) {
   padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .preview-header {
@@ -405,6 +281,9 @@ watch(category, () => {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
   background: var(--el-fill-color-lighter);
   padding: 16px;
 }
@@ -456,13 +335,4 @@ watch(category, () => {
 
 .preview-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.file-meta {
-  color: var(--el-text-color-secondary);
-  font-size: 13px;
-}
-</style>
+  justify-content: s

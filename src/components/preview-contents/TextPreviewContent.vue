@@ -23,9 +23,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { ref, computed, inject, onMounted, onBeforeUnmount } from 'vue'
 import type { Ref } from 'vue'
-import type { PreviewResizePayload } from '@/types/preview'
 import { CopyDocument } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { MdPreview } from 'md-editor-v3'
@@ -44,7 +43,6 @@ const emit = defineEmits<{
   loaded: []
   error: [string]
   meta: [string]
-  resize: [PreviewResizePayload | null]
 }>()
 
 const { t } = useI18n()
@@ -59,21 +57,10 @@ const contentRef = ref<HTMLElement>()
 const mounted = ref(false)
 const isMarkdown = computed(() => props.category === 'markdown')
 
-const applyDefaultSize = () => {
-  const payload: PreviewResizePayload = {
-    width: 'min(800px, 85vw)',
-    maxHeight: '75vh',
-    minHeight: '300px',
-  }
-  emit('resize', payload)
-}
-
-
 let abortController: AbortController | null = null
 
 onMounted(() => {
   mounted.value = true
-  applyDefaultSize()
   fetchContent()
 })
 
@@ -81,7 +68,6 @@ onBeforeUnmount(() => {
   if (abortController) {
     abortController.abort()
   }
-  emit('resize', null)
 })
 
 // Fetch text content
@@ -117,7 +103,6 @@ const fetchContent = async () => {
     }
     console.error('Failed to load text content:', err)
     emit('error', t('file.previewLoadError'))
-    emit('resize', null)
   } finally {
     if (!abortController?.signal.aborted) {
       abortController = null

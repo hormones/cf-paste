@@ -19,9 +19,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted, onBeforeUnmount } from 'vue'
+import { ref, inject, onMounted } from 'vue'
 import type { Ref } from 'vue'
-import type { PreviewResizePayload } from '@/types/preview'
 import { FullScreen } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
 import { useI18n } from '@/composables/useI18n'
@@ -35,7 +34,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   loaded: []
   error: [string]
-  resize: [PreviewResizePayload | null]
 }>()
 
 const { t } = useI18n()
@@ -50,24 +48,8 @@ const isMobile = inject<Ref<boolean>>('isMobilePreview', ref(false))
 const iframeRef = ref<HTMLIFrameElement>()
 const mounted = ref(false)
 
-const applyDefaultSize = () => {
-  const contentHeight = 'clamp(300px, calc(90vh - 160px), 90vh)'
-  const payload: PreviewResizePayload = {
-    width: 'min(1200px, 90vw)',
-    height: '90vh',
-    minHeight: contentHeight,
-    maxHeight: contentHeight,
-  }
-  emit('resize', payload)
-}
-
 onMounted(() => {
   mounted.value = true
-  applyDefaultSize()
-})
-
-onBeforeUnmount(() => {
-  emit('resize', null)
 })
 
 // Event handlers
