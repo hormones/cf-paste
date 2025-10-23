@@ -222,6 +222,10 @@ const handleDownload = () => {
 
 .file-preview-body {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 </style>
 
@@ -231,6 +235,7 @@ const handleDownload = () => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .preview-info {
@@ -257,6 +262,7 @@ const handleDownload = () => {
 
 .preview-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
 }
@@ -265,12 +271,30 @@ const handleDownload = () => {
   display: flex;
 }
 
+@media (max-width: 768px) {
+  .preview-header {
+    align-items: flex-start;
+  }
+
+  .preview-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
 .preview-content {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
 }
 
 .preview-stage {
+  flex: 1;
+  width: 100%;
   height: 100%;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;

@@ -109,8 +109,12 @@ const formatDuration = (seconds: number): string => {
   display: flex;
   justify-content: center;
   align-items: center;
+  min-width: 0;
+  min-height: 0;
   border-radius: 8px;
   background: #000;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .media-content-wrapper.is-audio {
@@ -119,14 +123,20 @@ const formatDuration = (seconds: number): string => {
 }
 
 .media-element {
+  display: block;
   max-width: 100%;
   max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 audio.media-element {
   width: 100%;
+  height: auto;
   max-width: 450px;
+  object-fit: initial;
 }
 </style>
