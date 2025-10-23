@@ -142,10 +142,19 @@ const error = ref<string | null>(null)
 const typeMeta = ref<string>('')
 const actionsSlotRef = ref<ComponentPublicInstance | HTMLElement | null>(null)
 const actionsSlotTarget = ref<HTMLElement | null>(null)
+const contentSize = ref<{ width: number; height: number } | null>(null)
 
-const { dialogWidth, dialogStyle, bodyStyle, isMobile } = usePreviewSizing({
+const {
+  dialogWidth,
+  dialogStyle,
+  bodyStyle,
+  isMobile,
+  shouldFullscreenForSize,
+  contentExceedsViewport,
+} = usePreviewSizing({
   category,
   fullscreen,
+  contentSize,
 })
 
 watchEffect(() => {
@@ -169,6 +178,14 @@ watch(isMobile, (mobile) => {
   }
 })
 
+watch(contentExceedsViewport, (exceeds) => {
+  if (!props.visible || isMobile.value) return
+  if (exceeds) {
+    desktopFullscreen.value = true
+    fullscreen.value = true
+  }
+})
+
 watch(
   () => props.visible,
   (visible) => {
@@ -178,6 +195,7 @@ watch(
       loading.value = false
       error.value = null
       typeMeta.value = ''
+      contentSize.value = null
       return
     }
 
@@ -185,6 +203,7 @@ watch(
     loading.value = !!contentComponent.value
     error.value = null
     typeMeta.value = ''
+    contentSize.value = null
   },
   { immediate: true }
 )
@@ -202,11 +221,35 @@ watch(category, () => {
   }
   error.value = null
   typeMeta.value = ''
+  contentSize.value = null
 })
 
-const handleContentLoaded = () => {
+type LoadedPayload = {
+  size?: { width: number; height: number }
+}
+
+const handleContentLoaded = (payload?: LoadedPayload) => {
   loading.value = false
   error.value = null
+  if (!props.visible) return
+
+  if (isMobile.value) {
+    contentSize.value = null
+    return
+  }
+
+  if (payload?.size) {
+    contentSize.value = payload.size
+    if (shouldFullscreenForSize(payload.size)) {
+      desktopFullscreen.value = true
+      fullscreen.value = true
+    } else {
+      desktopFullscreen.value = false
+      fullscreen.value = false
+    }
+  } else {
+    contentSize.value = null
+  }
 }
 
 const handleContentError = (message: string) => {
@@ -227,6 +270,7 @@ const handleClose = () => {
     desktopFullscreen.value = false
   }
   loading.value = false
+  contentSize.value = null
   emit('close')
 }
 
@@ -335,4 +379,40 @@ provide('isMobilePreview', isMobile)
 
 .preview-footer {
   display: flex;
-  justify-content: s
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--el-border-color-lighter);
+  flex-wrap: wrap;
+}
+
+.file-meta {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--el-text-color-secondary);
+  word-break: break-word;
+}
+
+.preview-type-text .preview-body,
+.preview-type-markdown .preview-body {
+  align-items: stretch;
+}
+
+.preview-type-video .preview-body,
+.preview-type-audio .preview-body,
+.preview-type-pdf .preview-body {
+  background: var(--el-bg-color);
+}
+
+.preview-type-image .preview-body {
+  background: var(--el-bg-color-overlay);
+}
+
+.preview-type-unsupported .preview-body {
+  background: transparent;
+}
+</style>

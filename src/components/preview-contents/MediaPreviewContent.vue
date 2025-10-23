@@ -52,7 +52,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  loaded: []
+  loaded: [payload?: { size: { width: number; height: number } }]
   error: [string]
   meta: [string]
 }>()

@@ -4,7 +4,7 @@ import type { PreviewCategory } from 'shared/utils/mime'
 
 const MOBILE_BREAKPOINT = 768
 const MIN_DIALOG_WIDTH = 360
-const MIN_DIALOG_HEIGHT = 240
+const MIN_DIALOG_HEIGHT = 300
 const MIN_BODY_HEIGHT = 200
 const CONTENT_VERTICAL_GAP = 176
 
@@ -22,7 +22,11 @@ const CATEGORY_DIMENSIONS: Record<PreviewCategory, { width: number; height: numb
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
 
-export const usePreviewSizing = (params: { category: Ref<PreviewCategory>; fullscreen: Ref<boolean> }) => {
+export const usePreviewSizing = (params: {
+  category: Ref<PreviewCategory>
+  fullscreen: Ref<boolean>
+  contentSize?: Ref<{ width: number; height: number } | null>
+}) => {
   const viewport = ref({ width: 1024, height: 768 })
 
   const updateViewport = () => {
@@ -49,7 +53,16 @@ export const usePreviewSizing = (params: { category: Ref<PreviewCategory>; fulls
 
   const isMobile = computed(() => viewport.value.width <= MOBILE_BREAKPOINT)
 
-  const preferredSize = computed(() => CATEGORY_DIMENSIONS[params.category.value] || FALLBACK_DIMENSIONS)
+  const preferredSize = computed(() => {
+    if (params.category.value === 'image' && params.contentSize?.value) {
+      const { width, height } = params.contentSize.value
+      return {
+        width: Math.max(width, MIN_DIALOG_WIDTH),
+        height: Math.max(height, MIN_DIALOG_HEIGHT),
+      }
+    }
+    return CATEGORY_DIMENSIONS[params.category.value] || FALLBACK_DIMENSIONS
+  })
 
   const maxDialogWidth = computed(() => Math.max(MIN_DIALOG_WIDTH, viewport.value.width * 0.9))
   const maxDialogHeight = computed(() => Math.max(MIN_DIALOG_HEIGHT, viewport.value.height * 0.9))
@@ -80,7 +93,6 @@ export const usePreviewSizing = (params: { category: Ref<PreviewCategory>; fulls
       }
     }
     return {
-      width: `${Math.round(resolvedDialogWidth.value)}px`,
       maxWidth: '90vw',
       maxHeight: '90vh',
     }
@@ -96,7 +108,11 @@ export const usePreviewSizing = (params: { category: Ref<PreviewCategory>; fulls
     }
 
     const availableHeight = Math.min(resolvedDialogHeight.value, maxDialogHeight.value)
-    const allowed = clamp(availableHeight - CONTENT_VERTICAL_GAP, MIN_BODY_HEIGHT, maxDialogHeight.value - CONTENT_VERTICAL_GAP)
+    const allowed = clamp(
+      availableHeight - CONTENT_VERTICAL_GAP,
+      MIN_BODY_HEIGHT,
+      Math.max(MIN_BODY_HEIGHT, maxDialogHeight.value - CONTENT_VERTICAL_GAP)
+    )
 
     return {
       maxHeight: `${Math.round(allowed)}px`,
@@ -105,10 +121,23 @@ export const usePreviewSizing = (params: { category: Ref<PreviewCategory>; fulls
     }
   })
 
+  const shouldFullscreenForSize = (size: { width: number; height: number }) => {
+    const widthLimit = viewport.value.width * 0.9
+    const heightLimit = viewport.value.height * 0.9
+    return size.width >= widthLimit || size.height >= heightLimit
+  }
+
+  const contentExceedsViewport = computed(() => {
+    if (!params.contentSize?.value) return false
+    return shouldFullscreenForSize(params.contentSize.value)
+  })
+
   return {
     dialogWidth,
     dialogStyle,
     bodyStyle,
     isMobile,
+    shouldFullscreenForSize,
+    contentExceedsViewport,
   }
 }

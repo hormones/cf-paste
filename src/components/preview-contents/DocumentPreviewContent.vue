@@ -1,12 +1,5 @@
 <template>
   <div class="document-content-wrapper">
-    <!-- Type-specific action buttons (rendered in parent's header via Teleport) -->
-    <Teleport v-if="!isMobile" :to="actionsSlot" :disabled="!mounted || !actionsSlot">
-      <el-button :icon="FullScreen" @click="toggleFullscreen">
-        {{ fullscreen ? t('common.buttons.exitFullscreen') : t('common.buttons.fullscreen') }}
-      </el-button>
-    </Teleport>
-
     <!-- PDF iframe -->
     <iframe
       ref="iframeRef"
@@ -19,38 +12,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted } from 'vue'
-import type { Ref } from 'vue'
-import { FullScreen } from '@element-plus/icons-vue'
+import { ref } from 'vue'
 import type { FileInfo } from '@/types'
-import { useI18n } from '@/composables/useI18n'
 
-const props = defineProps<{
+defineProps<{
   file: FileInfo
   fileUrl: string
   fullscreen: boolean
 }>()
 
 const emit = defineEmits<{
-  loaded: []
+  loaded: [payload?: { size: { width: number; height: number } }]
   error: [string]
 }>()
 
-const { t } = useI18n()
-
-// Inject toggle function from parent
-const toggleFullscreen = inject<() => void>('toggleFullscreen', () => {})
-
-const actionsSlot = inject<Ref<HTMLElement | null>>('actionsSlot', ref(null))
-const isMobile = inject<Ref<boolean>>('isMobilePreview', ref(false))
-
 // Component state
 const iframeRef = ref<HTMLIFrameElement>()
-const mounted = ref(false)
-
-onMounted(() => {
-  mounted.value = true
-})
 
 // Event handlers
 const handleLoad = () => {
