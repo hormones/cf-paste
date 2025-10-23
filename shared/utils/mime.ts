@@ -9,6 +9,12 @@ export type PreviewCategory =
 
 const FALLBACK_MIME = 'application/octet-stream'
 
+const normalizeMimeType = (mimeType: string | undefined): string => {
+  if (!mimeType) return ''
+  const [base] = mimeType.split(';', 1)
+  return base.trim().toLowerCase()
+}
+
 const extensionToMime: Record<string, string> = {
   txt: 'text/plain; charset=utf-8',
   log: 'text/plain; charset=utf-8',
@@ -147,12 +153,15 @@ export const getPreviewCategoryByMime = (
   mimeType: string,
   extension: string
 ): PreviewCategory => {
-  if (mimeType.startsWith('image/')) return 'image'
-  if (mimeType.startsWith('video/')) return 'video'
-  if (mimeType.startsWith('audio/')) return 'audio'
-  if (mimeType === 'application/pdf') return 'pdf'
-  if (mimeType === 'text/markdown' || mimeType === 'application/markdown') return 'markdown'
-  if (mimeType.startsWith('text/') || textLikeMimes.has(mimeType)) return 'text'
+  const normalizedMimeType = normalizeMimeType(mimeType) || mimeType
+
+  if (normalizedMimeType.startsWith('image/')) return 'image'
+  if (normalizedMimeType.startsWith('video/')) return 'video'
+  if (normalizedMimeType.startsWith('audio/')) return 'audio'
+  if (normalizedMimeType === 'application/pdf') return 'pdf'
+  if (normalizedMimeType === 'text/markdown' || normalizedMimeType === 'application/markdown')
+    return 'markdown'
+  if (normalizedMimeType.startsWith('text/') || textLikeMimes.has(normalizedMimeType)) return 'text'
 
   if (markdownExtensions.has(extension)) return 'markdown'
   if (imageExtensions.has(extension)) return 'image'

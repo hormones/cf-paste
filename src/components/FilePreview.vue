@@ -26,7 +26,7 @@
             <el-button :icon="Download" @click="handleDownload">
               {{ t('common.buttons.download') }}
             </el-button>
-            <el-button type="primary" @click="handleClose">
+            <el-button @click="handleClose">
               {{ t('common.buttons.close') }}
             </el-button>
           </el-button-group>
