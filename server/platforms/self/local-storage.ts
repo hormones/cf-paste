@@ -182,6 +182,19 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
       const decodedName = decodeURIComponent(options.name)
       const filePath = join(storagePath, options.prefix, decodedName)
 
+      // Check if file exists first to avoid unnecessary error logging
+      try {
+        await fs.access(filePath)
+      } catch {
+        // File doesn't exist - this is a normal case (e.g., paste with only files, no text content)
+        return {
+          status: 404,
+          headers: new Headers(),
+          body: new ReadableStream(),
+          text: async () => '',
+        }
+      }
+
       try {
         const stats = await fs.stat(filePath)
         const totalSize = stats.size
@@ -307,7 +320,6 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
           headers,
           body,
           text: async () => {
-            // 使用流式读取，对大文件更友好
             const stream = createReadStream(filePath)
             const chunks: Buffer[] = []
 
@@ -319,9 +331,10 @@ export function createLocalStorageAdapter(storagePath: string): StorageAdapter {
           },
         }
       } catch (error) {
-        console.error('download error', error)
+        // Log error only when it's an actual read/stream error, not a missing file
+        console.error('File read error for', filePath, error)
         return {
-          status: 404,
+          status: 500,
           headers: new Headers(),
           body: new ReadableStream(),
           text: async () => '',
