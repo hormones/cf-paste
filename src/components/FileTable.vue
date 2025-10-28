@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { View, Download, Delete } from '@element-plus/icons-vue'
 import { useFileUpload } from '@/composables/useFileUpload'
 import type { FileInfo } from '@/types'
@@ -104,17 +104,10 @@ const handleFilePreview = (file: FileInfo, event?: MouseEvent) => {
 
   const limit = limits[category]
   if (limit && file.size > limit) {
-    ElMessageBox.alert(
+    ElMessage.warning(
       t('file.previewTooLarge', {
-        size: Utils.humanReadableSize(limit),
         currentSize: Utils.humanReadableSize(file.size),
-      }),
-      t('common.states.warning'),
-      {
-        confirmButtonText: t('common.buttons.download'),
-        type: 'warning',
-        callback: () => handleFileDownload(file),
-      }
+      })
     )
     return
   }

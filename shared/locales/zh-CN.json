@@ -103,7 +103,7 @@
     "previewUnsupported": "暂不支持该文件类型的预览，请下载查看。",
     "previewLoadError": "预览加载失败，请尝试下载文件。",
     "previewUnknownType": "未知类型",
-    "previewTooLarge": "文件过大（{currentSize}）无法预览，建议直接下载查看。\n预览上限：{size}",
+    "previewTooLarge": "文件过大（{currentSize}），请直接下载查看",
     "lines": "行"
   },
   "auth": {
