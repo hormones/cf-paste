@@ -128,13 +128,16 @@ const handleCopy = async () => {
   width: 100%;
   height: 100%;
   overflow: auto;
+  box-sizing: border-box;
 }
 
 .markdown-container {
   width: 100%;
+  min-height: 100%;
   background: var(--el-bg-color);
   border-radius: 8px;
   padding: 16px;
+  box-sizing: border-box;
 }
 
 .markdown-container :deep(.md-editor-preview-wrapper) {
@@ -143,7 +146,7 @@ const handleCopy = async () => {
 
 .text-container {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   margin: 0;
   padding: 16px;
   background: var(--el-bg-color);
@@ -155,7 +158,8 @@ const handleCopy = async () => {
   color: var(--el-text-color-primary);
   white-space: pre-wrap;
   word-break: break-word;
-  overflow: auto;
+  box-sizing: border-box;
+  border-radius: 12px;
 }
 
 .text-container code {

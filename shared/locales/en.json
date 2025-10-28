@@ -103,6 +103,7 @@
     "previewUnsupported": "Preview is not available for this file type. Please download instead.",
     "previewLoadError": "Failed to load preview. You can try downloading the file.",
     "previewUnknownType": "Unknown type",
+    "previewTooLarge": "File is too large ({currentSize}) to preview. Please download instead.\nPreview limit: {size}",
     "lines": "lines"
   },
   "auth": {

@@ -72,7 +72,8 @@ import api from '@/api'
 import { useAppStore } from '@/stores'
 import { Utils } from '@/utils'
 import { useI18n } from '@/composables/useI18n'
-import { isPreviewSupported } from 'shared/utils/mime'
+import { isPreviewSupported, getPreviewCategory } from 'shared/utils/mime'
+import { PREVIEW_SIZE_LIMITS } from 'shared/constants'
 import FilePreview from './FilePreview.vue'
 
 const emit = defineEmits(['delete-success'])
@@ -92,6 +93,32 @@ const handleFilePreview = (file: FileInfo, event?: MouseEvent) => {
     handleFileDownload(file)
     return
   }
+
+  // Check file size for document types (text, markdown, PDF)
+  const category = getPreviewCategory(file.name, file.contentType)
+  const limits: Record<string, number> = {
+    text: PREVIEW_SIZE_LIMITS.TEXT,
+    markdown: PREVIEW_SIZE_LIMITS.TEXT,
+    pdf: PREVIEW_SIZE_LIMITS.PDF,
+  }
+
+  const limit = limits[category]
+  if (limit && file.size > limit) {
+    ElMessageBox.alert(
+      t('file.previewTooLarge', {
+        size: Utils.humanReadableSize(limit),
+        currentSize: Utils.humanReadableSize(file.size),
+      }),
+      t('common.states.warning'),
+      {
+        confirmButtonText: t('common.buttons.download'),
+        type: 'warning',
+        callback: () => handleFileDownload(file),
+      }
+    )
+    return
+  }
+
   previewFile.value = file
   previewVisible.value = true
 }
