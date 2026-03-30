@@ -22,7 +22,7 @@ export const useAppStore = defineStore('app', {
       expire_value: EXPIRY_VALUES[2],
     } as Keyword,
     lastSavedContent: '',
-    loading: false,
+    loading: true,
     showPasswordDialog: false,
 
     // File state

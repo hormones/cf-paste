@@ -5,7 +5,7 @@ import { useI18n } from '@/composables/useI18n'
 import { EXPIRY_OPTIONS } from '@/constants'
 
 const appStore = useAppStore()
-const { closeSettings, saveSettings } = useSettings()
+const { closeSettings, saveSettings, saving } = useSettings()
 const { t } = useI18n()
 </script>
 
@@ -56,7 +56,7 @@ const { t } = useI18n()
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="closeSettings" size="large">{{ t('common.buttons.cancel') }}</el-button>
-        <el-button type="primary" @click="saveSettings" size="large">{{ t('common.buttons.save') }}</el-button>
+        <el-button type="primary" @click="saveSettings" :loading="saving" size="large">{{ t('common.buttons.save') }}</el-button>
       </span>
     </template>
   </el-dialog>

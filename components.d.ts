@@ -54,4 +54,7 @@ declare module 'vue' {
     TextPreviewContent: typeof import('./src/components/preview-contents/TextPreviewContent.vue')['default']
     UploadProgress: typeof import('./src/components/UploadProgress.vue')['default']
   }
+  export interface GlobalDirectives {
+    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
+  }
 }
