@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-
 // Component imports
 import PageHeader from '@/components/PageHeader.vue'
 import PasswordDialog from '@/components/PasswordDialog.vue'
@@ -23,22 +21,15 @@ const { fetchKeyword } = useMain()
 const { fetchConfig, fetchFileList } = useFileUpload()
 const { initializeLanguage } = useI18n()
 
-// Event handlers
+// async setup：让 Suspense 的 #fallback 在初始化完成前保持显示
+const [, keywordData] = await Promise.all([
+  fetchConfig().then(() => initializeLanguage()),
+  fetchKeyword(),
+])
 
-onMounted(async () => {
-  // Initialize configuration
-  await fetchConfig()
-
-  // Initialize language after config is loaded
-  initializeLanguage()
-
-  // Load content
-  const keywordData = await fetchKeyword()
-  // If keyword exists, load file list
-  if (keywordData) {
-    await fetchFileList()
-  }
-})
+if (keywordData) {
+  await fetchFileList()
+}
 </script>
 
 <template>

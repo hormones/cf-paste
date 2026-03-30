@@ -4,10 +4,17 @@ import type { Component } from 'vue'
 import Template from '@/templates/DefaultTemplate.vue'
 
 const currentTemplate = shallowRef<Component>(Template)
+
+function onReady() {
+  const el = document.getElementById('app-loading')
+  if (!el) return
+  el.classList.add('fade-out')
+  el.addEventListener('transitionend', () => el.remove(), { once: true })
+}
 </script>
 
 <template>
-  <Suspense>
+  <Suspense @resolve="onReady">
     <template #default>
       <main>
         <component
@@ -17,17 +24,7 @@ const currentTemplate = shallowRef<Component>(Template)
       </main>
     </template>
     <template #fallback>
-      <div class="loading">{{ $t('common.states.loading') }}</div>
+      <!-- app-loading spinner in index.html covers this phase -->
     </template>
   </Suspense>
 </template>
-
-<style scoped>
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  font-size: 1.2em;
-}
-</style>

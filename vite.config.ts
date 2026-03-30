@@ -9,7 +9,6 @@ import { cloudflare } from "@cloudflare/vite-plugin"
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
-import ElementPlus from 'unplugin-element-plus/vite'
 
 console.log('NODE_ENV', process.env.NODE_ENV)
 console.log('PLATFORM', process.env.PLATFORM)
@@ -27,21 +26,14 @@ export default defineConfig({
 		AutoImport({
 			resolvers: [ElementPlusResolver()],
 		}),
-		ElementPlus({
-			useSource: true,
-		}),
 		Components({
-			resolvers: [
-				ElementPlusResolver({
-					importStyle: 'sass',
-				}),
-			],
+			resolvers: [ElementPlusResolver()],
 		}),
 	].filter(Boolean),
 	server: {
 		port: 5173,
 		host: true, // 允许外部访问
-		open: true, // 自动打开浏览器
+		open: '/test', // 开发环境自动打开 /test 页面
 		cors: true, // 启用CORS
 		proxy: isCloudflare ? {
 			'/api': {
@@ -71,18 +63,22 @@ export default defineConfig({
 			}
 		} : undefined,
 	},
-	css: {
-		preprocessorOptions: {
-			scss: {
-				additionalData: `@use "@/assets/element.scss" as *;`,
-			},
-		},
-	},
 	build: {
 		sourcemap: isDev,
-		// Platform-specific build optimizations
 		rollupOptions: {
 			external: isCloudflare ? [] : ['better-sqlite3'],
+			output: {
+				manualChunks: {
+					// Vue 核心运行时
+					'vendor-vue': ['vue', 'vue-router', 'pinia'],
+					// Element Plus 组件库
+					'vendor-element': ['element-plus'],
+					// Markdown 编辑器（体积最大，单独隔离）
+					'vendor-md-editor': ['md-editor-v3'],
+					// 其余工具库
+					'vendor-utils': ['axios', 'vue-i18n', '@noble/hashes', 'crypto-js', 'qrcode'],
+				},
+			},
 		},
 	},
 	resolve: {
