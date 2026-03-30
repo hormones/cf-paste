@@ -7,6 +7,8 @@ import InfoPanel from '@/components/InfoPanel.vue'
 import QRCodePanel from '@/components/QRCodePanel.vue'
 import SettingsDialog from '@/components/SettingsDialog.vue'
 
+import { onMounted } from 'vue'
+
 // Store and Composable imports
 import { useAppStore } from '@/stores'
 import { useMain } from '@/composables/useMain'
@@ -21,15 +23,20 @@ const { fetchKeyword } = useMain()
 const { fetchConfig, fetchFileList } = useFileUpload()
 const { initializeLanguage } = useI18n()
 
-// async setup：让 Suspense 的 #fallback 在初始化完成前保持显示
-const [, keywordData] = await Promise.all([
-  fetchConfig().then(() => initializeLanguage()),
-  fetchKeyword(),
-])
+const emit = defineEmits<{ ready: [] }>()
 
-if (keywordData) {
-  await fetchFileList()
-}
+onMounted(async () => {
+  const [, keywordData] = await Promise.all([
+    fetchConfig().then(() => initializeLanguage()),
+    fetchKeyword(),
+  ])
+
+  if (keywordData) {
+    await fetchFileList()
+  }
+
+  emit('ready')
+})
 </script>
 
 <template>
