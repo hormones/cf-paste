@@ -48,7 +48,7 @@ const handleLoad = () => {
   height: 100%;
   border: none;
   border-radius: 8px;
-  background: #fff;
+  background: var(--color-background);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 </style>

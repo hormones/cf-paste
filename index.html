@@ -17,9 +17,11 @@
         transition: opacity 0.3s ease;
       }
       #app-loading.fade-out { opacity: 0; }
+      #app-loading.dark { background: #000; }
+      #app-loading.dark .spinner { border-color: #30363d; border-top-color: #58a6ff; }
       @media (prefers-color-scheme: dark) {
-        #app-loading { background: #000; }
-        #app-loading .spinner { border-color: #30363d; border-top-color: #58a6ff; }
+        #app-loading:not(.light) { background: #000; }
+        #app-loading:not(.light) .spinner { border-color: #30363d; border-top-color: #58a6ff; }
       }
       .spinner {
         width: 36px;
@@ -36,6 +38,15 @@
   </head>
   <body>
     <div id="app-loading"><div class="spinner"></div></div>
+    <script>
+      ;(function () {
+        var theme = localStorage.getItem('theme')
+        var el = document.getElementById('app-loading')
+        if (theme === 'dark' || theme === 'light') {
+          el.classList.add(theme)
+        }
+      })()
+    </script>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
