@@ -5,8 +5,68 @@
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paste</title>
+    <style>
+      #app-loading {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+      }
+      #app-loading.fade-out { opacity: 0; }
+      #app-loading.dark { background: #000; }
+      #app-loading.dark .spinner { border-color: #30363d; border-top-color: #58a6ff; }
+      @media (prefers-color-scheme: dark) {
+        #app-loading:not(.light) { background: #000; }
+        #app-loading:not(.light) .spinner { border-color: #30363d; border-top-color: #58a6ff; }
+      }
+      .spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid #eaeef2;
+        border-top-color: #0969da;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
+    <div id="app-loading"><div class="spinner"></div></div>
+    <script>
+      // Minimal runtime polyfills for old WebView kernels (e.g. Android 9 AOSP
+      // WebView on Chromium 66). These are APIs, not syntax: lowering the Vite
+      // build target does not polyfill them, but some bundled deps use them at
+      // module-evaluation time, which would abort the whole bundle.
+      ;(function () {
+        if (typeof globalThis === 'undefined') {
+          try {
+            Object.defineProperty(window, 'globalThis', { value: window, writable: true, configurable: true })
+          } catch (e) {
+            window.globalThis = window
+          }
+        }
+      })()
+    </script>
+    <script>
+      ;(function () {
+        try {
+          var theme = localStorage.getItem('theme')
+          var el = document.getElementById('app-loading')
+          if (theme === 'dark' || theme === 'light') {
+            el.classList.add(theme)
+          }
+        } catch (e) {
+          // Some Android in-app browsers / WebViews deny DOM storage access.
+          // Never let the theme pre-paint throw and abort the rest of the page.
+        }
+      })()
+    </script>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

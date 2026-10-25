@@ -24,3 +24,20 @@ export const Constant = {
   FILE_FOLDER: 'files',
   TEMPLATE_FOLDER: 'templates',
 }
+
+
+// Preview size limits (in bytes)
+export const PREVIEW_SIZE_LIMITS = {
+  TEXT: 5 * 1024 * 1024,      // 5MB for text/markdown
+  PDF: 50 * 1024 * 1024,      // 50MB for PDF
+  IMAGE: 20 * 1024 * 1024,    // 20MB for images
+} as const
+
+export const DEFAULT_CONFIG = {
+  MAX_FILE_SIZE: 300,
+  MAX_TOTAL_SIZE: 300,
+  MAX_FILES: 10,
+  CHUNK_SIZE: 1024 * 1024,
+  CHUNK_THRESHOLD: 1024 * 1024,
+  LANGUAGE: 'auto',
+}

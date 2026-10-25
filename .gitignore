@@ -29,6 +29,16 @@ coverage
 
 *.tsbuildinfo
 
+data
+.env
+AGENTS.md
+CLAUDE.md
+AI
+.cursor
+.claude
+.mcp.json
+.playwright-mcp
+
 # wrangler files
 .wrangler
 .dev.vars*

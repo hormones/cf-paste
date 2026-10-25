@@ -1,0 +1,427 @@
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import {
+  ElRow,
+  ElCol,
+  ElCard,
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElSelect,
+  ElOption,
+  ElDatePicker,
+  ElButton,
+  ElSpace
+} from 'element-plus'
+import {
+  Search,
+  Refresh,
+  Filter
+} from '@element-plus/icons-vue'
+import { useI18n } from '@/composables/useI18n'
+import type { AdminLogsRequest } from 'shared/types/admin'
+
+// Props
+const props = defineProps<{
+  modelValue: AdminLogsRequest
+  loading?: boolean
+}>()
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: AdminLogsRequest]
+  search: []
+  reset: []
+}>()
+
+const { t } = useI18n()
+
+// Form data - use computed to sync with v-model
+const formData = computed({
+  get: () => props.modelValue,
+  set: (value: AdminLogsRequest) => {
+    emit('update:modelValue', value)
+  }
+})
+
+// Action options for select
+const actionOptions = computed(() => [
+  { label: t('admin.actions.all'), value: '' },
+  { label: t('admin.actionLabels.1'), value: 1 },           // CREATE
+  { label: t('admin.actionLabels.2'), value: 2 },           // UPDATE_CONTENT
+  { label: t('admin.actionLabels.3'), value: 3 },           // UPLOAD_FILE
+  { label: t('admin.actionLabels.4'), value: 4 },           // DOWNLOAD_FILE
+  { label: t('admin.actionLabels.5'), value: 5 },           // DELETE_FILE
+  { label: t('admin.actionLabels.6'), value: 6 },           // VIEW
+  { label: t('admin.actionLabels.7'), value: 7 },           // DELETE
+  { label: t('admin.actionLabels.99'), value: 99 }          // AUTO_EXPIRE
+])
+
+// Update individual form fields
+const updateField = (field: keyof AdminLogsRequest, value: any) => {
+  const newData = { ...formData.value }
+  newData[field] = value
+  emit('update:modelValue', newData)
+}
+
+// Date range computed for v-model - use local timezone
+const dateRange = computed({
+  get: () => {
+    if (!formData.value.start || !formData.value.end) return undefined
+
+    // Convert timestamps to local datetime string for Element Plus
+    const startDate = new Date(formData.value.start)
+    const endDate = new Date(formData.value.end)
+
+    // Format as YYYY-MM-DDTHH:mm in local timezone
+    const formatLocalDateTime = (date: Date) => {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      return `${year}-${month}-${day}T${hours}:${minutes}`
+    }
+
+    return [
+      formatLocalDateTime(startDate),
+      formatLocalDateTime(endDate)
+    ]
+  },
+  set: (value) => {
+    const newData = { ...formData.value }
+    if (value && Array.isArray(value)) {
+      // Parse datetime strings in local timezone
+      const startDate = new Date(value[0]).getTime()
+      const endDate = new Date(value[1]).getTime()
+      newData.start = startDate
+      newData.end = endDate
+    } else {
+      newData.start = undefined
+      newData.end = undefined
+    }
+    emit('update:modelValue', newData)
+  }
+})
+
+// Handle form actions
+const handleSearch = () => {
+  emit('search')
+}
+
+const handleReset = () => {
+  emit('reset')
+}
+
+// Handle Enter key in input fields
+const handleKeyPress = (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
+    handleSearch()
+  }
+}
+</script>
+
+<template>
+  <el-card class="filter-form-card" shadow="never">
+    <template #header>
+      <div class="card-header">
+        <div class="header-left">
+          <el-icon><Filter /></el-icon>
+          <span class="header-title">{{ t('admin.logs.filters') }}</span>
+        </div>
+        <el-button
+          type="primary"
+          text
+          @click="handleReset"
+        >
+          {{ t('admin.actions.reset') }}
+        </el-button>
+      </div>
+    </template>
+
+    <el-form
+      :model="formData"
+      label-position="top"
+      class="filter-form"
+    >
+      <el-row :gutter="16">
+        <!-- Keyword -->
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item :label="t('admin.filters.keyword')">
+            <el-input
+              :model-value="formData.word"
+              :placeholder="t('admin.filters.keywordPlaceholder')"
+              clearable
+              @input="(value: string) => updateField('word', value)"
+              @keypress="handleKeyPress"
+            >
+              <template #prefix>
+                <el-icon><Search /></el-icon>
+              </template>
+            </el-input>
+          </el-form-item>
+        </el-col>
+
+        <!-- IP Address -->
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item :label="t('admin.filters.ip')">
+            <el-input
+              :model-value="formData.ip"
+              :placeholder="t('admin.filters.ipPlaceholder')"
+              clearable
+              @input="(value: string) => updateField('ip', value)"
+              @keypress="handleKeyPress"
+            />
+          </el-form-item>
+        </el-col>
+
+        <!-- Action Type -->
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item :label="t('admin.filters.action')">
+            <el-select
+              :model-value="formData.action"
+              :placeholder="t('admin.filters.actionPlaceholder')"
+              clearable
+              class="w-full"
+              @change="(value: number | undefined) => updateField('action', value)"
+            >
+              <el-option
+                v-for="option in actionOptions"
+                :key="option.value || 'all'"
+                :label="option.label"
+                :value="option.value"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <!-- Country -->
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item :label="t('admin.filters.country')">
+            <el-input
+              :model-value="formData.country"
+              :placeholder="t('admin.filters.countryPlaceholder')"
+              clearable
+              @input="(value: string) => updateField('country', value)"
+              @keypress="handleKeyPress"
+            />
+          </el-form-item>
+        </el-col>
+
+        <!-- Region -->
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item :label="t('admin.filters.region')">
+            <el-input
+              :model-value="formData.region"
+              :placeholder="t('admin.filters.regionPlaceholder')"
+              clearable
+              @input="(value: string) => updateField('region', value)"
+              @keypress="handleKeyPress"
+            />
+          </el-form-item>
+        </el-col>
+
+        <!-- Description -->
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item :label="t('admin.filters.description')">
+            <el-input
+              :model-value="formData.desc"
+              :placeholder="t('admin.filters.descriptionPlaceholder')"
+              clearable
+              @input="(value: string) => updateField('desc', value)"
+              @keypress="handleKeyPress"
+            />
+          </el-form-item>
+        </el-col>
+
+        <!-- Date Range -->
+        <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="6">
+          <el-form-item :label="t('admin.filters.timeRange')">
+            <el-date-picker
+              v-model="dateRange"
+              type="datetimerange"
+              :start-placeholder="t('admin.filters.startDate')"
+              :end-placeholder="t('admin.filters.endDate')"
+              format="YYYY-MM-DD HH:mm"
+              value-format="YYYY-MM-DDTHH:mm"
+              class="w-full"
+            />
+          </el-form-item>
+        </el-col>
+
+      </el-row>
+
+      <!-- Action Buttons Row -->
+      <el-row class="action-buttons-row">
+        <el-col :span="24">
+          <el-space wrap :size="12">
+            <el-button
+              type="primary"
+              :icon="Search"
+              :loading="loading"
+              @click="handleSearch"
+            >
+              {{ t('admin.actions.search') }}
+            </el-button>
+          </el-space>
+        </el-col>
+      </el-row>
+    </el-form>
+  </el-card>
+</template>
+
+<style scoped>
+.filter-form-card {
+  margin-bottom: 1rem;
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-title {
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.filter-form {
+  margin-top: 1rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+/* Action Buttons Row */
+.action-buttons-row {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.action-buttons-row .el-space {
+  width: 100%;
+}
+
+/* Form field styling */
+:deep(.el-form-item) {
+  margin-bottom: 18px;
+}
+
+:deep(.el-form-item__label) {
+  font-weight: 500;
+  color: var(--el-text-color-primary);
+  padding-bottom: 6px;
+}
+
+:deep(.el-input__wrapper) {
+  transition: all 0.2s ease;
+}
+
+:deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--el-color-primary-light-7) inset;
+}
+
+:deep(.el-input.is-focus .el-input__wrapper) {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+}
+
+/* Select styling */
+:deep(.el-select .el-input__wrapper) {
+  cursor: pointer;
+}
+
+:deep(.el-select .el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px var(--el-color-primary-light-7) inset;
+}
+
+/* Date picker styling */
+:deep(.el-date-editor) {
+  width: 100%;
+}
+
+:deep(.el-date-editor .el-input__wrapper) {
+  width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .filter-form {
+    margin-top: 0.75rem;
+  }
+
+  :deep(.el-form-item) {
+    margin-bottom: 16px;
+  }
+
+  .action-buttons-row {
+    padding-top: 12px;
+  }
+
+  .action-buttons-row .el-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  :deep(.el-form-item) {
+    margin-bottom: 14px;
+  }
+
+  :deep(.el-form-item__label) {
+    font-size: 13px;
+    padding-bottom: 4px;
+  }
+
+  .action-buttons-row {
+    padding-top: 10px;
+  }
+
+  .action-buttons-row .el-button {
+    width: 100%;
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+}
+
+/* Animation */
+.filter-form-card {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus states for accessibility */
+:deep(.el-button:focus-visible) {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: 2px;
+}
+
+:deep(.el-input__inner:focus-visible) {
+  outline: none;
+}
+</style>

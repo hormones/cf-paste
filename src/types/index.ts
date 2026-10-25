@@ -16,8 +16,9 @@ export interface PasteConfig {
 export interface FileInfo {
   name: string
   size: number
-  uploaded: string
-  etag: string
+  lastModified: number
+  etag?: string
+  contentType?: string
 }
 
 export interface UploadState {

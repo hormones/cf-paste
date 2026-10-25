@@ -19,6 +19,7 @@ const { saveKeyword } = useMain()
 function handleBlur(): void {
   // Auto-save on blur if content has changed
   if (appStore.viewMode) return
+  if (appStore.loading) return
   if (appStore.lastSavedContent === appStore.keyword.content) return
   saveKeyword()
 }

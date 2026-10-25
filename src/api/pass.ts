@@ -7,6 +7,10 @@ export const passApi = {
   },
 
   getPasteConfig(): Promise<PasteConfig> {
-    return request.get<PasteConfig>('/pass/config')
+    return request.get<PasteConfig>('/pass/config', {
+      added: {
+        skipUrlPrefix: true,
+      },
+    })
   },
 }

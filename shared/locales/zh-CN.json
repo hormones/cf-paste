@@ -11,11 +11,17 @@
       "edit": "编辑",
       "preview": "预览",
       "fullscreen": "全屏",
+      "exitFullscreen": "退出全屏",
+      "download": "下载",
+      "copy": "复制",
       "info": "信息"
+    },
+    "messages": {
+      "copySuccess": "已复制到剪贴板",
+      "copyFailed": "复制失败"
     },
     "states": {
       "loading": "加载中...",
-      "success": "成功",
       "failed": "失败",
       "warning": "警告",
       "uploading": "上传中",
@@ -61,7 +67,8 @@
     "title": "剪贴板",
     "theme": {
       "toDark": "切换到深色模式",
-      "toLight": "切换到浅色模式"
+      "toLight": "切换到浅色模式",
+      "dark": "深色模式"
     }
   },
   "clipboard": {
@@ -91,7 +98,13 @@
     "deleteConfirm": "确定要删除文件 \"{filename}\" 吗？",
     "dragHint": "拖拽文件到这里，或点击上传",
     "noFiles": "暂无上传文件",
-    "uploadLimitReached": "无法上传：文件数量或大小超出限制"
+    "uploadLimitReached": "无法上传：文件数量或大小超出限制",
+    "previewLoading": "预览加载中...",
+    "previewUnsupported": "暂不支持该文件类型的预览，请下载查看。",
+    "previewLoadError": "预览加载失败，请尝试下载文件。",
+    "previewUnknownType": "未知类型",
+    "previewTooLarge": "文件过大（{currentSize}），请直接下载查看",
+    "lines": "行"
   },
   "auth": {
     "passwordRequired": "需要密码",
@@ -122,18 +135,158 @@
     "fileTooLarge": "文件过大，建议压缩后上传",
     "fileUploadError": "文件上传失败，请重试",
     "fileDeleteError": "文件删除失败，请重试",
-    "fileListError": "获取文件列表失败，请刷新页面",
     "fileDataError": "文件数据异常，请重新选择文件",
     "contentNotFound": "内容不存在或已过期",
     "settingsSaveError": "保存设置失败，请重试",
     "invalidSettings": "设置参数无效，请检查后重试",
     "operationFailed": "操作失败，请重试",
-    "systemError": "系统异常，请稍后重试",
+    "authFailed": "认证失败，请重试",
     "invalidRequest": "请求参数错误，请重试",
     "resourceNotFound": "资源不存在",
     "requestMethod": "请求方法错误",
     "requestAddress": "请求地址错误",
     "accessDeniedWithPassword": "访问被拒绝，请检查密码或权限",
     "operationCancelled": "操作已取消"
+  },
+  "admin": {
+    "auth": {
+      "title": "管理员登录",
+      "password": "管理员密码",
+      "passwordPlaceholder": "请输入管理员密码",
+      "passwordRequired": "请输入密码",
+      "passwordMinLength": "密码至少需要6个字符",
+      "description": "请输入管理员密码以继续",
+      "securityNotice": "出于安全考虑，管理员会话将在闲置24小时后过期。",
+      "login": "登录",
+      "logout": "退出登录",
+      "loginFailed": "登录失败，密码错误",
+      "loggingIn": "登录中...",
+      "loginSuccess": "登录成功",
+      "loginError": "登录出错，请重试"
+    },
+    "dashboard": {
+      "title": "管理后台",
+      "subtitle": "系统统计与日志"
+    },
+    "tabs": {
+      "overview": "概览",
+      "logs": "详细日志"
+    },
+    "overview": {
+      "keyMetrics": "关键指标",
+      "activityTrends": "活动趋势",
+      "topRankings": "排行榜",
+      "selectTimeRange": "选择时间范围",
+      "currentTimeRange": "当前时间范围",
+      "refreshData": "刷新数据"
+    },
+    "dateRange": {
+      "today": "今日",
+      "yesterday": "昨日",
+      "last7Days": "最近7天",
+      "last30Days": "最近30天",
+      "thisMonth": "本月",
+      "allTime": "全部时间",
+      "selectRange": "选择范围",
+      "startDate": "开始日期",
+      "endDate": "结束日期"
+    },
+    "stats": {
+      "totalViews": "总访问数",
+      "totalCreates": "总新建数",
+      "todayCreates": "今日新建",
+      "activeIPs": "活跃IP数",
+      "totalViewsDesc": "所有剪贴板的总访问次数",
+      "totalCreatesDesc": "创建的剪贴板总数",
+      "activeIPsDesc": "活跃的唯一IP地址数",
+      "todayCreatesDesc": "今日新建的剪贴板数量"
+    },
+    "trends": {
+      "increased": "上升",
+      "decreased": "下降",
+      "stable": "稳定"
+    },
+    "chart": {
+      "activityTrends": "活动趋势",
+      "subtitle": "时间段内的活动数据",
+      "noData": "所选时间范围内暂无数据"
+    },
+    "metrics": {
+      "all": "全部",
+      "create": "新建",
+      "update": "修改",
+      "delete": "删除",
+      "view": "访问"
+    },
+    "rankings": {
+      "topIPs": "热门IP",
+      "topCountries": "热门国家",
+      "topRegions": "热门地区",
+      "noIPs": "暂无IP数据",
+      "noCountries": "暂无国家数据",
+      "noRegions": "暂无地区数据",
+      "rank": "排名"
+    },
+    "logs": {
+      "title": "活动日志",
+      "filters": "筛选条件",
+      "activeFilters": "当前筛选条件",
+      "filtersDescription": "以下筛选条件当前已应用于日志视图：",
+      "fromOverview": "来自概览页面的筛选",
+      "totalCount": "总计",
+      "noData": "未找到日志数据",
+      "noDataDesc": "没有符合当前筛选条件的活动日志。",
+      "tryAdjustFilters": "请尝试调整搜索筛选条件或时间范围。",
+      "exactTime": "精确时间",
+      "columns": {
+        "id": "ID",
+        "keyword": "关键词",
+        "action": "操作",
+        "ip": "IP地址",
+        "location": "位置",
+        "description": "描述",
+        "time": "时间"
+      }
+    },
+    "filters": {
+      "keyword": "关键词",
+      "keywordPlaceholder": "输入关键词搜索",
+      "ip": "IP地址",
+      "ipPlaceholder": "输入IP地址",
+      "action": "操作类型",
+      "actionPlaceholder": "选择操作类型",
+      "country": "国家",
+      "countryPlaceholder": "输入国家名称",
+      "region": "地区",
+      "regionPlaceholder": "输入地区名称",
+      "description": "描述",
+      "descriptionPlaceholder": "输入描述",
+      "timeRange": "时间范围",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "actions": "操作"
+    },
+    "actions": {
+      "all": "全部操作",
+      "search": "搜索",
+      "reset": "重置",
+      "export": "导出",
+      "exportData": "导出数据",
+      "refresh": "刷新",
+      "viewDetails": "查看详情"
+    },
+    "actionLabels": {
+      "1": "新建",
+      "2": "修改正文",
+      "3": "上传文件",
+      "4": "下载文件",
+      "5": "删除文件",
+      "6": "访问",
+      "7": "删除",
+      "99": "自动过期"
+    },
+    "errors": {
+      "fetchLogsFailed": "获取日志数据失败"
+    }
   }
 }

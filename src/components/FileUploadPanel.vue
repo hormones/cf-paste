@@ -77,7 +77,6 @@ const handleCancelUpload = (fileName: string) => {
   min-height: 230px; /* Increase minimum height to accommodate progress bar */
   border: 2px dashed var(--el-border-color);
   border-radius: 8px;
-  transition: border-color 0.3s ease;
   display: flex; /* Use flex layout to make child elements fill */
   align-items: center; /* Vertical center */
   justify-content: center; /* Horizontal center */

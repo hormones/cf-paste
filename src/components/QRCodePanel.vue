@@ -93,7 +93,6 @@ const handleCopy = (text: string) => {
 .refresh-btn {
   cursor: pointer;
   color: var(--color-text-secondary);
-  transition: color 0.2s, transform 0.3s ease-out;
 }
 .refresh-btn:hover {
   color: var(--el-color-primary);
@@ -104,7 +103,6 @@ const handleCopy = (text: string) => {
   cursor: pointer;
   padding: 10px;
   border-radius: 8px;
-  transition: transform 0.2s ease-out;
 }
 
 .qrcode-wrapper:hover {

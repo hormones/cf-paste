@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { dataApi } from '@/api/data'
 import { useAppStore } from '@/stores'
@@ -26,8 +26,10 @@ export function useSettings() {
     appStore.resetSettings()
   }
 
+  const saving = ref(false)
+
   const saveSettings = async () => {
-    appStore.setLoading(true)
+    saving.value = true
     try {
       const settings = {
         expire_value: appStore.expiry,
@@ -64,7 +66,7 @@ export function useSettings() {
       ElMessage.error(t('common.msg.saveFailed'))
       throw error
     } finally {
-      appStore.setLoading(false)
+      saving.value = false
     }
   }
 
@@ -90,5 +92,6 @@ export function useSettings() {
     openSettings,
     closeSettings,
     saveSettings,
+    saving,
   }
 }

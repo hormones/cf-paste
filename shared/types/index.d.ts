@@ -5,6 +5,12 @@ declare global {
     msg?: string | null
   }
 
+  interface Pagination {
+    page: number           // Current page
+    pageSize: number       // Page size
+    total: number          // Total count
+  }
+
   interface Keyword {
     id?: number
     word: string

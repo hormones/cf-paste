@@ -11,11 +11,17 @@
       "edit": "Edit",
       "preview": "Preview",
       "fullscreen": "Fullscreen",
+      "exitFullscreen": "Exit Fullscreen",
+      "download": "Download",
+      "copy": "Copy",
       "info": "Info"
+    },
+    "messages": {
+      "copySuccess": "Copied to clipboard",
+      "copyFailed": "Copy failed"
     },
     "states": {
       "loading": "Loading...",
-      "success": "Success",
       "failed": "Failed",
       "warning": "Warning",
       "uploading": "Uploading",
@@ -61,7 +67,8 @@
     "title": "Clipboard",
     "theme": {
       "toDark": "Switch to dark mode",
-      "toLight": "Switch to light mode"
+      "toLight": "Switch to light mode",
+      "dark": "Dark Mode"
     }
   },
   "clipboard": {
@@ -91,7 +98,13 @@
     "deleteConfirm": "Are you sure you want to delete the file \"{filename}\"?",
     "dragHint": "Drop files here or click to upload",
     "noFiles": "No files uploaded yet",
-    "uploadLimitReached": "Cannot upload: file count or size limit reached"
+    "uploadLimitReached": "Cannot upload: file count or size limit reached",
+    "previewLoading": "Loading preview...",
+    "previewUnsupported": "Preview is not available for this file type. Please download instead.",
+    "previewLoadError": "Failed to load preview. You can try downloading the file.",
+    "previewUnknownType": "Unknown type",
+    "previewTooLarge": "File is too large ({currentSize}), please download to view",
+    "lines": "lines"
   },
   "auth": {
     "passwordRequired": "Password Required",
@@ -122,18 +135,158 @@
     "fileTooLarge": "File too large, please compress and try again",
     "fileUploadError": "File upload failed, please try again",
     "fileDeleteError": "File deletion failed, please try again",
-    "fileListError": "Failed to load file list, please refresh the page",
     "fileDataError": "File data error, please select file again",
     "contentNotFound": "Content not found or expired",
     "settingsSaveError": "Failed to save settings, please try again",
     "invalidSettings": "Invalid settings, please check and try again",
     "operationFailed": "Operation failed, please try again",
-    "systemError": "System error, please try again later",
+    "authFailed": "Authentication failed, please try again",
     "invalidRequest": "Invalid request, please try again",
     "resourceNotFound": "Resource not found",
     "requestMethod": "Request method error",
     "requestAddress": "Request address error",
     "accessDeniedWithPassword": "Access denied, please check password or permissions",
     "operationCancelled": "Operation cancelled"
+  },
+  "admin": {
+    "auth": {
+      "title": "Admin Login",
+      "password": "Admin Password",
+      "passwordPlaceholder": "Enter admin password",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "description": "Enter admin password to continue",
+      "securityNotice": "For security reasons, admin sessions will expire after 24 hours of inactivity.",
+      "login": "Login",
+      "loggingIn": "Logging in...",
+      "loginSuccess": "Login successful",
+      "logout": "Logout",
+      "loginFailed": "Login failed, incorrect password",
+      "loginError": "Login error, please try again"
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "subtitle": "System Statistics and Logs"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "logs": "Detailed Logs"
+    },
+    "overview": {
+      "keyMetrics": "Key Metrics",
+      "activityTrends": "Activity Trends",
+      "topRankings": "Top Rankings",
+      "selectTimeRange": "Select Time Range",
+      "currentTimeRange": "Current Time Range",
+      "refreshData": "Refresh Data"
+    },
+    "dateRange": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "thisMonth": "This Month",
+      "allTime": "All Time",
+      "selectRange": "Select Range",
+      "startDate": "Start Date",
+      "endDate": "End Date"
+    },
+    "stats": {
+      "totalViews": "Total Views",
+      "totalCreates": "Total Creates",
+      "todayCreates": "Today's Creates",
+      "activeIPs": "Active IPs",
+      "totalViewsDesc": "Total number of views across all pastes",
+      "totalCreatesDesc": "Total number of pastes created",
+      "activeIPsDesc": "Number of unique active IP addresses",
+      "todayCreatesDesc": "Number of new pastes created today"
+    },
+    "trends": {
+      "increased": "Increased",
+      "decreased": "Decreased",
+      "stable": "Stable"
+    },
+    "chart": {
+      "activityTrends": "Activity Trends",
+      "subtitle": "Activity data over time",
+      "noData": "No data available for the selected time range"
+    },
+    "metrics": {
+      "all": "All",
+      "create": "Create",
+      "update": "Update",
+      "delete": "Delete",
+      "view": "View"
+    },
+    "rankings": {
+      "topIPs": "Top IPs",
+      "topCountries": "Top Countries",
+      "topRegions": "Top Regions",
+      "noIPs": "No IP data available",
+      "noCountries": "No country data available",
+      "noRegions": "No region data available",
+      "rank": "Rank"
+    },
+    "logs": {
+      "title": "Activity Logs",
+      "filters": "Filters",
+      "activeFilters": "Active Filters",
+      "filtersDescription": "The following filters are currently applied to the log view:",
+      "fromOverview": "Filter applied from overview page",
+      "totalCount": "Total",
+      "noData": "No log data found",
+      "noDataDesc": "No activity logs match your current filters.",
+      "tryAdjustFilters": "Try adjusting your search filters or time range.",
+      "exactTime": "Exact time",
+      "columns": {
+        "id": "ID",
+        "keyword": "Keyword",
+        "action": "Action",
+        "ip": "IP Address",
+        "location": "Location",
+        "description": "Description",
+        "time": "Time"
+      }
+    },
+    "filters": {
+      "keyword": "Keyword",
+      "keywordPlaceholder": "Enter keyword to search",
+      "ip": "IP Address",
+      "ipPlaceholder": "Enter IP address",
+      "action": "Action Type",
+      "actionPlaceholder": "Select action type",
+      "country": "Country",
+      "countryPlaceholder": "Enter country name",
+      "region": "Region",
+      "regionPlaceholder": "Enter region name",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter description",
+      "timeRange": "Time Range",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "actions": "Actions"
+    },
+    "actions": {
+      "all": "All Actions",
+      "search": "Search",
+      "reset": "Reset",
+      "export": "Export",
+      "exportData": "Export data",
+      "refresh": "Refresh",
+      "viewDetails": "View Details"
+    },
+    "actionLabels": {
+      "1": "Create",
+      "2": "Update Content",
+      "3": "Upload File",
+      "4": "Download File",
+      "5": "Delete File",
+      "6": "View",
+      "7": "Delete",
+      "99": "Auto Expire"
+    },
+    "errors": {
+      "fetchLogsFailed": "Failed to fetch logs data"
+    }
   }
 }

@@ -1,33 +1,16 @@
 <script setup lang="ts">
-import { shallowRef } from 'vue'
-import type { Component } from 'vue'
 import Template from '@/templates/DefaultTemplate.vue'
 
-const currentTemplate = shallowRef<Component>(Template)
+function dismissLoading() {
+  const el = document.getElementById('app-loading')
+  if (!el) return
+  el.classList.add('fade-out')
+  el.addEventListener('transitionend', () => el.remove(), { once: true })
+}
 </script>
 
 <template>
-  <Suspense>
-    <template #default>
-      <main>
-        <component
-          :is="currentTemplate"
-          v-if="currentTemplate"
-        />
-      </main>
-    </template>
-    <template #fallback>
-      <div class="loading">{{ $t('common.states.loading') }}</div>
-    </template>
-  </Suspense>
+  <main>
+    <Template @ready="dismissLoading" />
+  </main>
 </template>
-
-<style scoped>
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  font-size: 1.2em;
-}
-</style>

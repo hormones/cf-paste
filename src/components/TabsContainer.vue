@@ -127,7 +127,6 @@ const copyContent = async () => {
   display: flex;
   gap: 4px;
   opacity: 0.8;
-  transition: opacity 0.3s ease;
   flex-shrink: 0;
 }
 

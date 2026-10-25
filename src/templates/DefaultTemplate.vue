@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-
 // Component imports
 import PageHeader from '@/components/PageHeader.vue'
 import PasswordDialog from '@/components/PasswordDialog.vue'
@@ -8,6 +6,8 @@ import TabsContainer from '@/components/TabsContainer.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
 import QRCodePanel from '@/components/QRCodePanel.vue'
 import SettingsDialog from '@/components/SettingsDialog.vue'
+
+import { onMounted } from 'vue'
 
 // Store and Composable imports
 import { useAppStore } from '@/stores'
@@ -23,20 +23,22 @@ const { fetchKeyword } = useMain()
 const { fetchConfig, fetchFileList } = useFileUpload()
 const { initializeLanguage } = useI18n()
 
-// Event handlers
+const emit = defineEmits<{ ready: [] }>()
 
 onMounted(async () => {
-  // Initialize configuration
-  await fetchConfig()
+  try {
+    const [, keywordData] = await Promise.all([
+      fetchConfig().then(() => initializeLanguage()),
+      fetchKeyword(),
+    ])
 
-  // Initialize language after config is loaded
-  initializeLanguage()
-
-  // Load content
-  const keywordData = await fetchKeyword()
-  // If keyword exists, load file list
-  if (keywordData) {
-    await fetchFileList()
+    if (keywordData) {
+      await fetchFileList()
+    }
+  } finally {
+    // Always release the loading overlay, even when the first API calls fail
+    // (offline, 401 waiting for a password, 404, or a hung request).
+    emit('ready')
   }
 })
 </script>
