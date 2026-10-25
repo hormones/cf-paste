@@ -26,16 +26,20 @@ const { initializeLanguage } = useI18n()
 const emit = defineEmits<{ ready: [] }>()
 
 onMounted(async () => {
-  const [, keywordData] = await Promise.all([
-    fetchConfig().then(() => initializeLanguage()),
-    fetchKeyword(),
-  ])
+  try {
+    const [, keywordData] = await Promise.all([
+      fetchConfig().then(() => initializeLanguage()),
+      fetchKeyword(),
+    ])
 
-  if (keywordData) {
-    await fetchFileList()
+    if (keywordData) {
+      await fetchFileList()
+    }
+  } finally {
+    // Always release the loading overlay, even when the first API calls fail
+    // (offline, 401 waiting for a password, 404, or a hung request).
+    emit('ready')
   }
-
-  emit('ready')
 })
 </script>
 

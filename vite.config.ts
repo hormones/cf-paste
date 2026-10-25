@@ -65,6 +65,16 @@ export default defineConfig({
 	},
 	build: {
 		sourcemap: isDev,
+		// Vite 6 defaults to 'baseline-widely-available' (chrome87/es2020), which
+		// emits `??` / `?.`. Old Android WebView kernels (e.g. the Chromium 66
+		// build baked into Android 9 / Android TV firmware) throw a
+		// "Uncaught SyntaxError: Unexpected token ?" while parsing the very first
+		// vendor chunk, so nothing renders and the HTML loading spinner stays
+		// forever. Lowering the target to chrome64 makes the output parseable.
+		// NOTE: syntax downleveling alone is not enough - APIs like `globalThis`
+		// are polyfilled in index.html.
+		target: ['es2015', 'chrome64', 'safari12', 'firefox60'],
+		cssTarget: ['chrome64', 'safari12', 'firefox60'],
 		rollupOptions: {
 			external: isCloudflare ? [] : ['better-sqlite3'],
 			output: {

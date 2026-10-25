@@ -39,11 +39,31 @@
   <body>
     <div id="app-loading"><div class="spinner"></div></div>
     <script>
+      // Minimal runtime polyfills for old WebView kernels (e.g. Android 9 AOSP
+      // WebView on Chromium 66). These are APIs, not syntax: lowering the Vite
+      // build target does not polyfill them, but some bundled deps use them at
+      // module-evaluation time, which would abort the whole bundle.
       ;(function () {
-        var theme = localStorage.getItem('theme')
-        var el = document.getElementById('app-loading')
-        if (theme === 'dark' || theme === 'light') {
-          el.classList.add(theme)
+        if (typeof globalThis === 'undefined') {
+          try {
+            Object.defineProperty(window, 'globalThis', { value: window, writable: true, configurable: true })
+          } catch (e) {
+            window.globalThis = window
+          }
+        }
+      })()
+    </script>
+    <script>
+      ;(function () {
+        try {
+          var theme = localStorage.getItem('theme')
+          var el = document.getElementById('app-loading')
+          if (theme === 'dark' || theme === 'light') {
+            el.classList.add(theme)
+          }
+        } catch (e) {
+          // Some Android in-app browsers / WebViews deny DOM storage access.
+          // Never let the theme pre-paint throw and abort the rest of the page.
         }
       })()
     </script>

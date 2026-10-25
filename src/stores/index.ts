@@ -186,13 +186,24 @@ export const useAppStore = defineStore('app', {
     // Toggle theme between light and dark
     toggleTheme() {
       this.theme = this.theme === 'light' ? 'dark' : 'light'
-      localStorage.setItem('theme', this.theme)
+      try {
+        localStorage.setItem('theme', this.theme)
+      } catch {
+        // Some Android in-app browsers / WebViews throw on storage access
+      }
       this._applyTheme()
     },
 
     // Initialize theme: 1. Read from localStorage first. 2. If not available, set based on current time.
     initTheme() {
-      const savedTheme = localStorage.getItem('theme') as Theme | null
+      let savedTheme: Theme | null = null
+      try {
+        savedTheme = localStorage.getItem('theme') as Theme | null
+      } catch {
+        // Storage unavailable (blocked cookies / private mode / some WebViews):
+        // fall back to time-based theme instead of throwing during setup.
+        savedTheme = null
+      }
 
       if (savedTheme && ['light', 'dark'].includes(savedTheme)) {
         this.theme = savedTheme
