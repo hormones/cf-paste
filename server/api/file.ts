@@ -25,12 +25,18 @@ export async function handleFileDownload(req: IRequest, ctx: IContext): Promise<
   const prefix = `${req.word}/${Constant.FILE_FOLDER}`
   const range = req.getHeader('range')
 
-  let downloadOptions: any = { prefix, name }
+  const downloadOptions: any = { prefix, name }
 
   if (range) {
-    // We need to get file size first for proper range parsing
-    // For now, pass a large number and let storage adapter handle it
-    const rangeInfo = Utils.parseRange(range, Number.MAX_SAFE_INTEGER)
+    // Only forward *closed* ranges. An open-ended range such as `bytes=0-`
+    // (which browsers and download managers send constantly) cannot be
+    // resolved without knowing the real file size, and guessing
+    // Number.MAX_SAFE_INTEGER produces end=9007199254740990. The storage
+    // adapters then compare that against the real size, decide the range is
+    // unsatisfiable and answer 416 with `Content-Range: bytes */<size>`,
+    // which makes the browser report the download as "-1 B" / unknown length.
+    // Answering 200 for these requests is both correct and cheaper.
+    const rangeInfo = Utils.parseClosedRange(range)
     if (rangeInfo) {
       downloadOptions.range = rangeInfo
     }

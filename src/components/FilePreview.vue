@@ -78,6 +78,7 @@ import { computed, defineAsyncComponent, provide, ref, watch } from 'vue'
 import { Download, Loading, Warning } from '@element-plus/icons-vue'
 import type { FileInfo } from '@/types'
 import api from '@/api'
+import { fileApi } from '@/api/file'
 import { useI18n } from '@/composables/useI18n'
 import { Utils } from '@/utils'
 import { getPreviewCategory, type PreviewCategory } from 'shared/utils/mime'
@@ -207,10 +208,9 @@ const handleClose = () => {
 }
 
 const handleDownload = () => {
-  const link = document.createElement('a')
-  link.href = fileUrl.value.replace('preview=true', 'preview=false')
-  link.download = props.file.name
-  link.click()
+  // Route through fileApi so the saved name is correct even in browsers that
+  // ignore Content-Disposition (blob download keeps the original filename).
+  fileApi.download(props.file.name, props.file.size)
 }
 </script>
 
@@ -334,7 +334,12 @@ const handleDownload = () => {
 
 .preview-overlay {
   position: absolute;
-  inset: 0;
+  /* Longhands instead of `inset: 0` - the shorthand is unsupported before
+     Chrome 87 and would be dropped entirely on old Android WebView. */
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;

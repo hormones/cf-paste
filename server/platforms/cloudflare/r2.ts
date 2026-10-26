@@ -85,7 +85,11 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
         const { start, end } = options.range
         const totalSize = objectMeta.size
 
-        if (start >= totalSize || end >= totalSize) {
+        // Only a start offset at/after EOF is genuinely unsatisfiable.
+        // An end offset past EOF must be clamped: `bytes=0-100` against a
+        // 19-byte object is a valid request, and answering 416 there makes
+        // browsers report the download with an unknown ("-1 B") length.
+        if (start >= totalSize) {
           const headers = new Headers()
           headers.set('Content-Range', `bytes */${totalSize}`)
           return {
@@ -96,8 +100,10 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
           }
         }
 
+        const effectiveEnd = Math.min(end, totalSize - 1)
+
         const object = await r2.get(key, {
-          range: { offset: start, length: end - start + 1 },
+          range: { offset: start, length: effectiveEnd - start + 1 },
         })
 
         if (!object) {
@@ -110,8 +116,8 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
         }
 
         const headers = new Headers()
-        headers.set('Content-Range', `bytes ${start}-${end}/${totalSize}`)
-        headers.set('Content-Length', (end - start + 1).toString())
+        headers.set('Content-Range', `bytes ${start}-${effectiveEnd}/${totalSize}`)
+        headers.set('Content-Length', (effectiveEnd - start + 1).toString())
         headers.set('Accept-Ranges', 'bytes')
         object.writeHttpMetadata(headers)
         if (!headers.get('Content-Type')) {
