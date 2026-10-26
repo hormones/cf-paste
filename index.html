@@ -8,7 +8,17 @@
     <style>
       #app-loading {
         position: fixed;
-        inset: 0;
+        /* Use the four longhands instead of the `inset: 0` shorthand. Anything
+           before Chrome 87 drops the shorthand entirely, leaving the fixed
+           overlay at its static origin (a small box in the top-left corner)
+           instead of covering the viewport. Verified on a Chromium 66 build:
+           `inset: 0` -> 42x42 box at (8,8); longhands -> full 406x763 viewport.
+           Vendor browsers (e.g. BYD DiLink, which reports Chrome/105) also ship
+           forked Blink engines, so avoid the shorthand here. */
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
         display: flex;
         align-items: center;
         justify-content: center;

@@ -1,6 +1,37 @@
 import { IRequest } from "../types"
 import { detectMimeType as detectMimeFromShared, FALLBACK_MIME } from "../../shared/utils/mime"
 
+/**
+ * Build an ASCII-only fallback filename that keeps the original extension.
+ * "测试文档.txt" -> "download.txt" (not ".txt", not "download"), so a browser
+ * that ignores the RFC 5987 `filename*` parameter still saves a .txt rather
+ * than falling back to the content-type extension (.bin for octet-stream).
+ */
+export function buildAsciiFallbackName(filename: string): string {
+  const dot = filename.lastIndexOf('.')
+  const hasExt = dot > 0 && dot < filename.length - 1
+  const basePart = hasExt ? filename.slice(0, dot) : filename
+  const extPart = hasExt ? filename.slice(dot + 1) : ''
+
+  const toAscii = (value: string): string =>
+    value
+      .normalize('NFKD')
+      // Drop combining marks so "café" -> "cafe" instead of "caf"
+      .replace(/[\u0300-\u036f]/g, '')
+      // Strip everything outside printable ASCII
+      .replace(/[^\x20-\x7E]+/g, '')
+      // Header-unsafe characters
+      .replace(/["\\;]/g, '_')
+      // Collapse runs of whitespace and trim leftover separators
+      .replace(/\s+/g, ' ')
+      .replace(/^[\s._-]+|[\s._-]+$/g, '')
+      .trim()
+
+  const asciiBase = toAscii(basePart) || 'download'
+  const asciiExt = toAscii(extPart)
+  return asciiExt ? `${asciiBase}.${asciiExt}` : asciiBase
+}
+
 export const Utils = {
   /**
    * Generate random alphanumeric string with configurable options
@@ -86,6 +117,43 @@ export const Utils = {
       end,
     }
   },
+  /**
+   * Parse a Range header that specifies both bounds (e.g. `bytes=0-499`).
+   *
+   * Returns null for open-ended (`bytes=0-`) and suffix (`bytes=-500`) forms,
+   * because those require the real file size to resolve and the caller does not
+   * know it yet. Forwarding a bogus total (Number.MAX_SAFE_INTEGER) makes the
+   * storage adapters emit 416 for perfectly valid requests, which is what made
+   * downloads show up as "-1 B" with unknown length. Serving the whole file
+   * instead of a partial response is a valid, correct answer for those forms.
+   */
+  parseClosedRange: (range: string): { start: number; end: number } | null => {
+    if (!range || !range.startsWith('bytes=')) {
+      return null
+    }
+
+    const rangeSpec = range.replace(/^bytes=/, '')
+
+    // Multi-range requests (bytes=0-1,5-6) are not supported; serve whole file.
+    if (rangeSpec.includes(',')) {
+      return null
+    }
+
+    // Open-ended (bytes=0-) and suffix (bytes=-500) need the real size.
+    if (rangeSpec.endsWith('-') || rangeSpec.startsWith('-')) {
+      return null
+    }
+
+    const [startStr, endStr] = rangeSpec.split('-')
+    const start = parseInt(startStr, 10)
+    const end = parseInt(endStr, 10)
+
+    if (isNaN(start) || isNaN(end) || start < 0 || end < start) {
+      return null
+    }
+
+    return { start, end }
+  },
   extractPathVariables: (pattern: string, path: string): Record<string, string> => {
     const variables: Record<string, string> = {}
     const sp = path.split('?')
@@ -126,12 +194,12 @@ export const Utils = {
   },
 
   buildContentDisposition(filename: string, disposition: 'inline' | 'attachment' = 'attachment'): string {
-    const sanitized = filename
-      .normalize('NFKD')
-      .replace(/[^\x20-\x7E]+/g, '')
-      .replace(/["\\]/g, '_')
-      .trim()
-    const fallbackName = sanitized.length > 0 ? sanitized : 'download'
+    // RFC 6266 allows two names: an ASCII `filename=` fallback and a UTF-8
+    // `filename*=`. Some Android in-app browsers and WebView DownloadListeners
+    // ignore `filename*` entirely and only read `filename=`, so the fallback
+    // must never degrade into something useless like "download" or ".txt"
+    // (the latter happens when only the extension survives stripping).
+    const fallbackName = buildAsciiFallbackName(filename)
     const encoded = encodeURIComponent(filename)
       .replace(/['()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
       .replace(/%(7C|5E|60)/g, (match) => match.toLowerCase())

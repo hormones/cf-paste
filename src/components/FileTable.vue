@@ -68,7 +68,6 @@ import { View, Download, Delete } from '@element-plus/icons-vue'
 import { useFileUpload } from '@/composables/useFileUpload'
 import type { FileInfo } from '@/types'
 import { fileApi } from '@/api/file'
-import api from '@/api'
 import { useAppStore } from '@/stores'
 import { Utils } from '@/utils'
 import { useI18n } from '@/composables/useI18n'
@@ -122,7 +121,7 @@ const handlePreviewClose = () => {
 }
 
 const handleFileDownload = async (file: FileInfo) => {
-  fileApi.download(file.name)
+  await fileApi.download(file.name, file.size)
 }
 
 const handleFileDelete = async (file: FileInfo) => {
@@ -142,8 +141,7 @@ const handleFileDelete = async (file: FileInfo) => {
 const canPreview = (file: FileInfo) => isPreviewSupported(file.name, file.contentType)
 
 const openFileInNewTab = (file: FileInfo) => {
-  const url = `${api.getUrlPrefix()}/file/download?name=${encodeURIComponent(file.name)}`
-  window.open(url, '_blank', 'noopener')
+  fileApi.openInNewTab(file.name)
 }
 </script>
 
