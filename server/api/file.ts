@@ -46,7 +46,16 @@ export async function handleFileDownload(req: IRequest, ctx: IContext): Promise<
 
   // For streaming downloads, we need to handle the response differently
   if (result.status === 206 || result.status === 200) {
-    const headers = Object.fromEntries(result.headers.entries())
+    const headers: Record<string, string> = {}
+
+    // Copy through the storage headers, dropping any Content-Disposition the
+    // adapter may have set. Header names are case-insensitive on the wire, but
+    // a plain object is not: keeping a lowercase 'content-disposition' next to
+    // our capitalized one emitted two values for the same header.
+    for (const [key, value] of result.headers.entries()) {
+      if (key.toLowerCase() === 'content-disposition') continue
+      headers[key] = value
+    }
 
     // Determine Content-Disposition based on preview parameter
     // Default: attachment (download), preview=true: inline (preview in browser)

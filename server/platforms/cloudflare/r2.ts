@@ -124,7 +124,9 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
           headers.set('Content-Type', Utils.detectMimeType(options.name))
         }
         headers.set('ETag', object.httpEtag)
-        headers.set('Content-Disposition', Utils.buildContentDisposition(options.name))
+        // Content-Disposition is set by the download handler, which knows
+        // whether the response is an inline preview or an attachment. Setting
+        // it here too emitted two values for the same header.
 
         return {
           status: 206,
@@ -155,7 +157,8 @@ export function createR2Adapter(r2: R2Bucket): StorageAdapter {
       }
       headers.set('Content-Length', object.size.toString())
       headers.set('ETag', object.etag)
-      headers.set('Content-Disposition', Utils.buildContentDisposition(options.name))
+      // Content-Disposition is set by the download handler (attachments) or
+      // overridden for previews; duplicating it here emitted two values.
 
       return {
         status: 200,
