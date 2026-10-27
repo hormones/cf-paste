@@ -62,6 +62,13 @@ export async function handleFileDownload(req: IRequest, ctx: IContext): Promise<
     const disposition = preview === 'true' ? 'inline' : 'attachment'
     headers['Content-Disposition'] = Utils.buildContentDisposition(name, disposition)
 
+    // Cloudflare compresses compressible content types (text/*, json, svg, ...)
+    // and drops Content-Length when it does, which leaves the download manager
+    // without a total size and makes Range/Content-Range disagree with the wire
+    // bytes. `no-transform` keeps the payload byte-identical to what the
+    // adapter reported.
+    headers['Cache-Control'] = 'no-transform'
+
     // Return the stream directly for efficient streaming
     return {
       code: 0,

@@ -208,9 +208,9 @@ const handleClose = () => {
 }
 
 const handleDownload = () => {
-  // Route through fileApi so the saved name is correct even in browsers that
-  // ignore Content-Disposition (blob download keeps the original filename).
-  fileApi.download(props.file.name, props.file.size)
+  // Streams straight into the browser's download manager; the server's
+  // Content-Disposition carries the original filename.
+  fileApi.download(props.file.name)
 }
 </script>
 

@@ -120,8 +120,8 @@ const handlePreviewClose = () => {
   previewFile.value = null
 }
 
-const handleFileDownload = async (file: FileInfo) => {
-  await fileApi.download(file.name, file.size)
+const handleFileDownload = (file: FileInfo) => {
+  fileApi.download(file.name)
 }
 
 const handleFileDelete = async (file: FileInfo) => {

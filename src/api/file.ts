@@ -4,15 +4,26 @@ import { uploadFile } from '@/utils/fileUploader'
 import { handleError } from '@/utils/errorHandler'
 import api from './index'
 
-// Some Android in-app browsers (e.g. the DiLink system browser) ignore both
-// the `download` attribute and the Content-Disposition header, so they save
-// everything as "download.bin" derived from application/octet-stream. Fetching
-// the bytes and handing the browser a blob URL keeps the real filename,
-// because blob URLs always honour the anchor's `download` attribute.
-// Above this size we fall back to a plain navigation to avoid ballooning memory.
-const BLOB_DOWNLOAD_LIMIT = 64 * 1024 * 1024
+/** Build the download endpoint URL; `preview` selects the inline disposition. */
+function buildDownloadUrl(fileName: string, preview = false): string {
+  const query = `name=${encodeURIComponent(fileName)}`
+  return `${api.getUrlPrefix()}/file/download?${query}${preview ? '&preview=true' : ''}`
+}
 
-function triggerAnchorDownload(href: string, fileName?: string, openInNewTab = false) {
+/**
+ * Start a same-origin top-level navigation and let the browser's download
+ * manager own the response.
+ *
+ * The endpoint answers with `Content-Disposition: attachment`, so the browser
+ * creates the download entry as soon as the response headers arrive and writes
+ * the body to disk while it streams. Fetching the bytes first and handing the
+ * result to a blob URL instead buffers the entire file in page memory before
+ * the save dialog appears, which loses streaming and the progress indicator.
+ *
+ * The `download` attribute is only a fallback: the HTML spec gives the
+ * server-provided `Content-Disposition` filename precedence over it.
+ */
+function triggerNavigation(href: string, fileName?: string, openInNewTab = false): void {
   const link = document.createElement('a')
   link.href = href
   if (fileName) link.download = fileName
@@ -64,45 +75,13 @@ export const fileApi = {
     return request.delete('/file/all')
   },
 
-  /**
-   * Download a file.
-   * Uses a blob URL so the saved filename is always the original one, which
-   * fixes browsers that ignore Content-Disposition. Falls back to a direct
-   * navigation when the file is large or the blob path is unavailable.
-   */
-  async download(fileName: string, fileSize = 0): Promise<void> {
-    const url = `${api.getUrlPrefix()}/file/download?name=${encodeURIComponent(fileName)}`
-
-    const canUseBlob =
-      typeof fetch === 'function' &&
-      typeof URL !== 'undefined' &&
-      typeof URL.createObjectURL === 'function' &&
-      (!fileSize || fileSize <= BLOB_DOWNLOAD_LIMIT)
-
-    if (canUseBlob) {
-      try {
-        const response = await fetch(url)
-        if (!response.ok) throw new Error(`download failed: ${response.status}`)
-        const blob = await response.blob()
-        const objectUrl = URL.createObjectURL(blob)
-        try {
-          triggerAnchorDownload(objectUrl, fileName)
-        } finally {
-          // Revoke on the next tick so the click has been dispatched.
-          setTimeout(() => URL.revokeObjectURL(objectUrl), 30000)
-        }
-        return
-      } catch (error) {
-        console.error('Blob download failed, falling back to direct link:', error)
-      }
-    }
-
-    triggerAnchorDownload(url, fileName)
+  /** Download a file through the browser's own download manager. */
+  download(fileName: string): void {
+    triggerNavigation(buildDownloadUrl(fileName), fileName)
   },
 
   /** Open the file inline in a new tab (preview only, no save-as semantics). */
   openInNewTab(fileName: string): void {
-    const url = `${api.getUrlPrefix()}/file/download?name=${encodeURIComponent(fileName)}`
-    triggerAnchorDownload(url, undefined, true)
+    triggerNavigation(buildDownloadUrl(fileName, true), undefined, true)
   },
 }
